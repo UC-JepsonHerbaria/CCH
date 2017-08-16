@@ -1,0 +1,906 @@
+{\rtf1\mac\ansicpg10000\cocoartf824\cocoasubrtf410
+{\fonttbl\f0\froman\fcharset77 TimesNewRomanPSMT;\f1\froman\fcharset77 Times-Bold;\f2\froman\fcharset77 TimesNewRomanPS-BoldMT;
+\f3\froman\fcharset77 TimesNewRomanPS-BoldItalicMT;\f4\froman\fcharset77 TimesNewRomanPS-ItalicMT;\f5\froman\fcharset77 Times-Italic;
+\f6\froman\fcharset77 Times-Roman;\f7\fmodern\fcharset77 CourierNewPSMT;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue255;\red0\green0\blue0;}
+{\info
+{\title LOGGING ON TO SMASCH VIA X11}
+{\author William Cain}
+{\*\company  }}\vieww17300\viewh16000\viewkind0
+\deftab720
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f0\fs24 \cf0 \
+\pard\pardeftab720\qc\pardirnatural
+
+\f1\b \cf0 USING THIS SUMMARY OF SMASCH NOTES\
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f0\b0 \cf0 \
+This is a concise summary of the procedures needed to enter the UCSC Herbarium data into the SMASCH database.\
+This summary is 
+\f2\b organized by
+\f0\b0 : \
+The name of each SMASCH window that Accession data needs to be entered into.\
+ The fields within each SMASCH window that Accession data needs to be entered.  
+\f2\b NOTE
+\f0\b0 :  the order in which all the following topics are discussed represents an order that optimizes data entry speed and accuracy.  It is recommended that the Accession data should be entered in this order for the 
+\f2\b best efficiency
+\f0\b0 .             \
+All 
+\f2\b \ul underlined words
+\f0\b0 \ulnone  represent examples for each corresponding field.\
+All 
+\f3\i\b italicized words
+\f0\i0\b0  are either major data types or field headings.\
+The 
+\f2\b page numbers
+\f0\b0  following information about each field refers to where that topic is discussed in the SMASCH instruction handbook (1996 edition).  \ul p #12\ulnone .\
+\
+\pard\pardeftab720\qc\pardirnatural
+
+\f1\b \cf0 TIPS AND PITFALLS \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f0\b0 \cf0 \
+
+\f2\b Dick Moe contact
+\f0\b0 :  (510) 642-2465;  HYPERLINK "mailto:rlmoe@uclink4.berkeley.edu" \cf2 \ul \ulc2 rlmoe@uclink4.berkeley.edu\cf0 \ulnone \
+
+\f2\b Jeff Barna contact
+\f0\b0 : (530) 401-3211;  HYPERLINK "mailto:jjpfbarna@yahoo.com" \cf2 \ul \ulc2 jjpfbarna@yahoo.com\cf0 \ulnone \
+
+\f2\b Annotator:
+\f0\b0  The individual who identified the specimen.\
+
+\f2\b Window:
+\f0\b0  Each page in the SMASCH database that Accession data should be entered in (\ul e.g. the 
+\f4\i Accession Object
+\f0\i0  data entry page is a window\ulnone ).   \
+
+\f2\b Field:
+\f0\b0   one line in a window that requires data entry by SMASCH personnel (\ul e.g. the 
+\f4\i Accession Number
+\f0\i0  is the first field on the 
+\f4\i Accession Object
+\f0\i0  window\ulnone ).\
+
+\f2\b Query
+\f0\b0 : A search of the SMASCH database for any and all types of names.\
+
+\f2\b Primary Label: 
+\f0\b0 the label that was affixed to the specimen when the plant was mounted (\ul i.e. the original label\ulnone ).  This typically reflects the first identification by the collector.\
+\pard\tx4230\pardeftab720\ql\qnatural\pardirnatural
+
+\f2\b \cf0 Primary Filing Name
+\f0\b0 :  the name of a specimen by which it is currently known.  This name will be the most recent 
+\f4\i Annotation
+\f0\i0  (\ul i.e. identification\ulnone ).  This name will be entered in the 
+\f4\i Annotation History
+\f0\i0  window.\
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f2\b\fs26 \cf3 SMASCH Personnel
+\f0\b0 : 
+\fs24 this is you
+\fs26 !
+\fs24 \cf0 \
+
+\f2\b %/C&P
+\f0\b0 :  This means \'d2Use the wildcard and/or copy and paste function in this field\'d3\
+
+\f2\b Using \'d2%\'d3 in a field
+\f0\b0 :  The % or \'d2wildcard\'d3 allows you to search for the possible options for each field.  You can use the % by itself to search for all possible options for a field (not recommended for all fields because the search and compiled list will both be long) or in conjunction with part of an entry such as the first few letters of a Collectors name or a genus to search for possible species that may match (\ul e.g. trif% will result in a list of all possible species in the genus 
+\f4\i Trifolium
+\f0\i0 \ulnone ).  
+\f2\b NOTE
+\f0\b0 : you can use multiple % in one field to better perform a query (\ul e.g. trif%ag% will result in 
+\f4\i Trifolium agrifolium
+\f0\i0 \ulnone ) To use the data presented in the resulting query list, just choose the name that fits your query and click the 
+\f4\i Accept
+\f0\i0  button to select it for the field.  This is a very helpful tool when used properly (see #9 below for more tips).  Pg 4A\
+
+\f2\b Using \'d2%\'d3 in a window
+\f0\b0 :  When using the %, 
+\f2\b enter the Accession data into all possible fields
+\f0\b0 , i.e. multiple fields in one window.  Only when all the fields in the window have been completely filled out do you click the 
+\f4\i Save
+\f0\i0  button.  At this point, % lists will open one at a time for each query.  Choose the proper entry for each queried field and SMASCH will save the entry automatically. \
+
+\f2\b Function key shortcuts
+\f0\b0 :  All of these functions can also be performed using the mouse. \
+F1:  Find function\
+F3:  Save function\
+F5:  Update function\
+F9:  Clear function\
+F12:  Done function\
+
+\f2\b Using copy and paste function
+\f0\b0 :  \ul To copy\ulnone , highlight the word(s) by clicking and dragging over the word(s) or by clicking the word(s) multiply until highlighted in red.  At this point, the highlighted word(s) have been copied.  \ul To paste\ulnone , just left click where you want the word(s) to be entered and click the center scroll button on the mouse to paste (a short cut is just moving the mouse track-point to the area where you want the word(s) to be pasted and click only the center scroll button).  
+\f2\b To C&P from a Word worksheet
+\f0\b0 , just copy the word(s) using standard Microsoft technique (highlight word(s), open the \'d2Edit\'d3 menu by right-clicking the highlighted word(s) or by manually clicking on the \'d2Edit\'d3 icon at the top of Word and clicking on \'d2Copy\'d3).  Standard SMASCH technique will allow you to paste the copied word(s).      
+\f2\b    
+\f0\b0 \
+
+\f2\b Date format
+\f0\b0 :  The date should always be entered in the format of 
+\f4\i dd Mmm yyyy
+\f0\i0 .\
+To update your entry and view it in the 
+\f3\i\b Full Accession Record
+\f0\i0\b0  window, the working window needs to first be updated.  This is done by 1) copying the 
+\f4\i Accession number 
+\f0\i0 2)
+\f4\i  
+\f0\i0 clearing the window by clicking the \'d2Clear\'d3 button 3) paste the 
+\f4\i Accession Number 
+\f0\i0 (or type the number you wish to view) in the appropriate field 4) click the \'d2Find\'d3 button and after the corresponding data appears in the window 5) click the \'d2Full Accession Record\'d3 button and it will open in its own window. \
+
+\f2\b WARNING
+\f0\b0 :  Do not hit the 
+\f2\b \'d2del\'d3 button on the keyboard
+\f0\b0 ; it will totally clear the field.\
+
+\f2\b Mystery data
+\f0\b0 :  In cases where types of information listed with the specimen do not seem to entirely fit into a field, read the corresponding section in the SMASCH handbook.  There you can find tips on handling unusual data types or formats (\ul e.g. what to do if only the genus or only the city is listed for a specimen etc.\ulnone ).  However, most of this data should be entered in an appropriate 
+\f4\i Notes
+\f0\i0  section or as an 
+\f4\i Accession Voucher
+\f0\i0 . \
+
+\f2\b Nomenclatural Information:
+\f0\b0  the SMASCH main page provides various searches for finding information on specimen names.  This is a tool to search for one name type (scientific names) by using another name type (common name).   \
+The 
+\f4\i Verified Taxonomic Names
+\f0\i0  window is particularly helpful in searching for verified scientific names.\
+To search for names put part of the name you want to find and a wildcard immediately after \'d2%\'d3 (\ul e.g. tumble pigweed%\ulnone ).\
+\pard\pardeftab720\li720\ql\qnatural\pardirnatural
+\cf0 In addition, various web-based databases are also helpful.\
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f2\b \cf0 Before moving to another Accession
+\f0\b0 : Read over the actual Accession info entered into SMASCH using the 
+\f4\i Full Accession Record
+\f0\i0  function.  When reviewing the Accession information, make sure that all of the data has been entered, it has been entered in the proper areas and that the data you have entered is correct.  \
+
+\f2\b Closing Smasch WARNING
+\f0\b0 :  If you close one SMASCH window by clicking the square with an \'d2x\'d3 in the middle that is located in the upper left-hand corner of each window, the whole program will close.  Make sure to exit each window by clicking on the 
+\f4\i Done
+\f0\i0  button instead of manually quitting the window.\
+
+\f2\b Internationally collected specimens
+\f0\b0 :  For specimen that were collected in other countries; go to the main menu, open 
+\f4\i Geographic Information
+\f0\i0 , select 
+\f4\i HPS
+\f0\i0  (Higher political subdivisions), type the country name in the 
+\f4\i Loc Country 
+\f0\i0 space, click the 
+\f4\i Find
+\f0\i0  button and a list of possible localities will open at the bottom of the window.  Find the location that best describes that written on the specimen and C&P the 
+\f4\i Preferred Country
+\f0\i0  name into the 
+\f4\i Country
+\f0\i0  field of the 
+\f4\i Accession Object,
+\f0\i0  do the same for the 
+\f4\i Preferred
+\f0\i0  
+\f4\i State
+\f0\i0  and 
+\f4\i Preferred County
+\f0\i0 .  Unfortunately, we can\'d5t enter our own information into the 
+\f4\i HPS
+\f0\i0  window so just pick the best data that SMASCH offers.  \
+\
+\pard\pardeftab720\qc\pardirnatural
+
+\f2\b \cf0 USING SMASCH; A DATA ENTRY TUTORIAL\
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f0\b0 \cf0 \
+After logging on to SMASCH, open all of the windows that you will use to enter Accession data and 
+\f2\b tile them across the screen from the top right to bottom left in the following order:  
+\f3\i Accession Object
+\f2\i0  (in the top right), 
+\f3\i Annotation History, Folder Name, Smasch tips Doc., Accession Voucher, Committees, 
+\f2\i0 and 
+\f3\i Unverified Taxonomic Name 
+\f2\i0 (in the bottom left).
+\f0\b0   This pattern facilitates optimum data entry by allowing SMASCH personnel to easily move between windows using C&P functions.\
+Enter all data into the 
+\f4\i Accession Object
+\f0\i0  window, using % when it may be a faster means to fill in the data. \
+Once the window has been Appended, \'d2Append complete, New Value for Accession Number: ###\'d3 should appear at the top of the window.\
+To enter data into the 
+\f4\i Anotation H
+\f0\i0 istory window, begin by copying the 
+\f4\i Accession Number
+\f0\i0  from the newly Appended 
+\f4\i Accession Object
+\f0\i0  window and pasting it into the appropriate field on the 
+\f4\i Annotation History
+\f0\i0  window.  Do the same with any other data such as 
+\f4\i Annotator
+\f0\i0  and 
+\f4\i Annotation Date.
+\f0\i0   \
+Once the 
+\f4\i Annotation History
+\f0\i0  window(s) has been successfully Appended, move on to the 
+\f4\i Folder Name
+\f0\i0  window and perform the same tasks using C&P.  \
+Do not forget to use the C&P material from the SMASH Tips Word document for the fields that require such data such as the 
+\f4\i Additional Descriptive Information field
+\f0\i0  in the 
+\f4\i Accession Vouchers
+\f0\i0 .    \
+Continue this pattern until all the Accession data has been captured into all windows (usually from 
+\f4\i Accession object
+\f0\i0  to 
+\f4\i Accession Voucher
+\f0\i0  windows). \
+Check the data in the 
+\f4\i Full Accession Record
+\f0\i0  window and when complete and accurate, move on to the next Accession.\
+\pard\pardeftab720\li360\ql\qnatural\pardirnatural
+\cf0 \
+\pard\pardeftab720\qc\pardirnatural
+
+\f1\b \cf0 COPY & PASTE CHEET SHEET\
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f0\b0 \cf0 \
+**The following entries are commonly required in various SMASCH fields and are not supplied by the program.  Simply make any changes to the entries (i.e. change any localities, numbers etc.) (see 
+\f2\b Tips and Pitfalls
+\f0\b0  for more information on 
+\f2\b C&P
+\f0\b0 ).  Feel free to enter more entries when needed!!\
+\
+
+\f2\b U.S. Department of Agriculture Forest Service California Forest and Range Experiment Station, Vegetation Type Map Herbarium, No.\
+
+\f0\b0 \
+
+\f2\b pollen from this specimen was removed & photographed while researching for a pollen atlas by Lincoln, Amidon & Moldenke U Calif Santa Cruz 1973-1974\
+\
+
+\f1 Bolinger Ridge Trail, highest elevation on property, highest port trail and E of intersection below "L" in "Bollinger" on USGS topo.\
+\
+The University of California, Santa Cruz - Student project collections\
+The University of California, Santa Cruz \'d0 Museum of Natural History Collections - The Flora of Santa Cruz County, California\
+\
+State of California Department of Parks and Recreation Herbarium (label)\
+State of California Division of Beaches and Parks Herbarium\
+Landels-Hill Big Creek Reserve, Santa Lucia Mountains\
+\
+Santa Cruz\
+Fall Creek State Park\
+The Forest of Nisene Marks, Aptos\
+Henry Cowell Redwood State Park\
+Amidon, Rutherford, Bray, Koshear\
+K. Merzario, B. Sheekey, R. White\
+D. Self, C. Lang, Z. Richards\
+Liz Amidon\
+Charisse Bickford\
+Peter Kamb\
+William Doyle\
+Randall Morgan\
+UCSC\
+\
+
+\f2 seeds and field data in packet\
+vegetation and field data in packet\
+vegetation in packet\
+
+\f0\b0 \
+\pard\pardeftab720\qc\pardirnatural
+
+\f2\b \cf0 ACCESSION OBJECT\
+\pard\pardeftab720\li360\ql\qnatural\pardirnatural
+
+\f0\b0 \cf0 \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f2\b \cf0 Accessed through
+\f0\b0 :  
+\f4\i Accessions and Collections
+\f0\i0  button on home page.\
+
+\f2\b Function
+\f0\b0 : This is the main data entry window where most major types of data, except scientific names are entered into SMASCH.  Here information about the manner in which the plant material is preserved and stored, where it is stored and information about who collected the plant material, who assigned what collection number to it and when and where it was collected is captured.  \
+
+\f2\b Associated windows
+\f0\b0 :  None directly\
+
+\f2\b Fields & what to enter
+\f0\b0 :\
+
+\f2\b Accession Number
+\f0\b0 :  The current identification # of the specimen with UCSC (all caps.) as the prefix. p 6\
+
+\f2\b Object Type
+\f0\b0 :  In what form the specimen is stored (\ul i.e. 
+\f4\i Mounted on Paper, Stored in a Box or Bag, Preserved in Liquid
+\f0\i0  etc.\ulnone ).  
+\f2\b NOTE
+\f0\b0 : that the default value is 
+\f4\i Mounted on Paper
+\f0\i0  so unless otherwise stored, you do not have to type anything in this field.  p 6\
+
+\f2\b Collector(s)
+\f0\b0 :  Enter the first few letters of the specimen collectors name followed by % to obtain a list of names that fit your query (e.g. j%h%b% for Jim H. Bishop).  Choose the proper name and click 
+\f4\i Accept
+\f0\i0  to enter it into the field.  If you have entered the entire name and upon saving your receive an error saying \'d2Unknown Collector\'d3, either the 
+\f4\i Collectors
+\f0\i0  name is misspelled or needs to be entered in 
+\f4\i Personal Names
+\f0\i0  and 
+\f4\i Committee
+\f0\i0  windows (see their description). Use %/C&P.   p 7\
+
+\f2\b Coll
+\f0\b0 . 
+\f2\b Number Assignor
+\f0\b0 :  Unless otherwise noted on Primary Label, this is the same name as the 
+\f4\i Collector(s)
+\f0\i0  field. Use %/C&P.   p 7\
+
+\f2\b Collection Prefix
+\f0\b0 :  Any prefix the 
+\f4\i Collector(s)
+\f0\i0  assigned his 
+\f4\i Collection Number
+\f0\i0  (\ul e.g. for the complete 
+\f4\i Collection Number
+\f0\i0  \'d2smp345a\'d3, the prefix would be \'d2smp\'d3\ulnone ).\
+
+\f2\b Collection Number
+\f0\b0 :  The actual number the 
+\f4\i Collector(s)
+\f0\i0  assigned the specimen.  This should only be numbers and not include any prefix or suffix associated with the complete 
+\f4\i Collection Number 
+\f0\i0 (\ul e.g. for the complete 
+\f4\i Collection Number
+\f0\i0  \'d2smp345a\'d3, the 
+\f4\i Collection Number
+\f0\i0  would be \'d2345\'d3\ulnone ). \
+
+\f2\b Collection Suffix
+\f0\b0 : Any suffix the 
+\f4\i Collector(s)
+\f0\i0  assigned his 
+\f4\i Collection Number
+\f0\i0  (\ul e.g. for the complete 
+\f4\i Collection Number
+\f0\i0  \'d2smp345a\'d3, the suffix would be \'d2a\'d3\ulnone ).\
+
+\f2\b Collecting Date(s)
+\f0\b0 :  The date the specimen was collected.  This should be in the form of 
+\f4\i dd Mmmm yyyy
+\f0\i0 .\
+
+\f2\b County
+\f0\b0 : Enter only the county name (and not the word \'d2county\'d3) in this field (\ul e.g. for Santa Cruz County, only enter Santa Cruz\ulnone ).  SMASCH will add the word \'d2County\'d3 to your entry.  \
+
+\f2\b All Other Named Areas That Include Locality
+\f0\b0 :  Enter major localities that are specifically named in the accession (\ul i.e. named localities such as Santa Cruz, Santa Cruz mountains, Quail hollow etc.\ulnone ).  The areas entered here should not be referenced by any other locality information. \
+
+\f2\b Referenced Place
+\f0\b0 :  The name of the place from which detailed distance and/or direction are given to the actual collection locality (\ul i.e. for the locality data of \'d20.5 miles north of Castle Rock\'d3, the 
+\f4\i Referenced Place
+\f0\i0  would be Castle Rock.\ulnone ) \
+
+\f2\b Locality: Dist./Direct. From Referenced Place; other data
+\f0\b0 :  All data that describes the distance and/or direction from the 
+\f4\i Referenced Place
+\f0\i0  to the actual collection locality of the specimen.  Enter the data exactly as it appears on the accession including the referenced place (\ul enter this in the form of \'d24.3 miles E.N.E of Castle Rock\'d3 when Castle Rock is the referenced place\ulnone ).\
+
+\f2\b Elevation
+\f0\b0 :  ##### unit (space between number and units).  The units should be abbreviated without a period following (\ul e.g. 1200 ft\ulnone ).\
+
+\f2\b TRS Coordinates
+\f0\b0 :  Enter the township(T)/range(R)/section(S) information here in the form of two digits followed by a capitol N or S (as appropriate) for T,  two digits followed by a capitol E or W (as appropriate) and only two digits for S.  The entry should look like the following \'d2\ul 02S14E04\ulnone \'d3.  If one of the TRS coordinates is missing, use 00 in its place (\ul e.g. 02S14E00\ulnone ).\
+
+\f2\b Notes
+\f0\b0 :  Enter any information from the Accession that does not have an appropriate field.  Types of 
+\f4\i Notes
+\f0\i0  are:  information regarding other associated herbariums, questionable locality, other dates, illegible data, the specimen being part of a survey or experiment, grown in cultivation or used as a source of seeds for cultivation.  The 
+\f2\b C&P Cheat Sheet 
+\f0\b0 is helpful for this field.  \
+
+\f2\b State:  
+\f0\b0 Use standard postal code (\ul i.e. for California use CA\ulnone ).  See Tips & Pitfalls for 
+\f2\b international specimens
+\f0\b0 .\
+
+\f2\b Reproductive State:
+\f0\b0   Enter the reproductive State of the specimen.  Use the % for options but most of the time you will enter \ul fl\ulnone =flowers, \ul fr\ulnone =fruit, \ul co\ulnone =cones, \ul veg\ulnone =vegetative only, \ul sp\ulnone =spores or any combination of these separated by a backslash (\ul e.g. fl/fr\ulnone ).  
+\f2\b NOTE:
+\f0\b0  The default of  \'d2\ul fl/fr\ulnone \'d3 will be appropriate for most cases and therefore does not need to be entered manually.\
+
+\f2\b Fields to Ignore
+\f0\b0 :  \
+
+\f2\b Housed At
+\f0\b0 :  Unless the specimen is housed somewhere different than is indicated by the Accession Number prefix (i.e. Accession number is UCSB429 and the specimen is housed at UCSC; enter UCSC into this field), nothing needs to be entered in this field.  \
+
+\f2\b Country
+\f0\b0 :  The default of 
+\f4\i US
+\f0\i0  will be entered if left blank. See Tips & Pitfalls for 
+\f2\b international specimens
+\f0\b0 .\
+
+\f2\b TRS Meridian
+\f0\b0 :  Unless otherwise known.\
+
+\f2\b Latitude (Degrees)
+\f0\b0 :  Unless otherwise known.  Format: ## ## ##N/S.\
+
+\f2\b Longitude (Degrees)
+\f0\b0 :Unless otherwise known. Format: ## ## ##N/S.\
+
+\f2\b Lat/Long Ref Source: 
+\f0\b0 Unless otherwise known.\
+
+\f2\b Latitude (Decimal): 
+\f0\b0 Unless otherwise known.\
+
+\f2\b Longitude (Decimal): 
+\f0\b0 Unless otherwise known.\
+
+\f2\b Bioregion: 
+\f0\b0 Unless otherwise known.\
+
+\f2\b Datum: 
+\f0\b0 Unless otherwise known.\
+
+\f2\b Max Error Distance: 
+\f0\b0 Unless otherwise known.\
+
+\f2\b Max Error Units: 
+\f0\b0 Unless otherwise known.\
+
+\f2\b Verbatim Locality: 
+\f0\b0 Unless otherwise known.\
+
+\f2\b Verbatim Coordinates: 
+\f0\b0 Unless otherwise known.\
+
+\f2\b Coordinate Data from Sheet: 
+\f0\b0 Unless otherwise known.\
+\pard\pardeftab720\qc\pardirnatural
+
+\f1\b \cf0 \
+ANNOTATION HISTORY\
+
+\f2 \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+\cf0 Accessed through:  
+\f4\i\b0 Annotations Information 
+\f0\i0 button on home page.
+\f2\b \
+Function
+\f0\b0 : This window captures the 
+\f4\i Annotation History
+\f0\i0  or what the specimen was identified as and who did the identification.  Since many older specimens have been Annotated or identified multiple times, each Annotation needs to be entered (sometimes 2-3 per specimen).  The individual Annotations should be entered in their own 
+\f4\i Annotation History
+\f0\i0  windows, e.g. a specimen that has be Annotated twice will need to have data entered in two 
+\f4\i Annotation History
+\f0\i0  windows.    \
+
+\f2\b Associated windows
+\f0\b0 : A 
+\f4\i Personal Name(s)
+\f0\i0  and 
+\f4\i Committee
+\f0\i0  must exist or need to be entered before the 
+\f4\i Annotator
+\f0\i0  field can be filled.  \
+
+\f2\b Fields & what to enter
+\f0\b0 :\
+
+\f2\b Accession Number
+\f0\b0 : The current identification # of the specimen with UCSC as the prefix.  C&P from 
+\f4\i Accession Object
+\f0\i0  window.   p 17\
+
+\f2\b Annotation Date
+\f0\b0 :  The corresponding date that the specimen was identified.  This should be in the form of 
+\f4\i dd Mmmm yyyy
+\f0\i0 .   p 17\
+
+\f2\b Annotator
+\f0\b0 :  Enter the name or initials of the person who identified the specimen exactly as they appear on the Accession.  Use the % here.  The Annotator(s) name must already exist in the 
+\f4\i Personal Name(s)
+\f0\i0  and 
+\f4\i Committee 
+\f0\i0 tables before it can be entered in this field.    p 17 \
+
+\f2\b Annotated Taxonomic Name (Verified)
+\f0\b0 :  Enter the 
+\f4\i Taxonomic Name
+\f0\i0  of the specimen here if it has been verified.  A simple rule of thumb is that if the name you wish to enter is listed in the SMASCH table of 
+\f4\i Verified Taxonomic Names,
+\f0\i0  then it should be listed in this field.  If it is not listed, then it should be entered in  
+\f4\i Annotated Taxonomic Name (Unverified)
+\f0\i0  field, but never in both.  p 18\
+
+\f2\b Annotated Taxonomic Name (Unverified)
+\f0\b0 : This field exists so that any name can be entered regardless of its uniqueness.  Enter the 
+\f4\i Taxonomic Name
+\f0\i0  of the specimen here if it has not been verified, i.e. if the 
+\f4\i Taxonomic N
+\f0\i0 ame is not listed in the table of 
+\f4\i Verified Taxonomic Names
+\f0\i0 .  In the case where the 
+\f4\i Unverified Taxonomic Name
+\f0\i0  you are entering is not listed in the table of 
+\f4\i unverified Taxonomic Names
+\f0\i0 , it will need to be entered into the 
+\f4\i Unverified Taxonomic Name
+\f0\i0  window by clicking the \'d2Nomenclatural Information\'d3 button on the main SMASCH menu and entering and appending all necessary data.  p 18 \
+
+\f2\b Name on Collection Label?
+\f0\b0 :  This is simply a check box for whether the corresponding plant name is listed on the primary collection label (i.e. original collection label).  Check the box if the name is on the collection label (i.e. the original data label for the specimen) or do not check the box if the plant name is listed elsewhere on the accession (such as on a newer data label).    p 21 \
+
+\f2\b Data in Packet?
+\f0\b0 : This is simply a check box for when the corresponding plant name appears only inside of a packet or envelope.  When the name is located in a packet or envelope, it is usually because the original field notes or samples are included with the specimen. \
+
+\f2\b Note
+\f0\b0 :  Any other clarification, elaboration or explanation provided by the data enterer should be typed here.  If the note precedes/follows the name, enter it as \'d2proceeded/followed by\'c9(note)\'d3.  pg. 21\
+
+\f2\b Fields to Ignore
+\f0\b0 :  None\
+\
+\pard\pardeftab720\qc\pardirnatural
+
+\f1\b \cf0 FOLDER NAME\
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f0\b0 \cf0 \
+\pard\pardeftab720\pardirnatural
+
+\f1\b \cf0 Accessed through:  
+\f5\i\b0 Annotations Information
+\f6\i0  button on home page.\
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f2\b \cf0 Function
+\f0\b0 :  To capture the plant name under which each accession is currently filed (all other Annotations should be filed under 
+\f4\i Annotation History
+\f0\i0 ).  This is an organizational tool in SMASCH for identifying where each specimen is located within a collection and what other specimens it is associated with.  
+\f7\fs26 \cf3 \
+\pard\pardeftab720\li720\ql\qnatural\pardirnatural
+
+\f2\b\fs24 \cf0 TIP
+\f0\b0 : Before entering data into this field, make sure that the entire window has been cleared by clicking on the \'d2Clear\'d3 button at the top of the window, otherwise appending the entered data will be difficult.  
+\f2\b Problem
+\f0\b0 :  You may encounter the following error: \'d2ERROR:  get_cabinet_name:  serious misconfig of  taxon_name\'d3.  This is a problem that results from our occasionally filing species not under their genus name, and our [failed!] attempt to accommodate the practice with the database.  
+\fs26 \cf3 If you encounter the problem, fill out 
+\f4\i Filed in cabinet for
+\f0\i0  field with the genus name and a %.  Usually that will allow entry.  If only the genus is listed for a specimen and you cannot identify it beyond that use the 
+\f4\i Folder Name Modifier
+\f0\i0  = for when we are indicating that a name isn't determined beyond genus (though this is redundant).  It's a catchall field to take care of several things that people do to indicate something about a identification. The default is none but right click on the arrows to see the list.
+\fs24 \cf0 \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f2\b \cf0 Associated windows
+\f0\b0 : 
+\f4\i Annotation History.
+\f0\i0  The taxonomic name you enter into this window, you will also need to enter into the 
+\f4\i Annotation History
+\f0\i0  window.\
+
+\f2\b Fields & what to enter
+\f0\b0 :\
+
+\f2\b Accession Number
+\f0\b0 : The current identification # of the specimen with UCSC as the prefix. Use %/C&P.  \
+
+\f2\b Filed in Folder for (Verified)
+\f0\b0 :  The exact 
+\f4\i Annotated Taxonomic Name (Verified) 
+\f0\i0 of the specimen.  This name should be the Primary Filing name (the name by which the specimen is currently known), which is always the taxonomic name on the latest Annotation.  Use %/C&P.\
+
+\f2\b Fields to Ignore
+\f0\b0 :  \
+
+\f2\b Folder Name Date:  
+\f0\b0 This should be automatically entered.\
+
+\f2\b Folder Name Modifier:  
+\f0\b0 Make sure that this field is blank before data is entered into this window.  Otherwise SMASCH will want to know where the taxonomic name came from when you Append the record.     \
+
+\f2\b Name of Collection\
+Filed in Cabinet for
+\f0\b0 :  Genus of your specimen should be automatically entered.\
+
+\f2\b Other Taxa Present on Accession (Verified)\
+Note:  Used primarily to indicate hybrids/morphological intermediates.\
+Unnamed Hybrid/Intermed. Parent Name Modifier\
+Sequence #\
+In house Notes\
+\pard\pardeftab720\li1440\ql\qnatural\pardirnatural
+\cf0 \
+\pard\pardeftab720\qc\pardirnatural
+
+\f1 \cf0 ACCESSION VOUCHERS\
+
+\f2 \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+\cf0 Accessed through: 
+\f4\i\b0 Accessions and Collections
+\f0\i0  button on home page.
+\f2\b \
+Function
+\f0\b0 :  This window captures any information regarding the specimen itself for various classes of data or voucher kinds (e.g. cytology, anatomy, micromorphology, macromorphology, color, habitat etc.).  Each voucher kind gets its own entry or 
+\f4\i Accession Vouchers
+\f0\i0  window.  If a specimen has information on the plant height and flower color, it should receive two 
+\f4\i Accession Vouchers
+\f0\i0 , one for each voucher kind.  A list of possible 
+\f4\i Accession Vouchers 
+\f0\i0 are on pp 23-25. \
+
+\f2\b Associated windows
+\f0\b0 : This window acts as a supplement to the 
+\f4\i Accession Object
+\f0\i0 \
+\pard\pardeftab720\li720\ql\qnatural\pardirnatural
+\cf0 window for any notes on the plants general morphology physical place or any other notes more specific than those listed in the 
+\f4\i Note
+\f0\i0  field of the 
+\f4\i Accession Object
+\f0\i0 .\
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f2\b \cf0 Fields & what to enter
+\f0\b0 :  \
+
+\f2\b Accession ID
+\f0\b0 : The current identification # of the specimen with UCSC as the prefix.\
+
+\f2\b Voucher Kind
+\f0\b0 :  Enter the voucher kind that will be described in this window (\ul e.g. anatomy, common name, data in packet etc.\ulnone ).  Use the % to get the full list of 
+\f4\i Voucher Kind(s) 
+\f0\i0 or type a few letters of the kind that will be entered followed by a %.  
+\f2\b NOTE
+\f0\b0 :  Vegetation Type Map data should be entered under \ul Vegetation Type Map Project\ulnone  
+\f4\i Voucher Kind
+\f0\i0 .  \
+\pard\pardeftab720\li1080\fi360\ql\qnatural\pardirnatural
+\cf0 UC Herbarium data should be entered under \ul Other Label Numbers\ulnone  \
+
+\f4\i Voucher Kind
+\f0\i0 . \
+\pard\pardeftab720\li1440\ql\qnatural\pardirnatural
+\cf0 The corresponding numbers for the above should be listed in 
+\f4\i Additional Descriptive Information
+\f0\i0  field.  pp 22-25\
+Pollen from this specimen was removed & photographed\'c9 should be \
+\pard\pardeftab720\li1080\fi360\ql\qnatural\pardirnatural
+\cf0 entered under \ul photograph, publication, material removed, and \
+reproductive biology\ulnone  
+\f4\i Voucher Kind
+\f0\i0 .   \
+\pard\pardeftab720\li1440\ql\qnatural\pardirnatural
+\cf0 Reproducitve information such as \'d2corolla white\'d3 should be entered under \ul reproductive biology and color 
+\f4\i \ulnone Voucher Kind
+\f0\i0 .  \
+\
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f2\b \cf0 Additional Descriptive Information
+\f0\b0 :  Enter the appropriate information corresponding to the 
+\f4\i Voucher Kind
+\f0\i0  in this field.  Type it exactly as it appears on the accession card of the specimen.  If UC Herbarium number has a \'d2M\'d3 with a line above it, this means that the corresponding number is actually in the millionth place (\ul e.g. M129975=1129975\ulnone ).   Use C&P from the SMASCH Tips sheet here.\
+
+\f2\b Fields to Ignore
+\f0\b0 :  None
+\f2\b \
+\
+\pard\pardeftab720\qc\pardirnatural
+
+\f1 \cf0 COMMITTEES\
+
+\f2 \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+\cf0 Accessed through:  
+\f4\i\b0 People, Committees, Publications, Institutions
+\f2\i0\b  
+\f0\b0 button on home page.
+\f2\b \
+Function
+\f0\b0 :  To capture any people who are associated in any way with 
+\f4\i Accessions
+\f0\i0  but not already in the SMASCH 
+\f4\i Annotator
+\f0\i0  database on the 
+\f4\i Annotation History
+\f0\i0  window or the 
+\f4\i Collector(s)
+\f0\i0  database on the 
+\f4\i Accession Object
+\f0\i0  window.  Examples may be past students who annotated the specimen (\ul e.g. SFD 2003 
+\f4\i T. albopurpureum
+\f0\i0 \ulnone ) and are not listed in the SMASCH database because of their relatively small part in the UC museum system.  Give the little guy credit!  Often, a persons name has been entered only as being associated with Accessions or Collections but not both.  In these cases, the persons name can be queried by C&P, or using % in the 
+\f4\i Committee Abbreviation
+\f0\i0  field.  After the data is displayed in the window, simply cycle through the list of possible \ul Committee Functions\ulnone  and choose the one that applies to your name.   \
+
+\f2\b Associated windows
+\f0\b0 :  The individual who needs to be entered here needs to be entered first into the 
+\f4\i Personal Names
+\f0\i0  window. \
+
+\f2\b Fields & what to enter
+\f0\b0 :\
+
+\f2\b Committee Abbreviation
+\f0\b0 :  The individuals\'d5 name/initials need to be entered here exactly like it is on the Accession.  Initials should have periods and no spaces separating each letter.\
+\pard\tx4230\pardeftab720\ql\qnatural\pardirnatural
+
+\f2\b \cf0 Committee Function
+\f0\b0 :  This captures what function the individual played in the Accession of the specimen (e.g. they took part in the 
+\f4\i Annotation
+\f0\i0  or 
+\f4\i Collection
+\f0\i0 \'c9 of the specimen).  This field has a list to choose from but the 
+\f4\i Annotation
+\f0\i0  or 
+\f4\i Collection 
+\f0\i0 choices are chosen most often.  Some names will need multiple 
+\f4\i Committee Function
+\f0\i0  entries (\ul e.g. they took part in both Annotations and Collections\ulnone ). For these just save the first window with the first 
+\f4\i Committee Function, 
+\f0\i0 then change the field to the other 
+\f4\i Committee Function
+\f0\i0  and save it again.    \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f2\b \cf0 Chair (Personal Name)
+\f0\b0 :  This captures the only or first member of the committee (i.e. the corresponding data from the 
+\f4\i Personal Names
+\f0\i0  window).  This usually is the entire name of the individual you typed in the 
+\f4\i Committee Abbreviation
+\f0\i0  field if known (\ul e.g. S.F.D in the 
+\f4\i Committee Abbreviation
+\f0\i0  field, and Davis, Scott F in the 
+\f4\i Chair
+\f0\i0  field\ulnone ).  However, the name will be in the form of last name, first name and initial (e.g. Smith, Bob T.).  Because SMASCH changes the name format, type in the first letter of the last name followed by a % into the field.  The newly entered name will always be the last one on the name list that appears from your query.  Once the name has been entered, it will be entered alphabetically into the query list, allowing it to be accessed like any other name.      \
+
+\f2\b Data Source:  
+\f0\b0 Options for this field can be searched for by using the %.  However, the two types you will use the most are 
+\f4\i Accession
+\f0\i0  and 
+\f4\i Collector
+\f0\i0 .  As mentioned It is recommended to save the name twice, once using 
+\f4\i Accession
+\f0\i0  as the 
+\f4\i Data Source
+\f0\i0  and second using 
+\f4\i Collector
+\f0\i0  because chances are that the name will need to be entered as both types of fields in the feature.
+\f2\b   
+\f0\b0     \
+
+\f2\b Fields to Ignore
+\f0\b0 :
+\f2\b \
+Comments:  
+\f0\b0 Unless you have any to add.
+\f2\b \
+
+\f0\b0 \
+\pard\pardeftab720\qc\pardirnatural
+
+\f1\b \cf0 UNVARIFIED TAXONOMIC NAMES\
+
+\f2 \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+\cf0 Accessed through:  
+\f4\i\b0 Nomenclatural Information
+\f2\i0\b  
+\f0\b0 button on home page.
+\f2\b \
+Function
+\f0\b0 :  To capture any unverified taxonomic names that are not already in SMASCH.  You will know when a scientific name needs to be entered into this window because it will not be accepted by either the 
+\f4\i Verified Taxonomic Name
+\f0\i0  or 
+\f4\i Unverified Taxonomic Name
+\f0\i0  fields of the 
+\f4\i Annotation History
+\f0\i0  window.  \
+
+\f2\b Associated windows
+\f0\b0 :  
+\f4\i Annotation History.
+\f0\i0  \
+
+\f2\b Fields & what to enter
+\f0\b0 :\
+
+\f2\b Unverified Taxonomic Name:  
+\f0\b0 Enter the name exactly as it appears on the accession.\
+
+\f2\b Data Source:  
+\f0\b0 Usually the name is from the Accession and should entered as such in this field (ass%).  But if your unsure of the 
+\f4\i Data Source
+\f0\i0 , enter the \'d2%\'d3 to receive all possible options \
+
+\f2\b Fields to Ignore
+\f0\b0 :
+\f2\b \
+None\
+\pard\pardeftab720\li1080\ql\qnatural\pardirnatural
+\cf0 \
+\pard\pardeftab720\qc\pardirnatural
+
+\f1 \cf0 PERSONAL NAMES\
+
+\f2 \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+\cf0 Accessed through:  
+\f4\i\b0 People, Committees, Publications, Institutions
+\f2\i0\b  
+\f0\b0 button on home page.
+\f2\b \
+Function
+\f0\b0 : This table includes the names of people associated with accessions or with the database in any way, whether as collectors, annotators, database workers or authors of plant names or other relevant literature.  \
+
+\f2\b Associated windows
+\f0\b0 : A 
+\f4\i Personal Name(s)
+\f0\i0  must exist or need to be entered in this table before a 
+\f4\i Committee
+\f0\i0  can be created (though this has changed recently 18Dec04)!  \
+
+\f2\b Fields & what to enter
+\f0\b0 :\
+
+\f2\b Last Name
+\f0\b0 :  If an individual is named on the 
+\f4\i Accession
+\f0\i0 , type their last name here.  If only an individuals initials are listed on the 
+\f4\i Accession
+\f0\i0 , enter their last name initial here.\
+
+\f2\b First Name
+\f0\b0 :  Same as with 
+\f4\i Last Name
+\f0\i0 .\
+
+\f2\b Rest of Name
+\f0\b0 :  Any middle names/initials.\
+
+\f2\b Biographical Notes
+\f0\b0 :  If known, enter any personal information related to the accession (\ul i.e. profession/student, specialty, home city/country, publications, etc.)\ulnone \
+
+\f2\b Fields to Ignore
+\f0\b0 :
+\f2\b \
+Year of Birth:  
+\f0\b0 Unless otherwise known.\
+
+\f2\b Year of Death: 
+\f0\b0 Unless otherwise known.\
+\
+PAGE  \
+\pard\tqc\tx4320\tqr\tx8640\pardeftab720\fi360\ri360\ql\qnatural\pardirnatural
+
+\f6 \cf0 \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f0 \cf0 \
+PAGE  1\
+\pard\tqc\tx4320\tqr\tx8640\pardeftab720\fi360\ri360\ql\qnatural\pardirnatural
+
+\f6 \cf0 \
+\pard\pardeftab720\ql\qnatural\pardirnatural
+
+\f0 \cf0 \
+\
+\
+\
+}
