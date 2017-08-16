@@ -1,9 +1,17 @@
+@time=localtime(time);
+$this_year=$time[5] + 1900;
+open(IN, "CDL_skip_these" ) || die;
+while(<IN>){
+chomp;
+$skip_it{$_}++;
+}
+close(IN);
 use Smasch;
+open(WARNINGS,">consort_bulkload_warn") || die;
+#use utf8;
 use Time::JulianDay;
 use Time::ParseDate;
 %seen=();
-$password=shift;
-die "Need password on command line\n" unless $password;
 $today=scalar(localtime());
 @today_time= localtime(time);
 $thismo=(Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec)[$today_time[4]];
@@ -18,13 +26,8 @@ $tnum="";
 
 @sggb_precision=(0, 10, 100, 1000, 10000);
 
-#$datafile=shift;
-#unless(length($datafile) >1){
-	#warn "Enter the name of the data file from which to get the data\n";
-	#$datafile = <>;
-	#die "The data file is the file containing the collection data\n" unless $datafile;
-#}
 open(OUT, ">CDL_main.in") || die;
+open(ERR, ">accent_err") || die;
 
 ######################################
 %monthno=(
@@ -45,6 +48,7 @@ open(OUT, ">CDL_main.in") || die;
 'March'=>3,
 '4'=>4,
 '04'=>4,
+'apr'=>4,
 'Apr'=>4,
 'April'=>4,
 '5'=>5,
@@ -91,66 +95,76 @@ open(OUT, ">CDL_main.in") || die;
 &load_be();
 
 
+#"revised_coords.out",
+
+#skip_genera
+open(IN, "/Users/rlmoe/data/CDL/riv_non_vasc") || die;
+while(<IN>){
+chomp;
+$non_vasc{$_}++;
+}
 @datafiles=(
+"CDA_out",
+"new_CAS",
 "SD.out",
-"missing_rsa.tab",
-"RSA.out",
+"RSA_out_new.tab",
+"parse_sbbg_export.out",
 "IRVC_new.out",
-"UCD.out",
-"UCR.out",
+"parse_davis.out",
 "PG.out",
-"chico.out",
-"sbbg.out"
+ "parse_riverside_2012.out",
+"parse_chico.out",
+"parse_hsc.out",
+"SDSU_out_new",
+"SJSU_from_smasch",
+"nybg.out",
+"parse_csusb.out",
+"new_HUH",
+"YOSE_data.tab",
+"sagehen.txt"
 );
-#@datafiles=();
+#@datafiles=(
+#"parse_chico.out"
+#);
 foreach $datafile (@datafiles){
-	system "uncompress ${datafile}.Z";
+next if $datafile=~/#/;
+	#%seen_dups=();
+	#system "uncompress ${datafile}.Z";
 	print $datafile, "\n";
 	open(IN,"$datafile")|| die;
 	$/="";
 	while(<IN>){
+	#next unless m/564576/;
+	next if m/^#/;
 		s/  +/ /g;
+		@anno=();
+		(@anno)=m/Annotation: (...+)/g;
+
+		#print join("\n",@anno), "\n\n" if @anno;
 		++$countpar;
-		if (s/Accession_id: (..)/Accession: $1/){
-s/Andrï¾/Andr&eacute;/;
-s/Andre/Andr&eacute;/;
-s/Andr/Andr&eacute;/;
-s/André/Andr&eacute;/;
-s/BeauprÃ©/Beaupr&eacute;/;
-s/BoÃ«r/Bo&euml;r/;
-s/Brinkmann-Bus’/Brinkmann-Bus&eacute;/;
-s/ÒCorkyÓ/"Corky"/;
-s/Garc’a/Garc&iacute;a/;
-s/ÿhorne/Thorne/;
-s/LaferriÃ¨re/Laferri&egrave;re/;
-s/LaPré/LaPr&eacute;/;
-s/LaPrï¿½/LaPr&eacute;/;
-s/LaPrï¾/LaPr&eacute;/;
-s/LaPr/LaPr&eacute;/;
-s/Mu–oz/Mu&ntilde;oz/;
-s/Muï¾–oz/Mu&ntilde;oz/;
-s/NiedermŸller/Niederm&uuml;ller/;
-s/Nordenskišld/Nordenski&ouml;ld/;
-s/Oï¿½Berg/O'Berg/;
-s/Oï¿½Brien/O'Brien/;
-s/Oï¿½/O'/;
-s/OrdÃ³Ã±ez/O&d\oacute;&ntilde;ez/;
-s/Pe–alosa/Pe&ntilde;alosa/;
-s/Peñalosa/Pe&ntilde;alosa/;
-s/Rene/Renee/;
-s/Renée/Renee/;
-s/Steve Boyd`/Steve Boyd/;
-s/Sšzer …zelkŸk/S&ouml;zer &Ouml;zelk&ouml;k/;
-s/Vern` Yadon/Vern Yadon/;
-s/Villaseï¾–or/Villase&ntilde;or/;
-s/Villanse–or/Villase&ntilde;or/;
-s/Villase–or/Villase&ntilde;or/;
-s/Villaseñor/Villase&ntilde;or/;
-s/HÃ¶lzer/H&ouml;zer/;
-			&process_entry($_);
+		if (s/Accession_id: (...*)/Accession: $1/){
+			if($skip_it{$1}){
+				print WARNINGS "skipping $1 on skip list CDL_skip_these\n";
+				next;
+			}
+			if($seen_dups{$1}){
+				print WARNINGS "skipping $1 duplicate from $seen_dups{$1}\n";
+			$seen_dups{$1}.=" $datafile";
+				next;
+			}
+#if(m/Location: (.*ex hort.*)/){
+#$hort=$1;
+#($co)=m/County: (.*)/;
+#warn "skipping hort specimen $hort $co\n";
+#next;
+#}
+else{
+			$seen_dups{$1}=$datafile;
+			process_entry($_);
+}
 		}
 		else{
-			warn "skipping $.\n";
+			print WARNINGS "skipping $.\n";
 		}
 	}
 }
@@ -175,63 +189,84 @@ $oc="";
 	($hn)=m/Accession: *(.*)/;
 	$hn=uc($hn);
 	if(m/Collector: ([A-Za-z].*)/){
-s/Andrï¾/Andr&eacute;/;
-s/Andre/Andr&eacute;/;
-s/Andr/Andr&eacute;/;
-s/André/Andr&eacute;/;
-s/BeauprÃ©/Beaupr&eacute;/;
-s/BoÃ«r/Bo&euml;r/;
-s/Brinkmann-Bus’/Brinkmann-Bus&eacute;/;
-s/ÒCorkyÓ/"Corky"/;
-s/Garc’a/Garc&iacute;a/;
-s/ÿhorne/Thorne/;
-s/LaferriÃ¨re/Laferri&egrave;re/;
-s/LaPré/LaPr&eacute;/;
-s/LaPrï¿½/LaPr&eacute;/;
-s/LaPrï¾/LaPr&eacute;/;
-s/LaPr/LaPr&eacute;/;
-s/Mu–oz/Mu&ntilde;oz/;
-s/Muï¾–oz/Mu&ntilde;oz/;
-s/NiedermŸller/Niederm&uuml;ller/;
-s/Nordenskišld/Nordenski&ouml;ld/;
-s/Oï¿½Berg/O'Berg/;
-s/Oï¿½Brien/O'Brien/;
-s/Oï¿½/O'/;
-s/OrdÃ³Ã±ez/O&d\oacute;&ntilde;ez/;
-s/Pe–alosa/Pe&ntilde;alosa/;
-s/Peñalosa/Pe&ntilde;alosa/;
-s/Rene/Renee/;
-s/Renée/Renee/;
-s/Steve Boyd`/Steve Boyd/;
-s/Sšzer …zelkŸk/S&ouml;zer &Ouml;zelk&ouml;k/;
-s/Vern` Yadon/Vern Yadon/;
-s/Villaseï¾–or/Villase&ntilde;or/;
-s/Villanse–or/Villase&ntilde;or/;
-s/Villase–or/Villase&ntilde;or/;
-s/Villaseñor/Villase&ntilde;or/;
-s/HÃ¶lzer/H&ouml;zer/;
+		$collector=$1;
+#next if $coll_seen{$collector}++;
+#print <<EOP;
+#1: $collector
+#EOP
+		foreach($collector){
+s/Z\372\361iga/Z&uacute;&ntilde;iga/g;
+			s/Andr/Andr&eacute;/;
+			s/Andre/Andr&eacute;/;
+			s/André/Andr&eacute;/;
+			s/Andrï¾/Andr&eacute;/;
+			s/BeauprÃ©/Beaupr&eacute;/;
+			s/BoÃ«r/Bo&euml;r/;
+			s/Brinkmann-Bus’/Brinkmann-Bus&eacute;/;
+			s/Garc’a/Garc&iacute;a/;
+			s/HÃ¶lzer/H&ouml;zer/;
+			s/LaPr/LaPr&eacute;/;
+			s/LaPré/LaPr&eacute;/;
+			s/LaPrï¾/LaPr&eacute;/;
+			s/LaPrï¿½/LaPr&eacute;/;
+			s/LaferriÃ¨re/Laferri&egrave;re/;
+			s/Mu–oz/Mu&ntilde;oz/;
+			s/Muï¾–oz/Mu&ntilde;oz/;
+			s/NiedermŸller/Niederm&uuml;ller/;
+			s/Nordenskišld/Nordenski&ouml;ld/;
+			s/OrdÃ³Ã±ez/Ord&oacute;&ntilde;ez/;
+			s/Oï¿½/O'/;
+			s/Oï¿½Berg/O'Berg/;
+			s/Oï¿½Brien/O'Brien/;
+			s/Pe–alosa/Pe&ntilde;alosa/;
+			s/Peñalosa/Pe&ntilde;alosa/;
+			s/Rene/Renee/;
+			s/Renée/Renee/;
+			s/Steve Boyd`/Steve Boyd/;
+			s/Vern` Yadon/Vern Yadon/;
+			s/Villanse–or/Villase&ntilde;or/;
+			s/Villase–or/Villase&ntilde;or/;
+			s/Villaseï¾–or/Villase&ntilde;or/;
+			s/Villaseñor/Villase&ntilde;or/;
+			s/ÒCorkyÓ/"Corky"/;
+			s/ÿhorne/Thorne/;
+		}
 		++$countcoll;
-		$collector=$assignor=$1;
+		$assignor=$collector;
+#print <<EOP;
+#2: $collector
+#EOP
 
-		if(m/(More|Other)_coll[^:]*: *([A-Za-z].+)/){
+		if(m/Combined_coll[^:]*: (.+)/){
+			$collector =$1;
+#print <<EOP;
+#3: $collector
+#EOP
+		}
+		elsif(m/(More|Other)_coll[^:]*: (.+)/){
 			$oc=$2;
-			if(m/Combined_coll[^:]*: (.*)/){
+			if(m/Combined_coll[^:]*: (..+)/){
 				$collector =$1;
+#print <<EOP;
+#4: $collector
+#EOP
 			}
 			else{
+if($oc){
 				$collector .= ", $oc";
+}
+#print <<EOP;
+#5: $collector
+#EOP
 			}
 		}
 
 		$collector=~s/\.([A-Z])/. $1/g;
 		$collector=~s/([A-Z]\.)([A-Z]) ([A-Z])/$1 $2. $3/;
-
-
 		$collector=~s/([A-Z]\.)([A-Z]\.)([A-Z]\.)/$1 $2 $3/g;
 		$collector=~s/([A-Z]\.)([A-Z]\.)/$1 $2/g;
 		$collector=~s/(Fr.)([A-Z]\.)/$1 $2/g;
 		$collector=~s/([A-Z]\.)([A-Z]')/$1 $2/g;
-#$collector=~s/ and /, /;
 		$collector=~s/Sent in for det: //;
 		$collector=~s/Submitted for det: //;
 		$collector=~s/(B. Crampton), 1247, May 11, 1953.*/$1/;
@@ -246,12 +281,18 @@ s/HÃ¶lzer/H&ouml;zer/;
 		$collector=~s/, C. N. P. S./, and C. N. P. S./;
 		$collector=~s/([A-Z]\.)(-[A-Z]\.)/$1 $2/;
 		$all_collectors=$collector;
+#print <<EOP;
+#6: $collector
+#EOP
 
 
 		foreach($collector){
-$_=&get_entities($_);
-$_=&modify_collector($_);
+			$_=&get_entities($_);
+			$_=&modify_collector($_);
 			$all_names{$_}.="$hn\t" unless $seen{$hn}++;
+#print <<EOP;
+#7: $collector
+#EOP
 		}
 	}
 	else{
@@ -262,8 +303,80 @@ $_=&modify_collector($_);
 		$tnum=uc($1);
 		$tnum=~s/ *$//;
 		$tnum=~s/^0*//;
-		if(m/Date: +(.*)/){
-			$ds=$1;
+		if(m/EJD: (\d+)/){
+			$JD=$1;
+			if(m/LJD: (\d+)/){
+				$LJD=$1;
+			}
+			if(m/Date: +(.*)/){
+
+$ds=$1;
+$vdate=$1;
+
+
+if($vdate=~/([12][890]\d\d)/){
+$vyear=$1;
+if ($vyear < 1800){
+warn "BAD YEAR $vyear $_\n";
+				print WARNINGS "$hn Misentered date $vdate; setting jdate to null $ds\n";
+$vdate=""; $JD=""; $EJD="";
+}
+if ($vyear > $this_year){
+warn "BAD YEAR$vyear $_\n";
+				print WARNINGS "$hn Misentered date $vdate; setting jdate to null $ds\n";
+$vdate=""; $JD=""; $EJD="";
+}
+}
+
+					$T_line{Date}=  "$vdate";
+
+
+
+			}
+					else{
+					warn "No verbatim date, but JD is $EJD\n";
+					$T_line{Date}=  "";
+					}
+			if($JD > $today_JD){
+				print WARNINGS "$hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
+				$null_date{$ds}=$hn;
+				$LJD=$JD="";
+			}
+			if($JD - $LJD ==0){
+				$date_simple{$JD} .= "$hn\t";
+##make $fields[8] canonical date
+				if($JD > 2374816){
+					($year,$month,$day)= inverse_julian_day($JD);
+##dates later than 1789
+					unless($T_line{Date}){
+						$T_line{Date}=  "$monthno{$month} $day $year";
+					}
+				}
+			}
+			elsif($LJD - JD > 0 &&
+				$LJD - $JD < 2000){
+				$date_range{"$JD-$LJD\t"} .= "$hn\t";
+			}
+		}
+		elsif(m/Date: +(.*)/){
+$vdate=$1;
+$ds=$1;
+
+
+if($vdate=~/([12][890]\d\d)/){
+$vyear=$1;
+if ($vyear < 1800){
+warn "BAD YEAR $vyear $_\n";
+				print WARNINGS "$hn Misentered date $vdate; setting jdate to null $ds\n";
+$vdate=""; $JD=""; $EJD="";
+}
+if ($vyear > $this_year){
+warn "BAD YEARav$year $_\n";
+				print WARNINGS "$hn Misentered date $vdate; setting jdate to null $ds\n";
+$vdate=""; $JD=""; $EJD="";
+}
+}
+			$ds=$vdate;
 			foreach($ds){
 				$LJD=$JD="";
 				s/  */ /g;
@@ -286,6 +399,18 @@ $_=&modify_collector($_);
 					#print "2 ";
 #$par="3";
 				}
+#bad date: DS735113: 1961-08-26 
+			elsif(m|^([12][0789]\d\d)-(\d+)-(\d+)$|){
+					$year=$1;
+					$day_month=$3;
+					$monthno=$2;
+					$day_month=~s/^0//;
+					$monthno=~s/^0//;
+					$JD=julian_day($year, $monthno, $day_month);
+					$LJD=$JD;
+					#print "$_ year: $year month: $monthno day: $day_month $JD $LJD\n";
+#$par="11a";
+			}
 				elsif(m|(\d\d?)/(\d\d?)/20(0[0-9])$|){
 					$JD=julian_day("20$3", $1, $2);
 					$LJD=$JD;
@@ -390,18 +515,38 @@ $_=&modify_collector($_);
 				#print "7 ";
 #$par="11";
 			}
+			elsif(m|^([0123]?\d\d?)/([A-Za-z][a-z][a-z])/([12][0789]\d\d)$| && $monthno{$2}){
+					$monthno=$monthno{$2};
+					$s_day_month=$1;
+					$year=$3;
+					$JD=julian_day($year, $monthno, $s_day_month);
+					$LJD=julian_day($year, $monthno, $s_day_month);
+				#print "7a ";
+#$par="11a";
+			}
+			elsif(m|^(\d+)/(\d+)/([12][0789]\d\d)$|){
+					$monthno=$monthno{$1};
+					$s_day_month=$2;
+					$year=$3;
+					$JD=julian_day($year, $monthno, $s_day_month);
+					$LJD=julian_day($year, $monthno, $s_day_month);
+				#print "7a ";
+#$par="11a";
+			}
+				elsif( m|^(\d\d\d\d)-(\d\d\d\d)|){
+					$JD=julian_day($1, 1, 1);
+					$LJD=julian_day($2, 12, 31);
+					}
 			else{
 				#warn "$hn Unexpected date; setting jdate to null $ds\n";
-$null_date{$ds}=$hn;
+				$null_date{$ds}=$hn;
 				$LJD=$JD="";
-				#print "parse_date ";
-#$par="13";
 			}
-if($JD > $today_JD){
-				warn "$hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
-$null_date{$ds}=$hn;
+			if($JD > $today_JD){
+				print WARNINGS "$hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
+				$null_date{$ds}=$hn;
 				$LJD=$JD="";
-}
+			}
 			if($JD - $LJD ==0){
 				$date_simple{$JD} .= "$hn\t";
 ##make $fields[8] canonical date
@@ -419,29 +564,66 @@ $null_date{$ds}=$hn;
 	}
 
 	if(m/Name: +(.*)/){
-		$name=$1;
-foreach($name){
-s/Viguiera purissimae/Viguiera purisimae/;
-s/Erechtites minima/Erechtites minimus/;
-s/Erechtites glomerata/Erechtites glomeratus/;
-s/Erechtites arguta/Erechtites argutus/;
-s/Arabis.*divaricarpa/Arabis divaricarpa/;
-s/Dudleya cespitosa/Dudleya caespitosa/;
-s/Spergularia bocconii/Spergularia bocconi/;
-s/gussonianum/gussoneanum/;
-s/Stylocline gnaphalioides/Stylocline gnaphaloides/;
-s/Juncus lesueurii/Juncus lescurii/;
-}
+		$old_name=$name=$1;
+		($gen=$name)=~s/ [a-z]+.*//;
+		if($non_vasc{$gen}){
+			print WARNINGS "$hn THIS CAN'T BE STORED: NON VASC>" . $name, &strip_name($name) ."\n";
+			return(0);
+		}
+
+		foreach($name){
+s/Machaeranthera amophila/Machaeranthera ammophila/;
+		s/Eriophyllum lanatum var. achillaeoides/Eriophyllum lanatum var. achilleoides/;
+s/Linanthus pungens subsp. pulchriflorus/Leptodactylon pungens subsp. pulchriflorum/;
+s/Leptosiphon androsaceus subsp. micranthus/Linanthus androsaceus subsp. micranthus/;
+s/Trifolium willdenowii/Trifolium willdenovii/;
+s/Solanum xanthii/Solanum xanti/;
+s/Mimulus equinnus/Mimulus equinus/;
+s/Salsola . gobicola/Salsola gobicola/;
+s/Cylindropuntia californica subsp. parkeri/Cylindropuntia californica var. parkeri/;
+s/Cylindropuntia . munzii/Cylindropuntia munzii/;
+s/Ceanothus.*otayensis/Ceanothus otayensis/;
+s/Ceanothus.*arcuatus/Ceanothus arcuatus/;
+			s/Eriophyllum stoechadifolium/Eriophyllum staechadifolium/;
+			s/(Eriophyllum staechadifolium.*)stoechadifolium/$1staechadifolium/;
+			s/Viguiera purissimae/Viguiera purisimae/;
+			s/Erechtites minima/Erechtites minimus/;
+			s/Erechtites glomerata/Erechtites glomeratus/;
+			s/Erechtites arguta/Erechtites argutus/;
+			s/Arabis.*divaricarpa/Arabis divaricarpa/;
+			s/Dudleya cespitosa/Dudleya caespitosa/;
+			s/Spergularia bocconii/Spergularia bocconi/;
+			s/gussonianum/gussoneanum/;
+			s/Stylocline gnaphalioides/Stylocline gnaphaloides/;
+			s/Juncus lesueurii/Juncus lescurii/;
+s/Chenopodium berlandieri var. zschackii/Chenopodium berlandieri var. zschackei/;
+s/Ampelodesmos mauritanica/Ampelodesmos mauritanicus/;
+s/Elytrigia juncea subsp. boreali-atlantica/Elytrigia juncea subsp. boreo-atlantica/;
+s/Arabis macdonaldiana/Arabis mcdonaldiana/;
+s/Castilleja gleasonii/Castilleja gleasoni/;
+s/Marah fabaceus var. agrestis/Marah fabacea var. agrestis/;
+s/Marah fabaceus/Marah fabacea/;
+s/Marah horridus/Marah horrida/;
+s/Marah macrocarpus var. macrocarpus/Marah macrocarpa var. macrocarpa/;
+s/Marah macrocarpus var. major/Marah macrocarpa var. major/;
+s/Marah macrocarpus/Marah macrocarpa/;
+s/Marah oreganus/Marah oregana/;
+s/Monotropa hypopithys/Monotropa hypopitys/;
+s/Opuntia curvospina/Opuntia curvispina/;
+s/Ciclospermum/Cyclospermum/;
+s/kinselae/kinseliae/;
+		print "$old_name -> $name\n" unless $old_name eq $name;
+		}
 		if($PARENT{&strip_name($name)}=~/^\d+$/){
 			$S_folder{'taxon_id'}= $PARENT{&strip_name($name)};
-#warn $T_line{'Name'}, &strip_name($name) ."\n";
+	#warn $T_line{'Name'}, &strip_name($name) ."\n";
 		}
 		else{
-			print "$hn THIS CAN'T BE STORED: Something wrong with PARENT >" . $name, &strip_name($name) ."\n";
+			print WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with PARENT >" . $name, &strip_name($name) ."\n";
 			return(0);
 		}
 		unless($S_folder{'genus_id'}= $PARENT{&get_genus($name)}){
-			print "$hn THIS CAN'T BE STORED: Something wrong with >" . $T_line{'Name'} . "with respect to genus_id extraction\n";
+			print  WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with >" . $T_line{'Name'} . "with respect to genus_id extraction\n";
 			return(0);
 		}
 
@@ -450,20 +632,17 @@ s/Juncus lesueurii/Juncus lescurii/;
 #$name=~s/Quercus ×macdonaldii/Quercus × macdonaldii/;
 #print "$name\n" if $name=~/alvordiana/;
 		$name=~s/Quercus [^a-z] ?alvordiana/Quercus × alvordiana/;
-		$name=~s/Quercus [^a-z] ?kinselae/Quercus × kinselae/;
+		$name=~s/Quercus [^a-z] ?kinselae/Quercus × kinseliae/;
 		$name=~s/Equisetum [^a-z] ?ferrissii/Equisetum × ferrissii/;
 		$name=~s/Eriogonum [^a-z] ?blissianum/Eriogonum × blissianum/;
 		$name=~s/Pelargonium [^a-z] ?hortorum/Pelargonium × hortorum/;
 		$name=~s/Hook\. f\./Hook./g;
 		$name=~s/Desf. ex //;
-		$name=~s/Gnaphalium luteoalbum/Gnaphalium luteo-album/;
 		$name=~s/Argyranthemum foeniculum/Argyranthemum foeniculaceum/;
 		$name=~s/Gilia austrooccidentalis/Gilia austro-occidentalis/;
 		$name=~s/Micropus amphibola/Micropus amphibolus/;
-#print "$name\n" if $name=~/alvordiana/;
 		foreach($name){
-#print "$_\n" if m/alvordiana/;
-			print $S_folder{'taxon_id'}, "\n" if m/alvordiana/;
+			#print $S_folder{'taxon_id'}, "\n" if m/alvordiana/;
 			$TID_TO_NAME{$S_folder{'taxon_id'}}=$name;
 			s/subsp\. //;
 			s/var\. //;
@@ -477,6 +656,14 @@ s/Juncus lesueurii/Juncus lescurii/;
 			next unless length($infra)>1;
 			$name_list{lc($infra)}.= "$hn\t";
 		}
+if(m/Hybrid_annotation: ([A-Z][a-z-]+).* ([a-z][a-z-]+)$/m){
+$h_name="$1 $2";
+#warn "H $h_name\n";
+			$name_list{lc($h_name)}.= "$hn\t";
+			($sp=$h_name)=~s/[^ ]+ +//;
+			next unless length($sp)>1;
+			$name_list{lc($sp)}.= "$hn\t";
+}
 
 #next;
 	}
@@ -500,7 +687,10 @@ $seen_accession{$hn}++;
 	$T_line{'Name'}=$name;
 	if($T_line{'Latitude'}){
 		($S_accession{'loc_lat_decimal'}, $S_accession{'loc_lat_deg'})= &parse_lat($T_line{'Latitude'});
-$convert.="$S_accession{'loc_lat_decimal'}, $S_accession{'loc_lat_deg'}\n";
+		if($S_accession{'loc_lat_decimal'} eq ""){
+print WARNINGS "$hn: coordinates nulled $T_line{'Latitude'} $_line{'Longitude'}\n";
+}
+		$convert.="$S_accession{'loc_lat_decimal'}, $S_accession{'loc_lat_deg'}\n";
 	}
 	else{$T_line{'Longitude'}="";}
 	if($T_line{'Decimal_latitude'}){
@@ -508,18 +698,42 @@ $convert.="$S_accession{'loc_lat_decimal'}, $S_accession{'loc_lat_deg'}\n";
 	}
 	if($T_line{'Longitude'}){
 		($S_accession{'loc_long_decimal'}, $S_accession{'loc_long_deg'})= &parse_long($T_line{'Longitude'});
-$convert.="$S_accession{'loc_long_decimal'}, $S_accession{'loc_long_deg'}\n";
-
+		if($S_accession{'loc_long_decimal'} eq ""){
+print WARNINGS "$hn: coordinates nulled $T_line{'Latitude'} $T_line{'Longitude'}\n";
+}
+		$convert.="$S_accession{'loc_long_decimal'}, $S_accession{'loc_long_deg'}\n";
 	}
 	else{$T_line{'Latitude'}="";}
 	if($T_line{'Decimal_longitude'}){
 		$S_accession{'loc_long_decimal'}= $T_line{'Decimal_longitude'};
 	}
+		if($S_accession{'loc_lat_decimal'}){
+		if($S_accession{'loc_lat_decimal'} > 42.1 ||
+		$S_accession{'loc_lat_decimal'} < 32.5 ||
+		$S_accession{'loc_long_decimal'} > -114 ||
+		$S_accession{'loc_long_decimal'} < -124.5){
+print WARNINGS "$hn: coordinates nulled $S_accession{'loc_lat_decimal'} $S_accession{'loc_long_decimal'}\n";
+		$S_accession{'loc_lat_decimal'} = "";
+		$S_accession{'loc_long_decimal'} = "";
+}
+}
+    #if($decimal_latitude > 42.1 || $decimal_latitude < 32.5 || $decimal_longitude > -114 || $decimal_longitude < -124.5){
 
 	if($T_line{Country}){
 		$T_line{Country}="US" if $T_line{Country} eq "U.S.A.";
 	}
 	else{$T_line{Country}="US";}
+	$T_line{CNUM}=~s/(\d),(\d\d\d)/$1$2/;
+	if($T_line{CNUM_PREFIX}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
+	$T_line{CNUM_PREFIX}="";
+	$T_line{CNUM}="$1$2";
+	warn "$T_line{CNUM} from prefix\n";
+	}
+	if($T_line{CNUM_SUFFIX}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
+	$T_line{CNUM_SUFFIX}="";
+	$T_line{CNUM}="$1$2";
+	warn "$T_line{CNUM} from suffix\n";
+	}
 	if($T_line{CNUM}=~s/^([A-Z]*[0-9]+)-([0-9]+)([A-Za-z]+)/$2/){
 		$T_line{CNUM_PREFIX}=$1;
 		$T_line{CNUM_SUFFIX}=$3;
@@ -548,8 +762,15 @@ $convert.="$S_accession{'loc_long_decimal'}, $S_accession{'loc_long_deg'}\n";
 		foreach($T_line{'T/R/Section'}){
 			next if m/^$/;
 			($coords, $coord_notes)= &get_TRS($_);
+#print "$_     $coords     $coord_notes\n";
 			$S_accession{'coord_flag'}= 1;
-			if($coords){ $S_accession{'loc_coords_trs'}=  $coords;}
+			if($coords){
+				$S_accession{'loc_coords_trs'}=  $coords;
+				if($coord_notes){
+					$S_accession{'notes'}="" unless $S_accession{'notes'};
+					$S_accession{'notes'}.= $coord_notes;
+				}
+			}
 			else{
 				$S_accession{'loc_coords_trs'}= "";
 				$S_accession{'coord_flag'}= 0;
@@ -559,10 +780,6 @@ $convert.="$S_accession{'loc_long_decimal'}, $S_accession{'loc_long_deg'}\n";
 		}
 	}
 
-	foreach( $T_line{County}){
-s/RVIERSIDE/RIVERSIDE/g;
-s/Rvierside/Riverside/g;
-}
 	$S_accession{'accession_id'}= $T_line{'Accession'};
 	$S_accession{'coll_committee_id'}= $all_collectors;
 	$S_accession{'coll_num_person_id'}= $assignor;
@@ -571,9 +788,14 @@ s/Rvierside/Riverside/g;
 	$S_accession{'coll_num_suffix'}= $T_line{CNUM_SUFFIX} || $T_line{CNUM_suffix};
 	$S_accession{'coll_num_prefix'}= $T_line{CNUM_PREFIX} || $T_line{CNUM_prefix};
 	$S_accession{'coll_number'}= $T_line{CNUM};
+	if($S_accession{'coll_number'}==0){
+		$S_accession{'coll_number'}="" unless ( $S_accession{'coll_num_suffix'} || $S_accession{'coll_num_prefix'});
+	}
 	$S_accession{'loc_country'}= $T_line{Country};
 	$S_accession{'loc_state'}= $T_line{State};
 	$S_accession{'loc_county'}= $T_line{County};
+	$T_line{Elevation}=~s/&quot;//g;
+	$T_line{Elevation}=~s/,//g;
 	$S_accession{'loc_elevation'}= &get_elev($T_line{Elevation});
 	$S_accession{'loc_verbatim'}= $T_line{Location};
 	$S_accession{'loc_other'}= $T_line{Loc_other};
@@ -584,31 +806,41 @@ s/Rvierside/Riverside/g;
 	$S_accession{'late_jdate'}= $LJD;
 	$S_accession{'catalog_date'} = $catdate;
 	$S_accession{'catalog_by'} = "Bload";
-	#if($T_line{Precision}=~/^[12345]$/){
-		$S_accession{'lat_long_ref_source'}= $T_line{'Lat_long_ref_source'};
-		$S_accession{'max_error_distance'}= $T_line{'Max_error_distance'};
-		$S_accession{'max_error_units'}= $T_line{'Max_error_units'};
-	#}
-	#else{
-		#$S_accession{'lat_long_ref_source'}="";
-		#$S_accession{'max_error_distance'}= "";
-		#$S_accession{'max_error_units'}="";
-	#}
+	$S_accession{'lat_long_ref_source'}= $T_line{'Lat_long_ref_source'};
+	$S_accession{'max_error_distance'}= $T_line{'Max_error_distance'};
+	$S_accession{'max_error_units'}= $T_line{'Max_error_units'};
 	($S_accession{'inst_abbr'}=  $T_line{'Accession'})=~s/ *[-\d]+//;
 	$S_accession{'datum'}=  $T_line{'Datum'};
-	#$S_accession{inst_abbr}=  $T_line{Herbarium_acronym};
 	
 
 
 ##################################
 #DD check for correct county spelling some time!
+	$S_accession{'loc_county'}=~s/ *$//;
+	$S_accession{'loc_county'}=~s/ County *//;
+	$S_accession{'loc_county'}=~s/ Co\.?$//;
+	unless($S_accession{'loc_county'}=~/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|unknown|Unknown)/){
+		$S_accession{'loc_county'}="unknown";
+		print WARNINGS " $S_accession{'loc_county'} unrecognized: set to unknown\n";
+	}
+
 	$S_accession{'loc_state'}=~s/California/CA/;
 	$S_accession{'loc_state'}=~s/Calif\.?/CA/;
-$county{uc($S_accession{'loc_county'})}.= "$hn\t";
+	$county{uc($S_accession{'loc_county'})}.= "$hn\t";
 ################################
-	$location_field=join(" | ", $S_accession{'loc_distance'}, $S_accession{'loc_place'},$S_accession{'loc_other'}, $S_accession{'loc_verbatim'});
+#if($S_accession{'loc_distance'}=~s/; (.*)//){
+	#$S_accession{'loc_place'} .= " ($1)";
+#}
+	#$location_field=join(" | ", "$S_accession{'loc_distance'} $S_accession{'loc_place'}" ,$S_accession{'loc_other'}, $S_accession{'loc_verbatim'});
+	#$location_field=join(" | ", $S_accession{'loc_distance'}, $S_accession{'loc_place'},$S_accession{'loc_other'}, $S_accession{'loc_verbatim'});
+	$location_field=join(" ", $S_accession{'loc_distance'}, $S_accession{'loc_place'},$S_accession{'loc_other'}, $S_accession{'loc_verbatim'});
+foreach($location_field){
+s/on lable/on label/;
+}
+#$location_field=&make_one_loc($location_field);
+#print "TEST $location_field\n";
 foreach(split(/[ \|\/-]+/, $location_field)){
-s/&([a-z])[a-z]*;/$1/g;
+	s/&([a-z])[a-z]*;/$1/g;
 	s/[^A-Za-z]//g;
 	$_=lc($_);
 	next if length($_)<3;
@@ -629,7 +861,6 @@ s/&([a-z])[a-z]*;/$1/g;
 	}
 	$T_line{'CNUM_SUFFIX'}="" unless $T_line{'CNUM_SUFFIX'};
 	$T_line{'CNUM_PREFIX'}="" unless $T_line{'CNUM_PREFIX'};
-
 		$num=$S_accession{'coll_number'};
 		foreach($num){
 			next unless /[0-9a-zA-Z]/;
@@ -640,23 +871,81 @@ s/&([a-z])[a-z]*;/$1/g;
 			next if /^s\.?n\.?$/i;
 			$num{$_}.="$hn\t";
 		}
-}
-else{
-++$nocnum;
-}
-++$countprint;
-print OUT "$hn ";
-foreach($location_field){
-if (m/([^\x00-\x7f]+)/){
-$_=&get_entities($_);
-}
-}
+	}
+	else{
+		++$nocnum;
+	}
+	++$countprint;
+	print OUT "$hn ";
+	foreach($location_field){
+		if (m/([^\x00-\x7f]+)/){
+			$_=&get_entities($_);
+		}
+	}
+	unless($S_accession{'loc_lat_decimal'} && $S_accession{'loc_long_decimal'}){
+	$S_accession{'loc_lat_decimal'}= $S_accession{'loc_long_decimal'}="";
+	}
 	if($S_accession{'loc_long_decimal'}=~ /^(1\d\d\.\d+)/){
 		$S_accession{'loc_long_decimal'}="-$S_accession{'loc_long_decimal'}";
 	}
 	$location_field=~s/Sterling/Stirling/ if $S_accession{'loc_county'}=~/Butte/;
 	$S_accession{'coll_committee_id'}=&get_entities($S_accession{'coll_committee_id'});
-print OUT join("\t",
+#extract elevations out of locality field if there are none in the elevation field
+
+
+
+
+
+	unless($T_line{'Elevation'}){
+		if($location_field=~m/(\b[Ee]lev\.?:? [,0-9 -]+ *[MFmf'])/ || $location_field=~m/([Ee]levation:? [,0-9 -]+ *[MFmf'])/ || $location_field=~m/([,0-9 -]+ *(feet|ft|ft\.|m|meter|meters|'|f|f\.) *[Ee]lev)/i || $location_field=~m/\b([Ee]lev\.? (ca\.?|about) [0-9, -]+ *[MmFf])/|| $location_field=~m/([Ee]levation (about|ca\.) [0-9, -] *[FfmM'])/){
+		#` print "LF: $location_field: $1\n";
+				$pre_e=$e=$1;
+				foreach($e){
+					s/Elevation[.:]* *//i;
+					s/Elev[.:]* *//i;
+					s/(about|ca\.?)/ca./i;
+					s/ ?, ?//g;
+					s/(feet|ft|f|ft\.|f\.|')/ ft/i;
+					s/(m\.|meters?|m\.?)/ m/i;
+					s/^ *//;
+					s/  */ /g;
+					s/[. ]*$//;
+					s/ *- */-/;
+					s/-ft/ ft/;
+					s/(\d) (\d)/$1$2/g;
+					next unless m/\d/;
+					if(m/(\d+)-(\d+)/){
+						if ($1 > $2){
+				print WARNINGS "$hn Elevation skipped $_\n";
+						next;
+						}
+					}
+					elsif(m/(\d\d\d\d\d+) f/){
+						if ($1 > 14500){
+				print WARNINGS "$hn Elevation skipped $_\n";
+				next;
+				}
+					}
+					elsif(m/(-\d\d\d+) f/){
+						if ($1 < -300){
+				print WARNINGS "$hn Elevation skipped $_\n";
+				next;
+				}
+					}
+					$S_accession{'loc_elevation'}=$_;
+				print WARNINGS "$hn Elevation added $_  ($pre_e): $location_field\n";
+				}
+			}
+		}
+	unless($S_accession{'loc_lat_decimal'} && $S_accession{'loc_long_decimal'}){
+		$S_accession{'datum'}="";
+	}
+	unless($S_accession{'max_error_distance'}){
+		$S_accession{'max_error_units'}="";
+	}
+	$S_accession{'loc_lat_decimal'}=~s/[^.0-9]*$//;
+	$S_accession{'loc_long_decimal'}=~ s/[^.0-9]*$//;
+	print OUT join("\t",
 	$S_folder{'taxon_id'},
 	$S_accession{'coll_committee_id'},
 	$S_accession{'coll_num_prefix'},
@@ -676,106 +965,65 @@ print OUT join("\t",
 	$S_accession{'max_error_distance'},
 	$S_accession{'max_error_units'}),
 	"\n";
+	
+if ($S_accession{'notes'}){
+$CDL_notes{$hn}=&get_entities($S_accession{'notes'});
+#unless($S_accession{'notes'} eq $CDL_notes{$hn}){
+#print <<EOP;
+#$S_accession{'notes'}
+#$CDL_notes{$hn}
+#
+#EOP
+#}
+}
 
 
 	$S_folder{'accession_id'}= $T_line{'Accession'};
 
 	if($T_line{'Hybrid_annotation'}){
-		$cdl_anno{$S_folder{'accession_id'}}="$T_line{'Hybrid_annotation'};;;Name on sheet\n";
-#warn <<EOP;
-		#$S_folder{'accession_id'}
-		#$cdl_anno{$S_folder{'accession_id'}}="$T_line{'Hybrid_annotation'};;;Name on sheet";
-#
-#EOP
+		#$cdl_anno{$S_folder{'accession_id'}}="$T_line{'Hybrid_annotation'};;;Name on sheet\n";
+	if($T_line{'Hybrid_annotation'}=~/; /){
+		push(@cdl_anno,"$S_folder{'accession_id'}\n$T_line{'Hybrid_annotation'}");
 }
+else{
+		push(@cdl_anno,"$S_folder{'accession_id'}\n$T_line{'Hybrid_annotation'};;;Name on sheet");
+}
+	}
 	if($T_line{'Annotation'}){
-		$cdl_anno{$S_folder{'accession_id'}}="$T_line{'Annotation'}\n";
-}
+		$anno =join("\n",@anno);
+		#print "2 $anno\n\n";
+#$cdl_anno{$S_folder{'accession_id'}}="$T_line{'Annotation'}\n";
+#push(@cdl_anno,"$S_folder{'accession_id'}\n$T_line{'Annotation'}");
+                $cdl_anno{$S_folder{'accession_id'}}="$anno\n";
+                push(@cdl_anno,"$S_folder{'accession_id'}\n$anno\n");
+        
+	}
 	if($T_line{'Habitat'} ||
 		$T_line{'Associated_species'} ||
 		$T_line{'Color'} ||
 		$T_line{'Other_label_numbers'} ||
 		$T_line{'Reproductive_biology'} ||
 		$T_line{'Odor'} ||
+		$T_line{'Type_status'} ||
 		$T_line{'Population_biology'} ||
 		$T_line{'Macromorphology'}){
-
 			foreach $voucher (keys(%vouchers)){
 				if($T_line{$voucher}=~/[a-zA-Z0-9]/){
-$cdl_voucher{$S_folder{'accession_id'}}.= "\t$vouchers{$voucher}\t$T_line{$voucher}";
+					$cdl_voucher{$S_folder{'accession_id'}}.= "\t$vouchers{$voucher}\t$T_line{$voucher}";
 				}
-
+			}
 	}
+	return $_;
 }
-}
 
 
-#open(OUT, ">CDL_loc_list.in") || die;
-#foreach(sort(keys(%CDL_loc_word))){
-#	print OUT "$_ $CDL_loc_word{$_}\n";
-#}
-#close(OUT);
-
-#close(OUT);
-#open(OUT, ">CDL_counties.in") || die;
-#foreach (sort (keys(%county))){
-	#$orig=$_;
-##s/(.)([^ ]+) (.)([^ ]+) (.)(.+)/\u$1\l$2 \u$3\l$4 \u$5\l$6/ ||
-##s/(.)([^ ]+) (.)(.+)/\u$1\l$2 \u$3\l$4/ ||
-##s/(.)(.+)/\u$1\l$2/;
-	#s/ /_/g;
-	#warn "$_\n" unless $seen{$_}++;
-	#print OUT "$_ $county{$orig}\n";
-#}
-#open(OUT, ">CDL_name_list.in") || die;
-#foreach(sort(keys(%name_list))){
-	#print OUT "$_ $name_list{$_}\n";
-#}
-#close(OUT);
-#
-#open(OUT, ">CDL_date_simple.in") || die;
-#foreach (sort (keys(%date_simple))){
-	#print OUT "$_ $date_simple{$_}\n";
-#}
-#close(OUT);
-#open(OUT, ">CDL_date_range.in") || die;
-#foreach (sort (keys(%date_range))){
-	#print OUT "$_ $date_range{$_}\n";
-#}
-#close(OUT);
-#
-#open(OUT, ">CDL_collectors.in") || die;
-#foreach (sort (keys(%all_names))){
-	#print OUT "$_ $all_names{$_}\n";
-#}
-#close(OUT);
-#open(OUT, ">CDL_tid_to_name.in") || die;
-#foreach (sort (keys(%TID_TO_NAME))){
-	#print OUT "$_ $TID_TO_NAME{$_}\n";
-#}
-#close(OUT);
-
-#open(OUT, ">CDL_coll_number.in") || die;
-#foreach (sort (keys(%num))){
-	#print  OUT "$_ $num{$_}\n";
-#}
-#close(OUT);
 sub get_genus{
-local($_)=@_;
-s/([a-z]) .*/$1/;
-#$_ = &get_author($_);
-$_;
-
-sub get_author {
-local($_)=@_;
-#$author_lookup{$_};
-}
+	local($_)=@_;
+	s/([a-z]) .*/$1/;
+	return $_;
 }
 
-#cdl_extract.pl
 
-use Time::JulianDay;
-use Time::ParseDate;
 ######################################
 %monthno=(
 'Jan'=>1,
@@ -793,147 +1041,6 @@ use Time::ParseDate;
 );
 %monthno=reverse(%monthno);
 ######################################
-#open(OUT, ">CDL_main.in") || die;
-use Sybase::CTlib;
-$dbh=new Sybase::CTlib 'rlmoe', $password;
-
-$query=<<EOQ;
-select
-a.accession_id,
-b.taxon_id,
-committee_abbr,
-coll_num_prefix,
-coll_number,
-coll_num_suffix,
-early_jdate,
-late_jdate,
-datestring,
-loc_county,
-loc_elevation,
-loc_distance +" | " + loc_place +" | " +  loc_other + " | " + loc_verbatim,
-noauth_name,
-loc_lat_decimal,
-loc_long_decimal,
-datum,
-lat_long_ref_source,
-loc_coords_TRS,
-max_error_distance,
-max_error_units
-  from accession a, annotation_asfiled b, committee d, taxon_noauth_name e
-where
-(
-a.accession_id=b.accession_id
-and a.coll_committee_id=d.committee_id
-and b.taxon_id=e.taxon_id
-and a.loc_state="CA"
-and a.objkind_id != 5
-and a.objkind_id != 6
-and a.accession_id not like "UCR%"
-and a.accession_id not like "UCD%"
-and a.accession_id not like "UCI%"
-and a.accession_id not like "SDSU%"
-and a.accession_id not like "CHSC%"
-and a.accession_id not like "SBBG%"
-)
-
-EOQ
-$dbh->ct_execute("$query");
-while($dbh->ct_results($restype) == CS_SUCCEED){
-	next unless $dbh->ct_fetchable($restype);
-	while((@fields)= $dbh->ct_fetch){
-grep(s/ +$//,@fields);
-grep(s/^ +//,@fields);
-grep(s/\t/ /g,@fields);
-$fields[0]=uc($fields[0]);
-if($seen_accession{$fields[0]}){
-$skip_accession++;
-next;
-}
-
-foreach($fields[11]){
-s/Sterling/Stirling/ if $fields[9]=~/Butte/;
-if (m/([^\x00-\x7f]+)/){
-$_=&get_entities($_);
-}
-}
-
-foreach(split(/[ \|\/-]+/, $fields[11])){
-s/&([a-z])[a-z]*;/$1/g;
-	s/[^A-Za-z]//g;
-	$_=lc($_);
-	next if length($_)<3;
-	next if m/^(road|junction|san|near|the|and|along|hwy|side|from|nevada|above|north|south|between|county|end|about|miles|just|hills|area|quad|slope|west|east|state|air|northern|below|region|quadrangle|cyn|with|mouth|head|old|base|collected|city|lower|beach|line|mile|california|edge|del|off|ave)$/;
-	$CDL_loc_word{$_} .="$fields[0]\t";
-}
-
-
-
-
-
-$county{uc($fields[9])} .= "$fields[0]\t";
-
-$name=$fields[12];
-foreach($name){
-$TID_TO_NAME{$fields[1]}=$name;
-	s/subsp\. //;
-	s/var\. //;
-	s/f\. //;
-	next unless length($_)>1;
-	$name_list{lc($_)}.= "$fields[0]\t";
-	($sp=$_)=~s/[^ ]+ +//;
-	next unless length($sp)>1;
-	$name_list{lc($sp)}.= "$fields[0]\t";
-	($infra=$sp)=~s/[^ ]+ +//;
-	next unless length($infra)>1;
-	$name_list{lc($infra)}.= "$fields[0]\t";
-}
-
-
-
-
-
-if($fields[7] - $fields[6] ==0){
-	$date_simple{$fields[6]} .= "$fields[0]\t";
-##make $fields[8] canonical date
-	if($fields[6] > 2374816){
-		($year,$month,$day)= inverse_julian_day($fields[6]);
-##dates later than 1789
-		$fields[8] = "$monthno{$month} $day $year";
-	}
-}
-elsif($fields[7] - $fields[6] > 0 &&
-$fields[7] - $fields[6] < 2000){
-	$date_range{"$fields[6]-$fields[7]\t"} .= "$fields[0]\t";
-}
-
-$coll=$fields[2];
-foreach($coll){
-$_=&modify_collector($_);
-	#s/W\. ?L\. ? J\./Jepson/;
-	#if(m/[A-Z]\. ?[A-Z]\. ?[A-Z]\.$/){
-		#$all_names{$_}.="$fields[0]\t" unless $seen{$fields[0]}++;
-		#next;
-	#}
-	#s/,? [Ee][tT] .*//;
-			#s/[A-Z][a-z]+ and ?[A-Z][a-z-]+ ([A-Z][a-z-])/$1/;
-	#s/^([A-Z][A-Z][A-Z]+) [A-Z].*/$1/;
-	#s/[A-Z]\. ?[A-Z]\. and [A-Z]\. ?[A-Z]\. (.*)/$1/;
-	#s/[A-Z]\. and [A-Z]\. (.*)/$1/;
-	#s/ \(?(with|and) .*//;
-	#s/[;,] .*//;
-	#s/, .*//;
-	#s/^.* //;
-	#ucfirst(lc($_));
-	$all_names{$_}.="$fields[0]\t" unless $seen{$fields[0]}++;
-}
-
-
-$fields[13]="" if $fields[13] =~/null/i;
-$fields[14]="" if $fields[13] =~/null/i;
-#name field not printout
-			print  OUT "$fields[0] ", join("\t",@fields[1 .. 11,13,14,15,16,17,18,19]), "\n";
-	}
-}
 
 
 close(OUT);
@@ -978,124 +1085,38 @@ foreach(sort(keys(%CDL_loc_word))){
 	print OUT "$_ $CDL_loc_word{$_}\n";
 }
 close(OUT);
-$dbh=new Sybase::CTlib 'rlmoe', $password;
-$query=<<EOQ;
-select accession_id, coll_num_prefix, coll_number, coll_num_suffix
-from accession where
-(
-loc_state="CA"
-and accession_id not like "UCR%"
-and accession_id not like "UCD%"
-and accession_id not like "UCI%"
-and accession_id not like "SDSU%"
-and accession_id not like "CHSC%"
-and accession_id not like "SBBG%"
-and objkind_id !=5
-)
-EOQ
-$dbh->ct_execute("$query");
-while($dbh->ct_results($restype) == CS_SUCCEED){
-	next unless $dbh->ct_fetchable($restype);
-	while((@fields)= $dbh->ct_fetch){
-		$fields[0]=uc($fields[0]);
-		$num=$fields[2];
-		#$num=join("",@fields[1.. 3]);
-		next unless $num=~/[0-9a-zA-Z]/;
-		$num=~s/^ *//;
-		$num=~s/^[-# ]+//;
-		$num=~s/ *$//;
-		next if $num=~/^s\.?n\.?$/i;
-		$fields[0]=~s/ *$//;
-		$num{$num}.="$fields[0]\t";
-	}
-}
 open(OUT, ">CDL_coll_number.in") || die;
 foreach (sort (keys(%num))){
 	print  OUT "$_ $num{$_}\n";
 }
 close(OUT);
 
-$dbh=new Sybase::CTlib 'rlmoe', $password;
-$query=<<EOQ;
-select a.accession_id, a.vouchkind_id, a.descr
-from voucher a, accession b
-where
-(
-a.accession_id=b.accession_id and b.loc_state="CA"
-and a.accession_id not like "UCR%"
-and a.accession_id not like "UCD%"
-and a.accession_id not like "UCI%"
-and a.accession_id not like "SDSU%"
-and a.accession_id not like "CHSC%"
-and a.accession_id not like "SBBG%"
-and b.objkind_id !=5
-)
-EOQ
-$dbh->ct_execute("$query");
-while($dbh->ct_results($restype) == CS_SUCCEED){
-	next unless $dbh->ct_fetchable($restype);
-	while((@fields)= $dbh->ct_fetch){
-		$fields[0]=uc($fields[0]);
-$cdl_voucher{$fields[0]}.="\t$fields[1]\t$fields[2]";
-}
-}
 open(OUT,">CDL_voucher.in") || die;
 foreach(sort(keys(%cdl_voucher))){
 print OUT "$_$cdl_voucher{$_}\n";
 }
-
-$dbh=new Sybase::CTlib 'rlmoe', $password;
-$query=<<EOQ;
-select a.accession_id, noauth_name, committee_abbr, anno_datestring, a.anno_note
-from annotation_history a, committee b, taxon_noauth_name c, accession d
-where
-(
-a.taxon_id=c.taxon_id
-and a.annotator_id=b.committee_id
-and vname_id = 0
-and a.accession_id=d.accession_id
-and d.loc_state="CA"
-and a.accession_id not like "UCR%"
-and a.accession_id not like "UCD%"
-and a.accession_id not like "UCI%"
-and a.accession_id not like "SDSU%"
-and a.accession_id not like "CHSC%"
-and a.accession_id not like "SBBG%"
-and d.objkind_id !=5
-)
-EOQ
-$dbh->ct_execute("$query");
-while($dbh->ct_results($restype) == CS_SUCCEED){
-	next unless $dbh->ct_fetchable($restype);
-	while((@fields)= $dbh->ct_fetch){
-		$fields[0]=uc($fields[0]);
-		$fields[0]=~s/ *$//;
-		$cdl_anno{$fields[0]}.="$fields[1]; $fields[2]; $fields[3]; $fields[4]\n"
-	}
+close(OUT);
+open(OUT,">CDL_notes.in") || die;
+foreach(sort(keys(%CDL_notes))){
+print OUT "$_\t$CDL_notes{$_}\n";
 }
-$query=<<EOQ;
-select a.accession_id, variant_name, committee_abbr, anno_datestring, anno_note
-from annotation_history a, committee b, variant_taxon_name c, accession d
-where a.vname_id=c.vname_id
-and a.annotator_id=b.committee_id
-and taxon_id = 0
-and a.accession_id=d.accession_id
-and d.objkind_id !=5
-EOQ
-$dbh->ct_execute("$query");
-while($dbh->ct_results($restype) == CS_SUCCEED){
-	next unless $dbh->ct_fetchable($restype);
-	while((@fields)= $dbh->ct_fetch){
-		$fields[0]=uc($fields[0]);
-		$fields[0]=~s/ *$//;
-		next if $fields[1]=~/^none/;
-		next if $fields[1]=~/^Not applicable/;
-		$cdl_anno{$fields[0]}.="$fields[1]; $fields[2]; $fields[3]; $fields[4]\n"
+close(OUT);
+
+foreach(@cdl_anno){
+	($key,@value)=split(/\n/);
+	foreach $value(@value){
+	if($CDL_anno{$key}){
+		$CDL_anno{$key}.="\n$value";
+	}
+	else{
+		$CDL_anno{$key}="$value";
+	}
 	}
 }
 open (OUT, ">CDL_annohist.in") || die;
-foreach(sort(keys(%cdl_anno))){
-	print OUT "$_\n$cdl_anno{$_}\n";
+foreach(sort(keys(%CDL_anno))){
+	$CDL_anno{$_}=~s/Ã—/× /;
+	print OUT "$_\n$CDL_anno{$_}\n\n";
 }
 
 open(OUT, ">CDL_bad_date") || die;
@@ -1103,26 +1124,9 @@ foreach(keys(%null_date)){
 print OUT "bad date: $null_date{$_}: $_ \n";
 }
 close(OUT);
-print "$skip_accession accession numbers supplanted\n";
-$tar_return=system 'tar -cf cdl_tar CDL*';
-print "tar file cdl_tar $tar_return\n";
-#die;
-unlink "CDL_coll_number.in";
-unlink "CDL_collectors.in";
-unlink "CDL_counties.in";
-unlink "CDL_date_range.in";
-unlink "CDL_date_simple.in";
-unlink "CDL_loc_list.in";
-unlink "CDL_main.in";
-unlink "CDL_name_list.in";
-unlink "CDL_tid_to_name.in";
-unlink "CDL_annohist.in";
-unlink "CDL_voucher.in";
-#open (OUT, ">CDL_conversion") || die;
-#print OUT $convert;
-#close OUT;
-
+#UND
 sub modify_collector {
+s/,? Jr\.?//;
 s/&([a-z])[a-z]*;/$1/g;
 			s/W\. ?L\. ? J\./Jepson/;
 			if(m/[A-Z]\. ?[A-Z]\. ?[A-Z]\.$/){
@@ -1135,7 +1139,7 @@ s/&([a-z])[a-z]*;/$1/g;
 			s/^[A-Z][a-z]+ and ?[A-Z][a-z-]+ ([A-Z][a-z-]+$)/$1/;
 			s/^[A-Z]\. ?[A-Z]\. and [A-Z]\. ?[A-Z]\. (.*)/$1/;
 			s/^[A-Z]\. and [A-Z]\. (.*)/$1/;
-			s/ \(?(with|and) .*//;
+			s! \(?(w/|with|and|&) .*!!;
 			s/[;,] .*//;
 			#s/, .*//;
 			s/^.* //;
@@ -1145,79 +1149,283 @@ s/&(.)[^;]*;/\1/g && print "$_\n";
 sub get_entities{
 local($_)=shift;
 #warn "$_\n";
+$start=$_;
 study();
-s/\xef\xbf\xbd\xef\xbf\xbd/"/g; 
-s/\xef\xbf\xbd/'/g; 
-s/\xef\xbf\x95/'/g; 
-s/\xef\xbe\xbc/&deg;/g; 
-s/\xef\xbe\xb1/&plusmn;/g; 
-s/\xef\xbe\xb0/&deg;/g; 
-s/\xef\xbe\xa1/&deg;/g; 
+s/Sierra ï¾„evada/Sierra Nevada/;
+s/Ã…na/Ana/;
+s/.zelk.k/Ozelkuk/;
+s/\xC7anyon/Canyon/;
+s/River\x85on/River --- on/;
+s/V\x87cr\x87t\x97t/V&aacute;cr&aacute;t&oacute;t/;
+s/\xC3\xA2\xE2\x82\xAC\xE2\x80\x9C/---/g;
+s/\xC3\x83\xC21\/4/&uuml;/g;
+s/\xC3\x83\xC2\xBC/1\/4/g;
+s/\xC3\x83\xC2\xBE/3\/4/g;
+s/\xC3\x83\xC2\xB1/&ntilde;/g;
+s/\xC2\xBE/3\/4/g;
+
+s/YÃ¢Â€Â™/&deg;/g;
+s/Ã¢ÂˆÂ/&deg;/g;
+#s/Ã¢Â€Â™Ã¢Â€Â™/"/g;
+s/\372\361/&uacute;&ntilde;/g;
 s/\xef\xbe\x96/&ntilde;/g; 
+s/\xef\xbf\xbd/&deg;/g; 
+s/\xef\xbe\xa1/&deg;/g; 
+s/\xef\xbe/&deg;/g;
+s/\xEF\xA3\xBF//g;
+s/\xC3\x8E//g;
+s/\xEF\xBE\xB1//;
+s/\xc3\x91/N/g;
+s/\xc2\xa0\xc2\xb1/&plusmn;/g; 
+s/\xc2\xb7\xc2\xb1/&plusmn;/g; 
+s/Â±/&plusmn;/g;
+s/\xA0\xB1/&plusmn;/g; 
 s/\xef\xbe\x8e/&eacute;/g; 
-s/\xef\xbe\x84/N/g; 
-s/\xe2\x80\xa6/.../g; 
-s/\xe2\x80\x9d/"/g; 
+s/\xe2\x88\x9e/&deg;/g; 
+s/\xef\xbf\xbd/'/g;
+s/\xe2\x80\x93/---/g; 
 s/\xe2\x80\x99/'/g; 
-s/\xe2\x80\x93/&plusmn;/g; 
-s/\xf1\xf3/&ntilde;&oacute;/g; 
-s/\xef\xbf/&deg;/g; 
-s/\xef\xbe/&deg;/g; 
-s/\xc3\xb1/&ntilde;/g; 
-s/\xc3\xab/&euml;/g; 
-s/\xc3\xa9/&eacute;/g; 
-s/\xc3\xa8/&egrave;/g; 
-s/\xc2\xbe/3\/4/g; 
-s/\xc2\xbd/1\/2/g; 
-s/\xc2\xbc/1\/4/g; 
-s/\xc2\xba/&deg;/g; 
-s/\xc2\xb1/&plusmn;/g; 
-s/\xc2\xb0/&deg;/g; 
-s/\xb1\xbd/&plusmn;1\/2/g; 
-s/\xff/T/g; 
-s/\xfb/&deg;/g; 
-s/\xf5/B/g; 
-s/\xf3/&oacute;/g; 
-s/\xf1/&ntilde;/g; 
-s/\xef/&deg;/g; 
-s/\xed/I/g; 
-s/\xeb//g; 
-s/Andr\x8ee/Andre&eacute;/g;
-s/\x9a/&ouml;/g;
-s/\xa7/S/g;
-s/\xb9/P/g;
+s/\xe2\x80\x98/'/g; 
+s/\xe2\x80\x9d/"/g; 
+s/\xe2\x80\x9c/"/g; 
+s/\xe2\x80\xA0/t/;
+s/\xe2\x80 *\.\.\./' .../g; 
+s/\xe2 *\.\.\./ .../g; 
+s/\xc2 *\.\.\./" .../g; 
+s/\xc21\/4/&frac14;/g; 
+s/\xc2\xb7/&deg;/;
+s/Ã¢Â€Â˜/"/g;
+s/Ã¢Â€Âœ/"/g;
+s/Ã¢Â€Â/"/g;
+s/Ã‚Â°/&deg;/g;
+s/Ã‚Âº/&deg;/g;
+s/\xcb\x9a/&deg;/g; 
+s/Ã‹Âš/&deg;/g;
+s/ÃƒÂ©/&eacute;/g;
+s/ÃƒÂ¨/&egrave;/g;
+s/Ã­/&iacute;/g;
+s/ÃƒÂ±/&ntilde;/g;
+s/Ã±/&ntilde;/g;
+s/ÃƒÂ±ÃƒÂ³/&ntilde;&oacute;/g;
+s/Ã³/&oacute;/g;
+s/ÃƒÂ¶/&ouml;/g;
+s/Ã¶/&ouml;/g;
+s/Ã‚Â±/&plusmn;/g;
+s/Â±/&plusmn;/g;
+s/ÃƒÂ¼/&uuml;/g;
+s/Ã¼/&uuml;/g;
+s/Ã¢Â€Â˜Ã¢Â€Â™/'/g;
+s/Ã¢Â€Â™/'/g;
+s/Ã¯Â¿Â½/'/g;
+s/Ã»/'/g;
+s/Ã¢/'/g;
+s/Ã”/'/g;
+s/Ã•/'/g;
+s/Ã‚Â½/&frac12;/g;
+s/Â½/&frac12;/g;
+s/Ã‚Â¼/&frac14;/g;
+s/Â¼/&frac14;/g;
+s/Ã‚Â¾/&frac34;<1>/g;
+s/Â“/"/g;
+s/Â”/"/g;
+s/Ã’/"/g;
+s/Ã“/"/g;
+s/+//g;
+s/Ã–/&Ouml;/g;
+s/&apos;/'/g;
+s/\x91/'/g;
+s/Â‘/'/g;
+s/Â’/'/g;
+s/\xd4/'/g;
+s/Âº/&deg;/g;
+s/Â¡/&deg;/g;
+s/Âˆ/&aacute;/g;
+s/ˆ/&aacute;/g;
 s/\xe9/&eacute;/g; 
-s/\xe4/R/g; 
-s/\xe1//g; 
-s/\xd7//g; 
-s/\xd4/'/g; 
-s/\xd3/"/g; 
-s/\xd2/"/g; 
-s/\.\.\.\./"/g;
-s/\xd0/-/g; 
-s/\xca/  /g; 
-s/\xbe/3\/4/g; 
-s/\xbd/1\/2/g; 
-s/\xbc/1\/4/g; 
-s/\xb3/&plusmn;/g; 
-s/\xb2/&plusmn;/g; 
-s/\xb1/&plusmn;/g; 
-s/\xb0/&deg;/g; 
-s/\xab/'/g; 
-s/\xa1/&deg;/g; 
-s/\xa0/.../g; 
-s/\x9f/&uuml;/g; 
-s/\x96/&ntilde;/g; 
+s/Â°/&deg;/g;
+s/\x8e/&eacute;/g;
+s/Ã©/&eacute;/g;
+s/\x8f/&egrave;/g;
+s/\x8e/&eacute;/g; 
+s/\x92/'/g; 
 s/\x94/"/g; 
 s/\x93/"/g; 
-s/Garc\x92/Garc&iacute;/g; 
-s/\x92/'/g; 
-s/\x8e/&eacute;/g; 
-s/\x86/U/g; 
-s/\x85/.../g; 
-s/\x84/N/g; 
-s/\x82/C/g; 
-s/\x81/A/g; 
-#warn "$_\n";
+s/\xbd/&frac12;/g; 
+s/\xc2\xb1/&plusmn;/g; 
+s/\xb1/&plusmn;/g; 
+s/\xd3/"/g; 
+s/\xd2/"/g; 
+s/\xd5/'/g; 
+s/\xf1/&ntilde;/g; 
+s/\xf3/&oacute;/g; 
+s/\xa1/&deg;/g; 
+s/\xb0/&deg;/g; 
+s/\xed/&iacute;/g; 
+s/\x96/&ntilde;/g; 
+s/\xab/'/g; 
+s/\xbe/&frac34;<3>/g; 
+s/\xbd/&frac12;/g; 
+s/\xbc/&frac14;/g; 
+s/\xb3/&plusmn;/g; 
+s/\xb2/&plusmn;/g; 
+s/Â±/&plusmn;/g;
+s/Â½/&frac12;/g;
+s/\xa1/&deg;/g; 
+s/(\d)\xba/$1$deg;/g;
+s/\xf6/&ouml;/;
+s/\x97/&oacute;/;
+s/\x9A/&ouml;/;
+s/Â¾/&frac34;<2>/g;
+s/\cP+//g;
+s/\xe1/&aacute;/g;
+s/\xC5/~/g;
+s/\xFB/&deg;/g;
+s/\xD3/"/g;
+s/\xF6/&ouml;/g;
+s/\xC1/&Aacute;/g;
+$end=$_;
+unless ($start eq $end){
+unless ($end=~ m/^[-\\`@$\[\]{}=*!|><#%~+\/\w\s,.?;:"')(&]*$/){
+print ERR "$start\n$end\n\n";
+}
+}
 $_;
 }
+
+#	sub make_one_loc {
+#	local($_)=shift;
+#$start=$_;
+#	($distance,$place,$other,$verb)=split(/\t/);
+#$distance=~s/; *$//;
+#	if($other){
+#		@other=split(/[,;] /,$other);
+#				foreach $i (0 .. $#other){
+#					if($other[$i]eq $place){
+#						$other[$i]="";
+#					}
+#				}
+#	}
+#	$other=join(", ", @other);
+#	if($place eq $other){
+#		$other="";
+#	}
+#	if (length($distance) > 0){
+#			if($place eq $distance){
+#				$place="";
+#			}
+#			if($other){
+#				@other=split(/[,;] /,$other);
+#					foreach $i (0 .. $#other){
+#						if($other[$i]eq $distance){
+#							$other[$i]="";
+#						}
+#					}
+#			$other=join(", ", @other);
+#			}
+#			if($distance=~/(.*); (.*)/){
+#			$first_distance=$1;
+#			$second_distance=$2;
+#				if($place eq $first_distance){
+#					$place="";
+#				}
+#			if($other){
+#				@other=split(/[,;] /,$other);
+#					foreach $i (0 .. $#other){
+#						if($other[$i]eq $first_distance){
+#							$other[$i]="";
+#						}
+#						if($other[$i]eq $second_distance){
+#							$other[$i]="";
+#						}
+#					}
+#			$other=join(", ", @other);
+#			}
+#			if (length($place) >2){
+#				if($other){
+#					@other=split(/[,;] /,$other);
+#						foreach $i (0 .. $#other){
+#							if($other[$i]eq $place){
+#								$other[$i]="";
+#							}
+#						}
+#						$other=join(", ", @other);
+#				}
+#				($tot_loc=$distance)=~s/; (.*)/ $place ($1) - $other - $verb/;
+#			}
+#			elsif (length($other) >2){
+#				($tot_loc=$distance)=~s/; (.*)/ $other ($1) - $verb/;
+#			}
+#			#3#
+#			else{
+#				$tot_loc="$distance - $verb";
+#			}
+#			#3#
+#		}
+#		###########
+#		else{
+#				if($place eq $distance){
+#					$place="";
+#				}
+#			if($other){
+#				@other=split(/[,;] /,$other);
+#					foreach $i (0 .. $#other){
+#						if($other[$i]eq $distance){
+#							$other[$i]="";
+#						}
+#					}
+#			$other=join(", ", @other);
+#			}
+#			if (length($place) >2){
+#				if($other){
+#					@other=split(/[,;] /,$other);
+#						foreach $i (0 .. $#other){
+#							if($other[$i]eq $place){
+#								$other[$i]="";
+#							}
+#						}
+#						$other=join(", ", @other);
+#				}
+#				$tot_loc="$distance $place - $other - $verb";
+#			}
+#			elsif (length($other) >2){
+#				$tot_loc="$distance $other - $verb";
+#			}
+#			#2#
+#			else{
+#				$tot_loc="$distance - $place -  $other - $verb";
+#			}
+#			#2#
+#		}
+#		###########
+#	}
+#	else{
+#		if (length($place) >1){
+#			if($other){
+#				@other=split(/[,;] /,$other);
+#					foreach $i (0 .. $#other){
+#						if($other[$i]eq $place){
+#							$other[$i]="";
+#						}
+#					}
+#			$other=join(", ", @other);
+#			}
+#				$tot_loc="$place - $other - $verb" unless $place eq $other;
+#			}
+#		elsif (length($other) >1){
+#				$tot_loc="$other $verb";;
+#				}
+#		elsif (length($verb) >1){
+#				$tot_loc="$verb";;
+#		}
+#}
+#if (length($tot_loc) > 3){
+#$tot_loc=~s/  */ /g;
+#$tot_loc=~s/ $//g;
+#$tot_loc=~s/^ *//g;
+#$tot_loc=~s/[ -]*$//g;
+#}
+#print "$start\n$tot_loc\n" if length($tot_loc) <2;
+#return $tot_loc;
+#}
+##Hybrid_annotation: Encelia californica Ã— farinosa
+##Quercus × moreha; M. G. Simpson; ?
