@@ -2,6 +2,8 @@
 /loaders/BLMAR/data_files/
 /loaders/CAS/data_files/
 /bulkload/data_files/
+/bulkload/input/
+/bulkload/output/
 
 #generated files
 /synonymy/output/
