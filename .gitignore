@@ -1,0 +1,12 @@
+#content
+/loaders/BLMAR/data_files/
+/loaders/CAS/data_files/
+
+#generated files
+output/
+/synonymy/output/
+/synonymy/input/
+/pages/output/
+
+#from Mac OS X
+.DS_Store
