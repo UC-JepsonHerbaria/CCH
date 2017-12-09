@@ -1,6 +1,10 @@
 #content
 /loaders/BLMAR/data_files/
+/loaders/BLMAR/BLMAR_out.txt
+/loaders/CAS/CAS_out.txt
 /loaders/CAS/data_files/
+/loaders/YOSE/data_files/
+/loaders/YOSE/YOSE_out.txt
 /bulkload/data_files/
 /bulkload/input/
 /bulkload/output/
