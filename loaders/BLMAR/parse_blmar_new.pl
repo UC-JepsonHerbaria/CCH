@@ -3,7 +3,7 @@ use Geo::Coordinates::UTM;
 use strict;
 #use warnings;
 use Data::GUID;
-use lib '/Users/davidbaxter/DATA';
+use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH;
 my $today_JD;
 
@@ -30,7 +30,7 @@ my $seen;
 my %seen;
 my $det_string;
 
-my $file = 'BLMAR_SEPT_2016_mod.txt';
+my $file = 'data_files/BLMAR_OCT_2017_mod.txt';
 
 
 #####process the file
@@ -334,9 +334,10 @@ my $LJD;
 my $formatEventDate;
 
 
-$eventDate = ucfirst($verbatimEventDate);
+$eventDate = $verbatimEventDate;
 
 foreach ($eventDate){
+	s/Junly/July/;
 	s/,/ /g;
 	s/\./ /g;
 		s/  +/ /;
@@ -345,14 +346,14 @@ foreach ($eventDate){
 	}
 	
 
-	if ($eventDate=~/^(\d{1,2}) ([A-Za-z]+) (\d\d\d\d)/){
+	if ($eventDate=~/^(\d{1,2}) ([A-Za-z]+) +(\d\d\d\d)/){
 		$DD=$1;
 		$MM=$2;
 		$YYYY=$3;
 		$DD=~s/^0//;
 	}
 	
-	elsif ($eventDate=~/^([0-9]{1,2}) ?[-&] ?([0-9]{1,2}) ([A-Za-z]+) (\d\d\d\d)/){
+	elsif ($eventDate=~/^([0-9]{1,2}) ?[-&] ?([0-9]{1,2}) ([A-Za-z]+) +(\d\d\d\d)/){
 		$DD=$1;
 		$DD2=$2;
 		$MM=$3;
@@ -362,16 +363,16 @@ foreach ($eventDate){
 		$DD2=~s/^0//;
 	}
 	
-	elsif ($eventDate=~/(\d\d*)-([A-Za-z]+)-(\d\d)/){
+	elsif ($eventDate=~/^(\d\d*)-([A-Za-z]+)-(\d\d)/){
 		$DD=$1;
 		$MM=$2;
 		$YYYY="20$3";
 	}
-	elsif ($eventDate=~/([A-Za-z]+) (\d\d\d\d)/){
+	elsif ($eventDate=~/^([A-Za-z]+) (\d\d\d\d)/){
 		$MM=$1;
 		$YYYY=$2;
 	}
-	elsif ($eventDate=~/([A-Za-z]+)-(\d\d)/){
+	elsif ($eventDate=~/^([A-Za-z]+)-(\d\d)/){
 		if ($2=~m/82/){
 			$MM=$1;
 			$YYYY="19$2";
@@ -596,7 +597,6 @@ else {
 ###############ELEVATION########
 foreach($verbatimElevation){
 	s/,//g;
-	s/,//g;
 	s/\.//g;
 	s/(\d) (\d+)/$1$2/g;
 		s/  +/ /;
@@ -706,6 +706,7 @@ my $zone_number;
 
 
 foreach ($verbatimLatitude, $verbatimLongitude){
+		s/4589"/ 45.89/;
 		s/ø/ /g;
 		s/\xc3\xb8/ /g; #decimal byte representation for ø
 		s/'/ /g;

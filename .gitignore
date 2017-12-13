@@ -1,11 +1,13 @@
 #content
 loaders/BLMAR/data_files/
 loaders/BLMAR/BLMAR_out.txt
+loaders/BLMAR/BLMAR_dwc.txt
 loaders/BLMAR/log.txt
 loaders/CAS/CAS_out.txt
 loaders/CAS/data_files/
 loaders/RSA/RSA_out.txt
 loaders/RSA/log.txt
+loaders/RSA/data_files/
 loaders/YOSE/data_files/
 loaders/YOSE/YOSE_out.txt
 bulkload/data_files/
