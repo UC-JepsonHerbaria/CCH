@@ -386,6 +386,9 @@
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(10204)">Verne Grant</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(3782)">W. B. Cooke</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(7185)">W. I. Follett</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Carter1516832171295)">Carter</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(PHaaker1516829249710)">P. Haaker</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(PTBeaudette1516829327565)">P. T. Beaudette</field>
       </list>
       <list alias="DeterminedBy" caseInsensitive="false">
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(AdamCSchneider1390521123940)">Adam C. Schneider</field>
