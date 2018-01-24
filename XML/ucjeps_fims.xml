@@ -380,6 +380,12 @@
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(MissSarahPMonks1377023046810)">Sarah P. Monks</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(SarahPMonks1348684166416)">Sarah P. Monks</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(WJVOsterhoutRAHarper1357860711167)">W. J. V. Osterhout and R. A. Harper</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(3540)">John C. Roos</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Seaweed575)">L. Hart</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(NancyNicholson1342211321558)">N. L. Nicholson</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(10204)">Verne Grant</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(3782)">W. B. Cooke</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(7185)">W. I. Follett</field>
       </list>
       <list alias="DeterminedBy" caseInsensitive="false">
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(AdamCSchneider1390521123940)">Adam C. Schneider</field>
