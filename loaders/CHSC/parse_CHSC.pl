@@ -1,75 +1,55 @@
-open(IN,"../CDL/collectors_id") || die;
-while(<IN>){
-	if(m/\cM/){
-	die;
-	}
-	chomp;
-s/\t.*//;
-	$coll_comm{$_}++;
-}
-#open(IN,"/Users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
+use Time::JulianDay;
+use Time::ParseDate;
+use lib '/Users/davidbaxter/DATA';
+use CCH; #loads non-vascular plant names list ("mosses"), alter_names table, and max_elev values
+$today=`date "+%Y-%m-%d"`;
+chomp($today);
+($today_y,$today_m,$today_d)=split(/-/,$today);
+$today_JD=julian_day($today_y, $today_m, $today_d);
+
+&load_noauth_name;
+
+###Dick used to maintain a list of collectors to call out inconsistencies
+###We don't provide that service anymore
+#open(IN,"../CDL/collectors_id") || die;
 #while(<IN>){
-	#chomp;
-	#if(m/\cM/){
-	#die;
-	#}
-	#s/^.*\t//;
-	#$taxon{$_}++;
-#}
-open(IN,"/Users/richardmoe/4_DATA/smasch_taxon_ids.txt") || die;
-while(<IN>){
-	chomp;
-($code,$name,@rest)=split(/\t/);
-	$taxon{$name}++;
-}
-open(IN,"/Users/richardmoe/4_DATA/CDL/riv_non_vasc") || die;
-while(<IN>){
-	chomp;
-	if(m/\cM/){
-	die;
-	}
-	$exclude{$_}++;
-}
-open(IN,"../CDL/alter_names") || die;
-while(<IN>){
-	if(m/\cM/){
-	die;
-	}
-	chomp;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
-open(IN,"../DAVIS/davis_exclude") || die;
-while(<IN>){
-	if(m/\cM/){
-	die;
-	}
-	chomp;
-	$exclude{$_}++;
-}
-#names moved to alter_names
-#open(IN,"alter_chico.in") || die;
-#while(<IN>){
-	#if(m/\cM/){
-	#die;
-	#}
-#chomp;
-			#@alters=split(/\t/);
-			#$alter{$alters[0]}=$alters[1];
+#	if(m/\cM/){
+#	die;
+#	}
+#	chomp;
+#s/\t.*//;
+#	$coll_comm{$_}++;
 #}
 
-$/= "<chico>";
+#CHSC evidently keeps changing the record delimiter tag
+$/=qq{<CurrentName_with_all_fields>};
+#$/=qq{<chico>};
 #$/= "<CHSC_for_CalHerbConsort>";
 #$/="<CHSC_for_x0020_CalHerbConsort>";
-open(ERROR, ">Chico_error") || die;
-open(OUT, ">parse_Chico.out") || die;
+
+my $error_log = "log.txt";
+unlink $error_log or warn "making new error log file $error_log";
+open(ERROR, ">Chico_error") || die; #note that the print ERROR often includes all content in XML tabs separated by Windows line breaks, which can be confusing if opened not in vi. Consider revising
+
+open(OUT, ">CHSC.out") || die; 
 open(IN,"chico.xml") || die;
+#open(IN,"chico_2014-03-21.xml") || die;
 #open(IN,"CHSC_for_CalHerbConsort.xml") || die;
 #open(IN,"chico_test") || die;
 while(<IN>){
-	if(m/\cM/){
-	die "$_\n";;
-	}
+	s/\cM//g;
+	chomp;
+	&CCH::check_file;
+
+
+
+#This was in here, and made the parser die
+#so I commented it out
+#	if(m/\cM/){
+#	die "$_\n";
+#	}
+
+
 	next if m/<Division>.*(Myxomycetes|Anthocerotae|Hepaticae|lichens|Musci)/;
   #18 <Division>Anthocerotae (hornworts)</Division>
 #66797 <Division>Anthophyta (flowering plants)</Division>
@@ -85,7 +65,10 @@ while(<IN>){
 
 	($err_line=$_)=~s/\n/\t/g;
 $CNUM_PREFIX= $CNUM_SUFFIX=
-$comb_coll=$assoc=$genus=$LatitudeDirection=$LongitudeDirection=$date= $collnum= $coll_num_prefix= $coll_num_suffix= $name= $accession_id= $county= $locality= $Unified_TRS= $elevation= $collector= $other_coll= $ecology= $color= $lat= $long= $decimal_lat= $decimal_long=$annotation="";
+$comb_coll=$assoc=$genus=$LatitudeDirection=$LongitudeDirection=$date=
+$collnum= $coll_num_prefix= $coll_num_suffix= $name= $accession_id=
+$county= $locality= $Unified_TRS= $elevation= $collector= $other_coll=
+$ecology= $color= $lat= $long= $decimal_lat= $decimal_long=$annotation="";
 $hybrid_annotation="";
 s/&quot;/"/g;
 s/&apos;/'/g;
@@ -109,16 +92,19 @@ EOP
 		next;
 	}
 
+
+#################SCIENTIFIC NAME PROCESSING
 	if(m|<CGenus>(.+)</CGenus>|){
 		$name=$1;
 		$genus=$1;
-	unless($genus){
-		print ERROR "No generic name, skipped: $err_line\n";
-		next;
-	}
+		unless($genus){
+			print ERROR "No generic name, skipped: $err_line\n";
+			next;
+		}
 	}
 	if(m|<CSpecificEpithet>(.+)</CSpecificEpithet>|){
 		$name.=" " . lc($1);
+		$name=~s/ +l\.$//; #some records in CHSC have the author included in SpecificEpithet. This at least fixes Linnaeus
 	}
 	if(m|<CRank>(.+)</CRank>|){
 		$rank=$1;
@@ -130,16 +116,8 @@ EOP
 	if(m|<CInfraspecificName>(.+)</CInfraspecificName>|){
 		$name.=" " . lc($1);
 	}
-	unless($name){
-		print ERROR "No name, skipped: $err_line\n";
-		next;
-	}
-if($exclude{$genus}){
-	print ERROR <<EOP;
-Excluded, not a vascular plant: $name $err_line
-EOP
-	next;
-}
+
+
 $name=~s/  */ /g;
 			if($name=~s/([A-Z][a-z-]+ [a-z-]+) × /$1 X /){
 			#if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
@@ -159,67 +137,24 @@ $name=~s/  */ /g;
 			}
 		$name=~s/ × / X /;
 		$name=~s/ x / X /;
-if($alter{$name}){
-	print ERROR <<EOP;
-Spelling altered to $alter{$name}: $name 
-EOP
-	$name=$alter{$name};
-}
-
-
 		$name=~s/ssp\./subsp./;
 		$name=~s/<!\[CDATA\[(.*)\]\]>/$1/i;
 		$name=~s/ cultivar\. .*//;
 		$name=~s/ (cf\.|affn?\.|sp\.)//;
-		unless($taxon{$name}){
-			$name=~s/var\./subsp./;
-if($alter{$name}){
-	print ERROR <<EOP;
-Spelling altered to $alter{$name}: $name 
-EOP
-	$name=$alter{$name};
-}
-			unless($taxon{$name}){
-					$on=$name;
-		if($name=~s/subsp\./var./){
-			if($taxon{$name}){
-				print ERROR <<EOP;
+		$name=~s/ subsp\.$//;
+		$name=~s/ var\.$//;
+		$name=~s/`//;
+		$name=~s/'//;
+		$name=~s/~//;
+		$name=~s/ *\?//;
 
-Not yet entered into SMASCH taxon name table: $on entered as $name
-EOP
-			}
-			else{
-				print ERROR <<EOP;
-
-Name not yet entered into SMASCH taxon name table, skipped: $accession_id $on
-EOP
-					$noname{$on}++;
-		++$skipped{$on};
-		next;
-		}
-	}
-	elsif($name=~s/var\./subsp./){
-		if($taxon{$name}){
-			print ERROR <<EOP;
-
-Not yet entered into SMASCH taxon name table: $on entered as $name
-EOP
-		
-		}
-	}
-				unless($taxon{$name}){
-					$noname{$name}++;
-	print ERROR <<EOP;
-Name not yet entered into SMASCH taxon name table, skipped: $accession_id $name 
-EOP
-	next;
-				}
-			}
-		}
+#$name = &strip_name($name); #this should be included. Make sure it works
+$name = &validate_scientific_name($name, $accession_id);
 
 
 
-$name=~s/ *\?//;
+
+##############Det Date
 if(m/<DeterminedDate>(.*)<\/Det/){
 	($det_date=$1)=~s/T.*//;;
 }
@@ -243,7 +178,7 @@ else{
 			$elevation=~s/\. *//;
 		}
 	}
-	elsif(s/ *(Elevation|Elev\.) (\d+) *'//i){
+	elsif(s/ *(Elevation|Elev\.) (\d+) *//i){
 		$elevation="$2 ft";
 	}
 	elsif(s/ *(Elevation|Elev\.) (\d+) *ft\.?//i){
@@ -268,6 +203,12 @@ $locality=~s/[,.:; ]+$//;
 	else{
 		$locality="";
 	}
+	
+	if($locality=~"Strybing Arb|Chico Tree Improvement Center"){
+		print ERROR "Specimen from cultivation, skipped: $locality $err_line\n";
+		next;
+	}
+	
 	if(m|<Date>(.*)</Date>|){
 		$date=$1;
 		$date=~s/T\d.*//;
@@ -335,6 +276,7 @@ $locality=~s/[,.:; ]+$//;
 			$month=$2; $day=$3; $year=$1;
 			if(m|<DatePrecision>Month</DatePrecision>|){
 				$day="";
+				
 			}
 			elsif(m|<DatePrecision>Year</DatePrecision>|){
 				$day=""; $month="";
@@ -344,15 +286,59 @@ $locality=~s/[,.:; ]+$//;
 			print ERROR "Date format problem: $date made null $err_line\n";
 			$date="";
 		}
-		if($year > 2012 || $year < 1800){
-			print ERROR "Date bounds problem: $year $date made null $err_line\n";
-			$date="";
-		}
+
 $day="" if $day eq "00";
 			$month=substr($month,0,3);
 $date = "$month $day $year";
 $date=~s/  */ /g;
+
+
+#This is the date-checking code from newer loaders, which uses JD
+		if($year && $month && $day){	#If a year, month, and day value are present,
+					$JD=julian_day($year, $month, $day);	#create the Julian Day ($JD) based on that year, month, and day
+					$LJD=$JD;	#Then set the late Julian Day ($LJD) to $JD because there is no range
+		}
+		elsif($year && $month){	#elsif there is only a year and month present
+			if($month=12){		#if the month is december...
+					$JD=julian_day($year, $month, 1);		#Set $JD to Dec 1
+					$LJD=julian_day($year, $month, 31);	#Set $LJD to Dec 31
+			}
+			else{		#else (if it's not december)
+					$JD=julian_day($year, $month, 1);	#Set $JD to the 1st of this month
+					$LJD=julian_day($year, $month+1, 1);	#Set $LJD to the first of the next month...
+						$LJD -= 1;						#...Then subtract one day (to get the last dat of this month)
+			}
+		}
+		elsif($year){	#elsif there is only year
+					$JD=julian_day($year, 1, 1);	#Set $JD to Jan 1 of that year
+					$LJD=julian_day($year, 12, 31);	#Set $LJD to Dec 31 of that year 
+		}
 	}
+	else{	#else (there is no $eventDate)
+		$JD=$LJD=""; #Set $JD and $LJD to null
+	}
+
+	if ($LJD > $today_JD){	#If $LJD is later than today's JD (calculated at the top of the script)
+		print ERROR <<EOP;
+		$accession_id DATE nulled, $date ($LJD)  greater than today ($today_JD)\n
+EOP
+
+		$JD=$LJD="";	#...then null the date
+	}
+	elsif($year < 1800){	#elsif the year is earlier than 1800
+		print ERROR <<EOP;
+		$accession_id DATE nulled, $date ($year) less than 1800\n
+EOP
+		$JD=$LJD=""; #...then null the date
+	}
+
+###This is the old date-checking code, which as of 2014 is definitely out of date
+#		if($year > 2012 || $year < 1800){
+#			print ERROR "Date bounds problem: $year $date made null $err_line\n";
+#			$date="";
+#		}
+
+
 	if(m|<Ecology>(.*)</Ecology>|){
 		$ecology=$1;
 		$ecology=~s/<!\[CDATA\[(.*)\]\]>/$1/;
@@ -379,6 +365,11 @@ $overage=length($assoc)- 255;
 	else{
 		$ecology=""
 	}
+	if ($ecology=~"[Oo]rnamental|[Cc]ultivated|[Gg]reenhouse"){
+	print ERROR "Specimen from cultivation: $ecology $err_line\n";
+	next;
+	}
+	
 	if(m|<Habitat>(.*)</Habitat>|){
 		$habitat=$1;
 	}
@@ -941,10 +932,31 @@ foreach($datum){
 s/NAD 1927/NAD27/;
 s/NAD 1983/NAD83/;
 s/WGS 1984/WGS84/;
+s/\'//
 }
 }
 else{
 $datum="";
+}
+
+###COORD SOURCE
+if(m!<LatLongAddedCheck>(.+)</LatLongAddedCheck!){
+$LatLongAdded=$1;
+	if($LatLongAdded=m/yes/){
+		$coordSource="Coordinates added by herbarium";
+	}
+	elsif($LatLongAdded=m/no/){
+		if($lat || $long || $decimal_lat || $decimal_long){
+			$coordSource="Coordinates from specimen label";
+		}
+		else{
+			$coordSource="";
+		}
+	}
+	else{
+		$coordSource="";
+	}
+
 }
 
 		if( m!<TownshipAndRange>([^<]+)</TownshipAndRange>!){
@@ -959,108 +971,27 @@ $county=$1;
 $county=~s/ *County//i;
 	}
 else{
-$county="unknown";
+$county="Unknown";
 }
-foreach($county){
-	s/ *$//;
-	s/\?//;
-	s/ \(\?\)//;
-	s/^ *$/unknown/;
-s/^'$/unknown/;
-s/^:ale$/unknown/;
-s/^4$/unknown/;
-s/^aIWEE$/unknown/;
-s/^Butte & Tehama line$/Butte/;
-s/^Butte VHO$/Butte/;
-s/^Butte`$/Butte/;
-s/^Can Bernardino$/San Bernardino/;
-s/^Clousa$/Colusa/;
-s/^Colusaq$/Colusa/;
-s/^Conta Costa$/Contra Costa/;
-s/^Contra Costra$/Contra Costa/;
-s/^El Dorada$/El Dorado/;
-s/^El Dorata$/El Dorado/;
-s/^Eldorado$/El Dorado/;
-s/^Elorado$/El Dorado/;
-s/^Frensno$/Fresno/;
-s/^Genn$/Glenn/;
-s/^Hunmboldt$/Humboldt/;
-s/^Lassen`$/Lassen/;
-s/^Lassrn$/Lassen/;
-s/^Maraposa$/Mariposa/;
-s/^Mendecino$/Mendocino/;
-s/^Mendicino$/Mendocino/;
-s/^Merved$/Merced/;
-s/^Mondocino$/Mendocino/;
-s/^Monterey SE$/Monterey/;
-s/^NE San Bernardino$/San Bernardino/;
-s/^Olumas$/Plumas/;
-s/^Pluams$/Plumas/;
-s/^Plumas & Butte$/Plumas/;
-s/^Plumas & Sierra$/Plumas/;
-s/^Plumas or Sierra$/Plumas/;
-s/^Plumas, Sierra$/Plumas/;
-s/^Plumus$/Plumas/;
-s/^San Barbara$/Santa Barbara/;
-s/^San Ben$/San Benito/;
-s/^San Berdo$/San Bernardino/;
-s/^San Bernardino NE$/San Bernardino/;
-s/^San Bernarndino$/San Bernardino/;
-s/^San Cruz$/Santa Cruz/;
-s/^San Fransisco$/San Francisco/;
-s/^San Juaquin$/San Joaquin/;
-s/^San Lius Obispo$/San Luis Obispo/;
-s/^San Louis Obispo$/San Luis Obispo/;
-s/^Santa Barbara`$/Santa Barbara/;
-s/^Santa Cruz`$/Santa Cruz/;
-s/^shasta$/Shasta/;
-s/^Shasta`$/Shasta/;
-s/^Shata$/Shasta/;
-s/^Siera$/Sierra/;
-s/^Siiskiyou$/Siskiyou/;
-s/^Sisikiyou$/Siskiyou/;
-s/^Siskyou$/Siskiyou/;
-s/^Sntna Barbara$/Santa Barbara/;
-s/^Stanilaus$/Stanislaus/;
-s/^Stansilaus$/Stanislaus/;
-s/^Sutter`$/Sutter/;
-s/^Tehana$/Tehama/;
-s/^Tehema$/Tehama/;
-s/^Toulumne$/Tuolumne/;
-s/^Trinity ()$/Trinity/;
-s/^Yuba-Butte$/Yuba/;
-	s/San Bernadino/San Bernardino/;
-	s/San Bernidino/San Bernardino/;
-	s/San Beradino/San Bernardino/;
-	s/Santa Barabara/Santa Barbara/;
-	s/Toulomne/Tuolumne/;
-	s/Tuolomne/Tuolumne/;
-	s/Los Angelos/Los Angeles/;
-	s/Monterrey/Monterey/;
-	s/Montery/Monterey/;
-	s/Santo Cruz/Santa Cruz/;
-	s/Calveras/Calaveras/;
-	s/Yolo Grasslands Park/Yolo/;
-	s/ and.*//;
-	s/^S\. ?E\. ?//;
-	s/^Western //;
-	s/El Dorodo/El Dorado/;
-	s/Solona/Solano/;
-	s/Glen$/Glenn/;
-	s/Armador/Amador/;
-	s/Humbolt/Humboldt/;
-	s| */.*||;
-	s/ ?- .*//;
-	s/ *\.$//;
-s/^Jct  Alpine, Amador, El Dorado$/Alpine/;
-s/^Lake-Colusa-Glenn jct$/Lake/;
-s/^Lake, Colusa, Glenn line$/Lake/;
-s/^Alpine, Amador, El Dorado jct\.?$/Alpine/;
-}
-unless($county=~/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|unknown|Ventura|Yolo|Yuba)$/i){
-		print ERROR "County not in California?, skipped $err_line\n";
-		next;
-}
+
+#the rest of this required code should be made into a separate subroutine that uses &verify_co
+
+		unless ($county=~m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown|Unknown)$/){
+			$v_county= &verify_co($county);	#Unless $county matches one of the county names from the above list, create a value $v_county for that value using the &verify_co function
+			if($v_county=~/SKIP/){		#If $v_county is "/SKIP/" (i.e. &verify_co cannot recognize it)
+				&log_skip("$id NON-CA COUNTY? $county");	#run the &skip function, printing the following message to the error log
+				++$skipped{one};
+				next;
+			}
+
+			unless($v_county eq $county){	#unless $v_county is exactly equal to what was input into the &verify_co function (i.e. if &verify_co successfully changed the county)
+				&log_change("$id COUNTY $county -> $v_county");		#call the &log function to print this log message into the change log...
+				$county=$v_county;	#and then set $county to whatever the verified $v_county is.
+			}
+		}
+
+
+
 
 if($ecology=~s/[.,;] *([Ff]lowers [^.]+)\././){
 $color=$1;
@@ -1117,8 +1048,11 @@ $overage=length($locality)- 255;
 #warn "Too long by $overage: $locality\n";
 	}
 	}
+	
 print OUT <<EOP;
 Date: $date
+EJD: $JD
+LJD: $LJD
 CNUM: $collnum
 CNUM_prefix: $CNUM_PREFIX
 CNUM_suffix: $CNUM_SUFFIX
@@ -1140,6 +1074,7 @@ Latitude: $lat
 Longitude: $long
 Max_error_distance: $extent
 Max_error_units: $ExtUnits
+Lat_long_ref_source: $coordSource
 Decimal_latitude: $decimal_lat
 Decimal_longitude: $decimal_long
 Datum: $datum
@@ -1150,6 +1085,8 @@ USGS_Quadrangle: $quad
 
 EOP
 }
+
+############SOME OLD CODE from when we processed collectors
 #foreach(sort(keys(%seen_coll))){
 #if($coll_comm{$_}){
 	##warn "$_ seen\n";
@@ -1163,9 +1100,16 @@ EOP
 #EOP
 #}
 #}
-foreach(sort {$noname{$a}<=>$noname{$b}}(keys(%noname))){
-print "$_ : $noname{$_}\n";
+
+sub skip {	#for each skipped item...
+	print ERR "skipping: @_\n"	#print into the ERR file "skipping: "+[item from skip array]+new line
 }
+sub log {	#for each logged change...
+	print ERR "logging: @_\n";	#print into the ERR file "logging: "+[item from log array]+new line
+}
+
+
+
 __END__
 <CHSC_for_CalHerbConsort>
 <Accession>
