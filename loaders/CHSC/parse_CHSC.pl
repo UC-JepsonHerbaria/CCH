@@ -7,16 +7,22 @@ while(<IN>){
 s/\t.*//;
 	$coll_comm{$_}++;
 }
-open(IN,"../../CDL_buffer/buffer/tnoan.out") || die;
+#open(IN,"/Users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
+#while(<IN>){
+	#chomp;
+	#if(m/\cM/){
+	#die;
+	#}
+	#s/^.*\t//;
+	#$taxon{$_}++;
+#}
+open(IN,"/Users/richardmoe/4_DATA/smasch_taxon_ids.txt") || die;
 while(<IN>){
 	chomp;
-	if(m/\cM/){
-	die;
-	}
-	s/^.*\t//;
-	$taxon{$_}++;
+($code,$name,@rest)=split(/\t/);
+	$taxon{$name}++;
 }
-open(IN,"chico_non_vasc") || die;
+open(IN,"/Users/richardmoe/4_DATA/CDL/riv_non_vasc") || die;
 while(<IN>){
 	chomp;
 	if(m/\cM/){
@@ -41,28 +47,44 @@ while(<IN>){
 	chomp;
 	$exclude{$_}++;
 }
-open(IN,"alter_chico.in") || die;
-while(<IN>){
-	if(m/\cM/){
-	die;
-	}
-chomp;
-			@alters=split(/\t/);
-			$alter{$alters[0]}=$alters[1];
-}
+#names moved to alter_names
+#open(IN,"alter_chico.in") || die;
+#while(<IN>){
+	#if(m/\cM/){
+	#die;
+	#}
+#chomp;
+			#@alters=split(/\t/);
+			#$alter{$alters[0]}=$alters[1];
+#}
 
+$/= "<chico>";
 #$/= "<CHSC_for_CalHerbConsort>";
-$/="<CHSC_for_x0020_CalHerbConsort>";
+#$/="<CHSC_for_x0020_CalHerbConsort>";
 open(ERROR, ">Chico_error") || die;
 open(OUT, ">parse_Chico.out") || die;
-open(IN,"chsc_for_CALHERBCONSORT.xml") || die;
+open(IN,"chico.xml") || die;
+#open(IN,"CHSC_for_CalHerbConsort.xml") || die;
 #open(IN,"chico_test") || die;
 while(<IN>){
 	if(m/\cM/){
-	die;
+	die "$_\n";;
 	}
-	next if m/<Division>.*Anthocerotae|Hepaticae|lichens|Musci/;
+	next if m/<Division>.*(Myxomycetes|Anthocerotae|Hepaticae|lichens|Musci)/;
+  #18 <Division>Anthocerotae (hornworts)</Division>
+#66797 <Division>Anthophyta (flowering plants)</Division>
+ #514 <Division>Coniferophyta (conifers)</Division>
+  #39 <Division>Gnetophyta (gnetae)</Division>
+ #255 <Division>Hepaticae (liverworts)</Division>
+ #177 <Division>Lycophyta (club mosses)</Division>
+#1612 <Division>Musci (mosses)</Division>
+#7644 <Division>Myxomycetes (slime molds)</Division>
+#1209 <Division>Pterophyta (ferns)</Division>
+ #149 <Division>Sphenophyta (horsetails)</Division>
+ #918 <Division>lichens</Division>
+
 	($err_line=$_)=~s/\n/\t/g;
+$CNUM_PREFIX= $CNUM_SUFFIX=
 $comb_coll=$assoc=$genus=$LatitudeDirection=$LongitudeDirection=$date= $collnum= $coll_num_prefix= $coll_num_suffix= $name= $accession_id= $county= $locality= $Unified_TRS= $elevation= $collector= $other_coll= $ecology= $color= $lat= $long= $decimal_lat= $decimal_long=$annotation="";
 $hybrid_annotation="";
 s/&quot;/"/g;
@@ -119,7 +141,8 @@ EOP
 	next;
 }
 $name=~s/  */ /g;
-			if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
+			if($name=~s/([A-Z][a-z-]+ [a-z-]+) × /$1 X /){
+			#if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
 				$hybrid_annotation=$name;
 				warn "$1 from $name\n";
 				$name=$1;
@@ -134,6 +157,8 @@ $name=~s/  */ /g;
 				warn "$1 from $name\n";
 				$name=$1;
 			}
+		$name=~s/ × / X /;
+		$name=~s/ x / X /;
 if($alter{$name}){
 	print ERROR <<EOP;
 Spelling altered to $alter{$name}: $name 
@@ -168,6 +193,7 @@ EOP
 
 Name not yet entered into SMASCH taxon name table, skipped: $accession_id $on
 EOP
+					$noname{$on}++;
 		++$skipped{$on};
 		next;
 		}
@@ -318,7 +344,7 @@ $locality=~s/[,.:; ]+$//;
 			print ERROR "Date format problem: $date made null $err_line\n";
 			$date="";
 		}
-		if($year > 2008 || $year < 1800){
+		if($year > 2012 || $year < 1800){
 			print ERROR "Date bounds problem: $year $date made null $err_line\n";
 			$date="";
 		}
@@ -784,11 +810,41 @@ $seen_coll{$comb_coll}++ if $other_coll;
 		$collnum=~s/<!\[CDATA\[ *(.*)\]\]>/$1/;
 		if(m|<Prefix>(.*)</Prefix>|){
 			$coll_num_prefix=$1;
+warn "Explicit prefix problem\n";
 		}
 		if(m|<Suffix>(.*)</Suffix>|){
 			$coll_num_suffix=$1;
+warn "Explicit suffix problem\n";
 		}
+unless ($collnum=~/^\d+$/){
+#print "$collnum\n";
+ if($collnum=~s/^([0-9]+)-([0-9]+)([A-Za-z]*)/$2/){
+                $CNUM_PREFIX="$1-";
+                $CNUM_SUFFIX=$3;
+        }
+ if($collnum=~s/^([A-Z]*[0-9]+)-([0-9]+)([A-Za-z]+)/$2/){
+                $CNUM_PREFIX="$1-";
+                $CNUM_SUFFIX=$3;
+        }
+        if($collnum=~s/^([A-Z]*[0-9]+-)([0-9]+)(-.*)/$2/){
+                $CNUM_PREFIX=$1;
+                $CNUM_SUFFIX=$3;
+        }
+        if($collnum=~s/^([^0-9]+)//){
+                $CNUM_PREFIX=$1;
+        }
+        if($collnum=~s/^(\d+)([^\d].*)/$1/){
+                $CNUM_SUFFIX=$2;
+        }
+
+                #print <<EOP;
+#C: $collnum
+#P: $CNUM_PREFIX
+#S: $CNUM_SUFFIX
+#
+#EOP
 	}
+}
 }
 if(m|<LongitudeDegree>(.+)</LongitudeDegree>|){
 	$long=$1;
@@ -805,6 +861,10 @@ if(m|<LongitudeDegree>(.+)</LongitudeDegree>|){
 		$long.=" 00 $1";
 		}
 ($LongitudeDirection)=m|<LongitudeDirection>(.*)</LongitudeDirection>|;
+if($LongitudeDirection eq "N"){
+$LongitudeDirection="W";
+print ERROR "Longitude problem: $err_line\n";
+}
 $LongitudeDirection="W" unless $LongitudeDirection;
 $long .= $LongitudeDirection;
 $long=~s/  */ /g;
@@ -848,6 +908,45 @@ $decimal_long=$1;
 else{
 $decimal_long="";
 }
+if(m!<LatLongPrecision>(.+)</LatLongPrecision>!){
+$extent=$1;
+}
+else{
+$extent="";
+}
+if(m!<LatLongPrecisionUnits>(.+)</LatLongPrecisionUnits>!){
+$ExtUnits = lc($1);
+}
+else{
+$ExtUnits = "";
+}
+if(m!<Notes>(.+)</Notes>!){
+	$notes=$1;
+}
+else{
+$notes="";
+}
+if(m!<USGSQuadrangle>(.+)</USGSQuadrangle>!){
+	$quad="USGS quad $1";
+	if(m!<USGSQuadrangleScale>(.+)</USGSQuadrangleScale>!){
+		$quad.= " $1";
+	}
+}
+else{
+$quad="";
+}
+if(m!<LatLongDatum>(.+)</LatLongDatum>!){
+$datum=$1;
+foreach($datum){
+s/NAD 1927/NAD27/;
+s/NAD 1983/NAD83/;
+s/WGS 1984/WGS84/;
+}
+}
+else{
+$datum="";
+}
+
 		if( m!<TownshipAndRange>([^<]+)</TownshipAndRange>!){
 #if(m|<TownshipAndRange>T.*(\d+).*(N).*R.*(\d+).*(E).*Sect.*(\d+)</TownshipAndRange>|){
 $Unified_TRS="$1";
@@ -1021,8 +1120,8 @@ $overage=length($locality)- 255;
 print OUT <<EOP;
 Date: $date
 CNUM: $collnum
-CNUM_prefix: $coll_num_prefix
-CNUM_suffix: $coll_num_suffix
+CNUM_prefix: $CNUM_PREFIX
+CNUM_suffix: $CNUM_SUFFIX
 Name: $name
 Accession_id: $accession_id
 Country: USA
@@ -1033,33 +1132,37 @@ T/R/Section: $Unified_TRS
 Elevation: $elevation
 Collector: $collector
 Other_coll: $other_coll
-Combined_coll: $comb_coll
+Combined_collector: $comb_coll
 Habitat: $ecology
 Associated_species: $assoc
 Color: $color
 Latitude: $lat
 Longitude: $long
+Max_error_distance: $extent
+Max_error_units: $ExtUnits
 Decimal_latitude: $decimal_lat
 Decimal_longitude: $decimal_long
+Datum: $datum
 Hybrid_annotation: $hybrid_annotation
 Annotation: $annotation
-Notes: 
+Notes: $notes
+USGS_Quadrangle: $quad
 
 EOP
 }
-foreach(sort(keys(%seen_coll))){
-if($coll_comm{$_}){
-	#warn "$_ seen\n";
-}
-else{
-	#print "$_\n";
-print <<EOP;
-print "$_\n";
-insert into committee (chair_id, committee_func, committee_abbr, comments, data_src_id) values(0,"coll","$_","Chico bload",6)
-go
-EOP
-}
-}
+#foreach(sort(keys(%seen_coll))){
+#if($coll_comm{$_}){
+	##warn "$_ seen\n";
+#}
+#else{
+	##print "$_\n";
+#print <<EOP;
+#print "$_\n";
+#insert into committee (chair_id, committee_func, committee_abbr, comments, data_src_id) values(0,"coll","$_","Chico bload",6)
+#go
+#EOP
+#}
+#}
 foreach(sort {$noname{$a}<=>$noname{$b}}(keys(%noname))){
 print "$_ : $noname{$_}\n";
 }
