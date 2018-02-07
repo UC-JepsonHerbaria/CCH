@@ -1,56 +1,205 @@
-use Time::JulianDay;
-use Time::ParseDate;
-use lib '/Users/davidbaxter/DATA';
-use CCH; #loads non-vascular plant names list ("mosses"), alter_names table, and max_elev values
-$today=`date "+%Y-%m-%d"`;
-chomp($today);
-($today_y,$today_m,$today_d)=split(/-/,$today);
-$today_JD=julian_day($today_y, $today_m, $today_d);
 
-&load_noauth_name;
+use Geo::Coordinates::UTM;
+use strict;
+#use warnings;
+use lib '/JEPS-master/Jepson-eFlora/Modules';
+use CCH; #load non-vascular hash %exclude, alter_names hash %alter, and max county elevation hash %max_elev
+my $today_JD;
 
-###Dick used to maintain a list of collectors to call out inconsistencies
-###We don't provide that service anymore
-#open(IN,"../CDL/collectors_id") || die;
-#while(<IN>){
-#	if(m/\cM/){
-#	die;
-#	}
-#	chomp;
-#s/\t.*//;
-#	$coll_comm{$_}++;
-#}
+$| = 1; #forces a flush after every write or print, so the output appears as soon as it's generated rather than being buffered.
 
-#CHSC evidently keeps changing the record delimiter tag
-$/=qq{<CurrentName_with_all_fields>};
-#$/=qq{<chico>};
-#$/= "<CHSC_for_CalHerbConsort>";
-#$/="<CHSC_for_x0020_CalHerbConsort>";
+$today_JD = &get_today_julian_day;
+&load_noauth_name; #loads taxon id master list into an array
 
+my %month_hash = &month_hash;
+
+
+my $included;
+my %skipped;
+my $line_store;
+my $count;
+my $seen;
+my %seen;
+my $det_string;
+my $tempCounty;
+
+
+
+
+my $xml_file = 'data_files/CHSC_2017-11-16_all_CA_for_CCH.xml';
+my $tab_file= 'CHSC_xml.txt';
+
+
+#log.txt is used by logging subroutines in CCH.pm
 my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
-open(ERROR, ">Chico_error") || die; #note that the print ERROR often includes all content in XML tabs separated by Windows line breaks, which can be confusing if opened not in vi. Consider revising
+#note that the print ERROR often includes all content in XML tabs separated by Windows line breaks, which can be confusing if opened not in vi. Consider revising
+#save as UTF-8 with UNIX line breaks in Text Wrangler
 
-open(OUT, ">CHSC.out") || die; 
-open(IN,"chico.xml") || die;
-#open(IN,"chico_2014-03-21.xml") || die;
-#open(IN,"CHSC_for_CalHerbConsort.xml") || die;
-#open(IN,"chico_test") || die;
-while(<IN>){
-	s/\cM//g;
+
+
+#place these here instead of after "while(<IN>){" so that they are usable by both the parsing and the correcting stages
+my $id;
+my $country;
+my $stateProvince;
+my $county;
+my $locality; 
+my $family;
+my $scientificName;
+my $genus;
+my $species;
+my $rank;
+my $subtaxon;
+my $name;
+my $hybrid_annotation;
+my $identifiedBy;
+my $dateIdentified;
+my $recordedby;
+my $recordedBy;
+my $Collector_full_name;
+my $eventDate;
+my $verbatimEventDate;
+my $collector;
+my $collectors;
+my %collectors;
+my %coll_seen;
+my $other_collectors;
+my $other_coll;
+my $Associated_collectors;
+my $verbatimCollectors; 
+my $coll_month; 
+my $coll_day;
+my $coll_year;
+my $recordNumber;
+my $CNUM;
+my $CNUM_prefix;
+my $CNUM_suffix;
+my $verbatimElevation;
+my $elevation;
+my $elev_feet;
+my $elev_meters;
+my $CCH_elevationInMeters;
+my $elevationInMeters;
+my $elevationInFeet;
+my $minimumElevationInMeters;
+my $maximumElevationInMeters;
+my $minimumElevationInFeet;
+my $maximumElevationInFeet;
+my $verbatimLongitude;
+my $verbatimLatitude;
+my $TRS;
+my $Township;
+my $Range;
+my $Section;
+my $Fraction_of_section;
+my $topo_quad;
+my $UTME;
+my $UTMN; 
+my $zone;
+my $habitat;
+my $latitude;
+my $lat_degrees;
+my $lat_minutes;
+my $lat_seconds;
+my $decimalLatitude;
+my $longitude;
+my $decimalLongitude;
+my $long_degrees;
+my $long_minutes;
+my $long_seconds;
+my $datum;
+my $errorRadius;
+my $errorRadiusUnits;
+my $coordinateUncertaintyInMeters;
+my $coordinateUncertaintyUnits;
+my $georeferenceSource;
+my $associatedSpecies;	
+my $associatedTaxa;
+my $cultivated; #add this field to the data table for cultivated processing, place an "N" in all records as default
+my $location;
+my $localityDetails;
+my $commonName;
+my $occurrenceRemarks;
+my $substrate;
+my $plant_description;
+my $phenology;
+my $abundance;
+my $notes;
+#unique to this dataset
+my $lat_dir;
+my $long_dir;
+my $LatLongAddedCheck;
+my $topo_quadScale;
+my $AnnoYesNo;
+my $cult;
+my $AnnoRank;
+my $NONV_count;
+my $NONV_line_store;
+my $elev_units;
+my $LatLongAdded;
+my $other;
+my $informationWithheld;
+
+
+
+open(OUT, ">CHSC_xml.txt") || die; 
+
+#Stage 1, XML parsing
+
+    open (IN, "<", $xml_file) or die $!;
+
+#local $/=qq{<CurrentName_with_all_fields>}; #old delimiter, these apparently can change
+
+local $/=qq{<CHSC_for_x0020_CalHerbConsort>};
+
+Record: while(<IN>){
+
+
 	chomp;
-	&CCH::check_file;
 
+#fix some data quality and formatting problems that make import of fields of certain records problematic
+		
+		s/♂/ male /g;	#CHSC109941 & others: ♀ stems prostrate, ♂ stems erect
+		s/♀/ female /g;	#CHSC109941 & others: ♀ stems prostrate, ♂ stems erect
+		s/§/Section/g; #CHSC114149
+		s/€//g; #CHSC112018, unknown formatting problem
+		s/…/./g;	#CHSC45980	
+		s/º/ deg. /g;	#CHSC82997 and others, masculine ordinal indicator used as a degree symbol
+		s/–/--/g;	#CHSC82527 and others
+		s/`/'/g;		
+		s/‘/'/g;
+		s/’/'/g;
+		s/”/'/g;
+		s/“/'/g;
+		s/”/'/g;
+		s/±/+-/g;	#CHSC28135 and others
+		s/°/ deg. /g;	#CHSC42341 and others, convert degree symbol to deg. abbrev.
+		s/¼/ 1\/4 /g;	#CHSC34682 and others
+		s/½/ 1\/2 /g;	#CHSC34680 and others
+		s/¾/ 3\/4 /g;	#CHSC82639
+		s/è/e/g;	#CHSC23565
+		s/é/e/g;	#CHSC52770 and others
+		s/ë/e/g;	#CHSC35479	Monanthochloë	Boër		
+		s/ñ/n/g;	#CHSC34617 and others
+		s/Č/C/g;	#CHSC114355
+		
+#CHSC is an xml file and these html replacements have been inserted into the text, replacing characters in original data
 
+s/&quot;/'/g; #use single quotes here to no interfere with parsing and cleanup
+s/&apos;/'/g;
+s/&amp;/ and /g;
+s/&lt;/</g;
+s/&gt;/>/g;
 
-#This was in here, and made the parser die
-#so I commented it out
-#	if(m/\cM/){
-#	die "$_\n";
-#	}
+s/  +/ /g;
 
+########SKIP nonvascular taxa
+	if (m/<Division>.*(Myxomycetes|Anthocerotae|Hepaticae|lichens|Musci)/){;
+		$NONV_line_store=$_;
+		++$NONV_count;
+		next;
+	}
 
-	next if m/<Division>.*(Myxomycetes|Anthocerotae|Hepaticae|lichens|Musci)/;
   #18 <Division>Anthocerotae (hornworts)</Division>
 #66797 <Division>Anthophyta (flowering plants)</Division>
  #514 <Division>Coniferophyta (conifers)</Division>
@@ -63,1094 +212,1838 @@ while(<IN>){
  #149 <Division>Sphenophyta (horsetails)</Division>
  #918 <Division>lichens</Division>
 
-	($err_line=$_)=~s/\n/\t/g;
-$CNUM_PREFIX= $CNUM_SUFFIX=
-$comb_coll=$assoc=$genus=$LatitudeDirection=$LongitudeDirection=$date=
-$collnum= $coll_num_prefix= $coll_num_suffix= $name= $accession_id=
-$county= $locality= $Unified_TRS= $elevation= $collector= $other_coll=
-$ecology= $color= $lat= $long= $decimal_lat= $decimal_long=$annotation="";
-$hybrid_annotation="";
-s/&quot;/"/g;
-s/&apos;/'/g;
-s/&amp;/&/g;
-s/&lt;/</g;
-s/&gt;/>/g;
-		$state="CA";
-	unless(m/<Accession>\d+<\/Accession>/){
-		print ERROR "No Id, skipped $err_line\n";
-		next;
-	}
-	($accession_id)=m/<Accession>(.*)</;
-	$accession_id="CHSC$accession_id";
-	if($seen{$accession_id}++){
-		++$skipped{one};
-		warn "Duplicate number: $accession_id<\n";
-		print ERROR<<EOP;
-
-Duplicate accession number, skipped: $accession_id
-EOP
-		next;
-	}
 
 
-#################SCIENTIFIC NAME PROCESSING
-	if(m|<CGenus>(.+)</CGenus>|){
-		$name=$1;
-		$genus=$1;
-		unless($genus){
-			print ERROR "No generic name, skipped: $err_line\n";
+
+#fix more data quality and formatting problems
+
+#example 2017 file format:
+#<CHSC_for_x0020_CalHerbConsort>
+#<Accession>41458</Accession>
+#<Division>Anthophyta (flowering plants)</Division>
+#<CFamily>Fabaceae</CFamily>
+#<CGenus>Trifolium</CGenus>
+#<CSpecificEpithet>bifidum</CSpecificEpithet>
+#<CRank>var.</CRank>
+#<CInfraspecificName>decipiens</CInfraspecificName>
+#<Collector>Lowell Ahart</Collector>
+#<CollectionNumber>5255</CollectionNumber>
+#<Date>1986-05-04T00:00:00</Date>
+#<DatePrecision>Day</DatePrecision>
+#<GeoTertiaryDivision>Sutter</GeoTertiaryDivision>
+#<Elevation>100</Elevation>
+#<ElevationUnits>ft.</ElevationUnits>
+#<Locality>On the bottom of a large vernal pool, near the first gate to the Dean Ranch, about 1/2 mile north of the intersection of Mallott Road and Alf Road, about 2 miles north-east of Sutter, Sutters.</Locality>
+#<Ecology>Valley Grassland.  On dry dark clay soil, on the bottom of a large vernal pool.  Uncommon.  Flowers pink.</Ecology>
+#<LatitudeDegree>39</LatitudeDegree>
+#<LatitudeMinutes>11</LatitudeMinutes>
+#<LatitudeSeconds>40</LatitudeSeconds>
+#<LatitudeDirection>N</LatitudeDirection>
+#<LongitudeDegree>121</LongitudeDegree>
+#<LongitudeMinutes>43</LongitudeMinutes>
+#<LongitudeSeconds>46</LongitudeSeconds>
+#<LongitudeDirection>W</LongitudeDirection>
+#<LatLongDatum>NAD 1983</LatLongDatum>
+#<LatLongAddedCheck>yes</LatLongAddedCheck>
+#<LatLongPrecision>0.25</LatLongPrecision>
+#<LatLongPrecisionUnits>mi.</LatLongPrecisionUnits>
+#<AnnoYesNo>1</AnnoYesNo>
+#<CDeterminedBy>Vernon H. Oswald</CDeterminedBy>
+#<DeterminedDate>1993-06-07T00:00:00</DeterminedDate>
+
+#example 2014 file format:
+#<Accession>7</Accession>
+#<Division>Sphenophyta (horsetails)</Division>
+#<CFamily>Equisetaceae</CFamily>
+#<CGenus>Equisetum</CGenus>
+#<CSpecificEpithet>telmateia</CSpecificEpithet>
+#<CRank>ssp.</CRank>
+#<CInfraspecificName>braunii</CInfraspecificName>
+#<Collector>V. Holt</Collector>
+#<Date>1941-04-01T00:00:00</Date>
+#<DatePrecision>Month</DatePrecision>
+#<GeoPrimaryDivision>United States</GeoPrimaryDivision>
+#<GeoSecondaryDivision>California</GeoSecondaryDivision>
+#<GeoTertiaryDivision>Marin</GeoTertiaryDivision>
+#<LatitudeDegree>38</LatitudeDegree>
+#<LatitudeMinutes>7</LatitudeMinutes>
+#<LatitudeSeconds>26</LatitudeSeconds>
+#<LatitudeDirection>N</LatitudeDirection>
+#<LongitudeDegree>122</LongitudeDegree>
+#<LongitudeMinutes>48</LongitudeMinutes>
+#<LongitudeSeconds>30</LongitudeSeconds>
+#<LongitudeDirection>W</LongitudeDirection>
+#<LatLongDatum>NAD 1983</LatLongDatum>
+#<LatLongAddedCheck>yes</LatLongAddedCheck>
+#<LatLongPrecision>15</LatLongPrecision>
+#<LatLongPrecisionUnits>mi.</LatLongPrecisionUnits>
+#<AnnoYesNo>1</AnnoYesNo>
+#<CDeterminedBy>herbarium</CDeterminedBy>
+#<EntryDate>2001-01-23T00:00:00</EntryDate>
+
+
+#lines not parsed
+#<DatePrecision>Day</DatePrecision>
+#<AccessionDate>2015-04-01T00:00:00</AccessionDate>
+#<EntryDate>2015-04-01T00:00:00</EntryDate>
+#<Division>Anthophyta (flowering plants)</Division>
+#<CFamily>Plantaginaceae</CFamily>
+#<USGSQuadrangleScale>5100</USGSQuadrangleScale>
+
+
+#These tags have dedicated "&get" subroutines"
+	$cultivated=&get_cult($_);
+	$id= &get_id($_);
+	$genus=&get_genus($_);
+	$species=&get_species($_);
+	$rank=&get_rank($_);
+	$subtaxon=&get_subtaxon($_);
+	$collector=&get_collector($_);
+	$other_coll=&get_other_coll($_);
+	$recordNumber=&get_recordNumber($_);
+	$verbatimEventDate=&get_eventDate($_);
+	$country=&get_country($_);
+	$stateProvince=&get_stateProvince($_);
+	$county=&get_county($_);
+	$TRS=&get_TRS($_);
+	$elevation=&get_elevation($_);
+	$elev_units=&get_elev_units($_);
+	$locality=&get_locality($_);
+	$lat_degrees=&get_lat_degrees($_);
+	$lat_minutes=&get_lat_minutes($_);
+	$lat_seconds=&get_lat_seconds($_);
+	$lat_dir=&get_lat_dir($_);
+	$long_degrees=&get_long_degrees($_);
+	$long_minutes=&get_long_minutes($_);
+	$long_seconds=&get_long_seconds($_);
+	$long_dir=&get_long_dir($_);
+	$datum=&get_datum($_);
+	$LatLongAdded=&get_LatLongAdded($_);
+	$errorRadius=&get_errorRadius($_);	
+	$errorRadiusUnits=&get_errorRadiusUnits($_);
+	$topo_quad=&get_topo_quad($_);
+	$notes=&get_notes($_);
+	$other=&get_other($_);
+	$AnnoYesNo=&get_AnnoRank($_);
+	$identifiedBy=&get_identifiedBy($_);
+	$dateIdentified=&get_dateIdentified($_);
+
+
+print OUT join("\t",$cultivated, $id, $genus, $species, $rank, $subtaxon, $collector, $other_coll, $recordNumber, $verbatimEventDate, $country, $stateProvince, $county, $TRS, $elevation, $elev_units, $locality, $lat_degrees, $lat_minutes, $lat_seconds, $lat_dir, $long_degrees, $long_minutes, $long_seconds, $long_dir, $datum, $LatLongAdded, $errorRadius, $errorRadiusUnits, $topo_quad, $notes, $other, $AnnoYesNo, $identifiedBy, $dateIdentified), "\n";
+}
+close(OUT);
+
+
+#die;
+#Stage 2, Normal data loading and flat file creation
+	open(OUT, ">CHSC_out.txt") || die;
+	
+	 
+    open (IN, "<", $tab_file) or die $!;
+    
+local $/="\n";
+
+Record: while(<IN>){
+	chomp;
+
+#fix some data quality and formatting problems that make import of fields of certain records problematic
+
+	$line_store=$_;
+	++$count;		
+		
+
+        if ($. == 1){#activate if need to skip header lines
 			next;
 		}
-	}
-	if(m|<CSpecificEpithet>(.+)</CSpecificEpithet>|){
-		$name.=" " . lc($1);
-		$name=~s/ +l\.$//; #some records in CHSC have the author included in SpecificEpithet. This at least fixes Linnaeus
-	}
-	if(m|<CRank>(.+)</CRank>|){
-		$rank=$1;
-		$rank=~s/form.*/f./;
-		$rank.=".";
-		$rank=~s/\.\././;
-		$name.=" $rank";
-	}
-	if(m|<CInfraspecificName>(.+)</CInfraspecificName>|){
-		$name.=" " . lc($1);
+
+my @fields=split(/\t/,$_,100);
+	unless($#fields==34){ #35 fields but first field is field 0 in perl
+		&log_skip("$#fields bad field number $_\n");
+		++$skipped{one};
+		next Record;
 	}
 
 
-$name=~s/  */ /g;
-			if($name=~s/([A-Z][a-z-]+ [a-z-]+) × /$1 X /){
-			#if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
-				$hybrid_annotation=$name;
-				warn "$1 from $name\n";
-				$name=$1;
-			}
-			elsif($name=~/([A-Z][a-z-]+ [a-z-]+) [Xx]\.? /){
-				$hybrid_annotation=$name;
-				warn "$1 from $name\n";
-				$name=$1;
-			}
-			elsif($name=~/([A-Z][a-z-]+ [a-z-]+ var. [a-z-]+) × /){
-				$hybrid_annotation=$name;
-				warn "$1 from $name\n";
-				$name=$1;
-			}
-		$name=~s/ × / X /;
-		$name=~s/ x / X /;
-		$name=~s/ssp\./subsp./;
-		$name=~s/<!\[CDATA\[(.*)\]\]>/$1/i;
-		$name=~s/ cultivar\. .*//;
-		$name=~s/ (cf\.|affn?\.|sp\.)//;
-		$name=~s/ subsp\.$//;
-		$name=~s/ var\.$//;
-		$name=~s/`//;
-		$name=~s/'//;
-		$name=~s/~//;
-		$name=~s/ *\?//;
-
-#$name = &strip_name($name); #this should be included. Make sure it works
-$name = &validate_scientific_name($name, $accession_id);
 
 
+#then process the full records
+(
+$cultivated,
+$id,
+$genus,
+$species,
+$rank,
+$subtaxon,
+$collector,
+$other_coll,
+$recordNumber,
+$verbatimEventDate,  #10
+$country, 
+$stateProvince,
+$tempCounty,
+$TRS,
+$elevation,
+$elev_units,
+$locality,
+$lat_degrees,
+$lat_minutes,
+$lat_seconds, #20
+$lat_dir,  
+$long_degrees,
+$long_minutes,
+$long_seconds,
+$long_dir,
+$datum,
+$LatLongAdded,
+$errorRadius,
+$errorRadiusUnits,
+$topo_quad,    #30
+$occurrenceRemarks,  
+$other,  
+$AnnoRank,
+$identifiedBy,
+$dateIdentified #35
+)=@fields;
 
 
-##############Det Date
-if(m/<DeterminedDate>(.*)<\/Det/){
-	($det_date=$1)=~s/T.*//;;
+################ACCESSION_ID#############
+
+#check for nulls
+if ($id=~/^[ NULL]*$/){
+	&log_skip("ACC: Record with no accession id $_");
+	++$skipped{one};
+	next Record;
+}
+
+#remove leading zeroes, remove any white space
+foreach($id){
+	s/^0+//g;
+	s/  +/ /g;
+	s/^ *//g;
+	s/ *$//g;
+}
+
+#Add prefix, 
+$id="CHSC$id";
+
+#Remove duplicates
+if($seen{$fields[1]}++){
+	warn "Duplicate number: $id<\n";
+	&log_skip("ACC: Duplicate accession number, skipped\t$id");
+	++$skipped{one};
+	next Record;
+}
+
+##########Begin validation of scientific names
+
+#####Annotations
+	#format det_string correctly
+my $det_rank = $AnnoRank;  #zero for original determination, 1 for most recent annotation, this is what I assume $AnnoYesNo in original file means
+my $det_name = $genus ." " .  $species . " ".  $rank . " ".  $subtaxon;
+my $det_determiner = $identifiedBy;
+my $det_date = $dateIdentified;
+
+$det_rank =~ s/^0$/original determination/;
+
+	foreach ($det_name){
+		s/NULL//g;
+		s/^ *//g;
+		s/  +//g;
+	}
+
+	foreach ($det_determiner){
+		s/NULL//g;
+		s/^ *//g;
+		s/  +//g;
+	}
+
+	foreach ($det_date){
+		s/NULL//g;
+		s/^ *//g;
+		s/  +//g;
+	}
+
+	if ($det_date =~ m/^(\d{4}-\d{2}-\d{2})T\d+/){
+		$det_date = $1;
+	}
+	elsif (length($det_date) == 0){
+		&log_change("DET: No date\t$id");
+	}
+	else {
+		&log_change("DET: Bad DET DATE, Check date format\t$det_date\t--\t$id");
+		$det_date = "";
+	}
+	
+	
+	if ((length($det_name) > 1) && (length($det_determiner) == 0) && (length($det_date) == 0)){
+		$det_string="$det_rank: $det_name";
+	}
+	elsif ((length($det_name) > 1) && (length($det_determiner) > 1) && (length($det_date) == 0)){
+		$det_string="$det_rank: $det_name, $det_determiner";
+	}
+	elsif ((length($det_name) > 1) && (length($det_determiner) > 1) && (length($det_date) > 1)){
+		$det_string="$det_rank: $det_name, $det_determiner, $det_date";
+	}
+	elsif ((length($det_name) > 1) && (length($det_determiner) == 0) && (length($det_date) > 1)){
+		$det_string="$det_rank: $det_name, $det_date";
+	}
+	elsif ((length($det_name) == 0) && (length($det_determiner) == 0) && (length($det_date) == 0)){
+		$det_string="";
+	}
+	else{
+		&log_change("det problem: $det_rank: $det_name, $det_determiner, $det_date==>$id\n");
+		$det_string="";
+	}
+
+##############SCIENTIFIC NAME
+#Format name parts
+$genus=ucfirst(lc($genus));
+$species=lc($species);
+$subtaxon=lc($subtaxon);
+$rank=lc($rank);
+
+#construct full verbatim name
+	foreach ($genus){
+		s/NULL//g;
+		s/^ *//g;
+		s/ *$//g;
+	}	
+	foreach ($species){
+		s/NULL//g;
+		s/^ *//g;
+		s/ *$//g;
+	}	
+	foreach ($rank){
+		s/NULL//g;
+		s/^ *//g;
+		s/ *$//g;
+	}	
+	foreach ($subtaxon){
+		s/NULL//g;
+		s/^ *//g;
+		s/ *$//g;
+	}
+
+my $tempName = $genus ." " .  $species . " ".  $rank . " ".  $subtaxon;
+
+
+#Many of these don't apply to the original dataset
+#but it doesn't hurt to leave them in
+foreach ($tempName){
+	s/NULL//gi;
+	s/[uU]nknown//g; #added to try to remove the word "unknown" for some records
+	s/;//g;
+	s/cf.//g;
+	s/ [xX×] / X /;	#change  " x " or " X " to the multiplication sign
+	s/[×] /X /;	#change  " x " in genus name to the multiplication sign
+	s/  +/ /g;
+	s/^ *//g;
+	s/ *$//g;
+}
+
+
+#Fix records with unpublished or problematic name determination that should not be fixed in AlterNames
+#allows name to pass through to CCH; the name is only corrected herein and not global in case name is published
+if (($id =~ m/^(CHSC3279)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>3279</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Trifolium</CFamily><CGenus>willdenovii</CGenus><CSpecificEpithet>Spreng.</CSpecificEpithet>
+	$tempName =~ s/[Ww]illdenovii [sS]preng\./Trifolium willdenovii/; #fix special case
+	&log_change("Scientific name error - Trifolium entered as Family, CFamily=>'Trifolium', 'CGenus=>'willdenovii' CSpecificEpithet=>'Spreng.', modified to \t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC88877)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>88877</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>CyperaceaeCarex</CFamily><CGenus>vesicaria</CGenus><CSpecificEpithet>L.</CSpecificEpithet>
+	$tempName =~ s/[Vv]esicaria [lL]\./Carex vesicaria/; #fix special case
+	&log_change("Scientific name error - Carex entered into Family, CFamily=>'CyperaceaeCarex', CGenus=>'vesicaria' CSpecificEpithet=>'L.', modified to \t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC82545)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>82545</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Fabaceae</CFamily><CGenus>Trifolium</CGenus><CSpecificEpithet>Trifolium</CSpecificEpithet><CRank>Lehm.</CRank>
+	$tempName =~ s/[tT]rifolium [tT]rifolium/Trifolium wormskioldii/; #fix special case
+	&log_change("Scientific name error - Trifolium entered into Family, CFamily=>'Trifolium', CGenus=>'Trifolium' CSpecificEpithet=>'Lehm.', modified to \t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC38627)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>38627</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Portulacaceae</CFamily><CGenus>ciliata</CGenus><CSpecificEpithet>(Ruiz &amp; Pav.) DC.</CSpecificEpithet>
+	$tempName =~ s/[Cc]iliata/Calandrinia ciliata/; #fix special case
+	&log_change("Scientific name error - species name entered into Genus, <CGenus>=>'ciliata',<CSpecificEpithet>=>(Ruiz &amp; Pav.) DC., modified to \t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC92128)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>92128</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Asteraceae</CFamily><CGenus>Aster</CGenus><CSpecificEpithet>tridentata</CSpecificEpithet><CRank>ssp.</CRank><CInfraspecificName>tridentata</CInfraspecificName>
+	$tempName =~ s/Aster tridentata ssp\. tridentata/Artemisia tridentata subsp. tridentata/; #fix special case
+	&log_change("Scientific name error - corrected name for Aster tridentata, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC42943)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>42943</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Fabaceae</CFamily><CGenus>Acmispon</CGenus><CSpecificEpithet>stipularis</CSpecificEpithet><CRank>var.</CRank><CInfraspecificName>ottleyi</CInfraspecificName>
+	$tempName =~ s/Acmispon stipularis var\. ottleyi/Hosackia stipularis var. ottleyi/; #fix special case
+	&log_change("Scientific name error - Lotus stipularis in genus Hosackia, no comb for this taxon in Acmispon, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC103790)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>103790</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Polygonaceae</CFamily><CGenus>Eriogonum</CGenus><CSpecificEpithet>nudum</CSpecificEpithet><CRank>var.</CRank><CInfraspecificName>Benth.</CInfraspecificName>
+	$tempName =~ s/Eriogonum nudum var\. [bB]enth\./Eriogonum nudum/; #fix special case
+	&log_change("Scientific name error - species authority added as subtaxon, CInfraspecificName=>'Benth.', modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC60973)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>60973</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Campanulaceae</CFamily><CGenus>Nemacladus</CGenus><CSpecificEpithet>E. L. Greene</CSpecificEpithet>
+	$tempName =~ s/Nemacladus [Ee]\. [Ll]\. [Gg]reene/Nemacladus capillaris/; #fix special case
+	&log_change("Scientific name error - species authority added as species CSpecificEpithet=>'E. L. Greene', modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC109756)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Dysphania ambrosioides var\. ambrosioides/Chenopodium ambrosioides var. ambrosioides/; #fix special case
+	&log_change("Scientific name error - no subtaxa described within D. ambrosioides, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC88828)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Astragalus suffrutescens/Astragalus/; #fix special case
+	&log_change("Scientific name error - Astragalus suffrutescens not a published name, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC85412)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Citrullus colocynthis var\. citroides/Citrullus lanatus var. citroides/; #fix special case
+	&log_change("Scientific name error - Citrullus colocynthis var. citroides not a published combination, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC109706)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Polygonum baileyi var\. baileyi/Eriogonum baileyi var. baileyi/; #fix special case
+	&log_change("Scientific name error - Polygonum baileyi an error, genus incorrect, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC5101)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Penstemon johnstonii/Mimulus johnstonii/; #fix special case
+	&log_change("Scientific name error - Penstemon johnstonii an error, genus incorrect, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC67166)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Layia congdonii/Monolopia congdonii/; #fix special case
+	&log_change("Scientific name error - Layia congdonii not a published combination, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC112174)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Panicularia sierrae/Poa sierrae/; #fix special case
+	&log_change("Scientific name error - Panicularia sierrae an error, genus incorrect, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC71071)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Eastwoodia nivea/Eatonella nivea/; #fix special case
+	&log_change("Scientific name error - Eastwoodia nivea an error, genus incorrect, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC40433)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Angelica caucalis/Anthriscus caucalis/; #fix special case
+	&log_change("Scientific name error - Angelica caucalis an error, genus incorrect, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC79237)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Actinostrobus cupressiformis/Callitris cupressiformis/; #fix special case
+	&log_change("Scientific name error - Actinostrobus cupressiformis an error, genus incorrect, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC52119)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>52119</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Primulaceae</CFamily><CGenus>Trientalis</CGenus><CSpecificEpithet>latifolia</CSpecificEpithet><CRank>var.</CRank><CInfraspecificName>angustatum</CInfraspecificName>
+	$tempName =~ s/Trientalis latifolia var. angustatum/Trientalis latifolia/; #fix special case
+	&log_change("Scientific name error - Trientalis latifolia var. angustatum not a published subtaxon name, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC(9559|9647|9654|9655|9656)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Salix hookeriana var\. piperi/Salix hookeriana/; #fix special case
+	&log_change("Scientific name error - not a published name, S. piperi is a synonym of S. hookieriana, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC(9617)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>9617</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Salicaceae</CFamily><CGenus>Salix</CGenus><CSpecificEpithet>scouleriana</CSpecificEpithet><CRank>var.</CRank><CInfraspecificName>lemmonii</CInfraspecificName>
+	$tempName =~ s/Salix scouleriana var\. lemmonii/Salix scouleriana X lemmonii/; #fix special case
+	&log_change("Scientific name error - Salix scouleriana var\. lemmonii not a published name, typo for a hybrid of S. scouleriana, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC(9659|9658)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>9658</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Salicaceae</CFamily><CGenus>Salix</CGenus><CSpecificEpithet>hookeriana</CSpecificEpithet><CRank>var.</CRank><CInfraspecificName>scouleriana</CInfraspecificName>
+	$tempName =~ s/Salix hookeriana var\. scouleriana/Salix hookeriana X scouleriana/; #fix special case
+	&log_change("Scientific name error - Salix hookeriana var\. scouleriana not a published name, typo for a hybrid of S. hookieriana, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC(52231)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>52231</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Lamiaceae</CFamily><CGenus>Monardella</CGenus><CSpecificEpithet>pallida</CSpecificEpithet><CRank>ssp.</CRank><CInfraspecificName>pallida</CInfraspecificName>
+	$tempName =~ s/Monardella pallida ssp. pallida/Monardella odoratissima subsp. pallida/; #fix special case
+	&log_change("Scientific name error - no subtaxa described within Monardella pallida, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC111114)$/) && (length($TID{$tempName}) == 0)){ 
+#<Accession>111114</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Apiaceae</CFamily><CGenus>Torilis</CGenus><CSpecificEpithet>arvensis</CSpecificEpithet><CRank>ssp.</CRank><CInfraspecificName>oyroyrea</CInfraspecificName>
+	$tempName =~ s/Torilis arvensis ssp\. oyroyrea/Torilis arvensis/; #fix special case
+	&log_change("Scientific name error - Torilis arvensis ssp\. oyroyrea not a published subtaxon name, modified to\t$tempName\t--\t$id\n");
+}
+
+
+
+
+#format hybrid names
+if($tempName =~ m/([A-Z][a-z-]+ [a-z-]+) X /){
+	$hybrid_annotation = $tempName;
+	warn "Hybrid Taxon: $1 removed from $tempName\n";
+	&log_change("Scientific name - HYBRID: $1 removed from $tempName");
+	$tempName = $1;
 }
 else{
-	$det_date="";
+	$hybrid_annotation="";
 }
-if(m/<CDeterminedBy>(.*)<\/CDet/){
-	$det_by=$1;
-	$det_by="" if $det_by =~/erbarium/;
-	if($det_by){
-		$annotation="$name; $det_by; $det_date";
+
+
+#####process taxon names
+
+$scientificName=&strip_name($tempName);
+$scientificName=&validate_scientific_name($scientificName, $id);
+
+
+#####process cultivated specimens			
+# flag taxa that are cultivars, add "P" for purple flag to Cultivated field	
+
+## regular Cultivated parsing
+	if ($cultivated !~ m/^P$/){
+		if ($locality =~ m/(weed[y .]+|uncultivated[ ,]|naturalizing[ ,]|naturalized[ ,]|cultivated fields?[ ,]|cultivated (and|or) native|cultivated (and|or) weedy|weedy (and|or) cultivated)/i){
+			&log_change("CULT: specimen likely not cultivated, purple flagging skipped\t$scientificName\t--\t$id\n");
+		}
+		elsif (($locality =~ m/(Bot\. Garden[ ,]|Botanical Garden, University of California|cultivated native[ ,]|cultivated from |cultivated plants[ ,]|cultivated at |cultivated in |cultivated hybrid[ ,]|under cultivation[ ,]|in cultivation[ ,]|Oxford Terrace Ethnobotany|Internet purchase|cultivated from |artificial hybrid[ ,]|Trader Joe's:|Bristol Farms:|Market:|Tobacco:|Yaohan:|cultivated collection|seed source. |plants grown in)/i) || ($occurrenceRemarks =~ m/(cult.? shrub|cultivated from |cultivated plants[ ,]|cultivated at |cultivated in |cultivated hybrid[ ,]|under cultivation[ ,]|in cultivation[ ,]|seed source.? |ornamental\.|ornamental plant|ornamental shrub|ornamental tree|horticultural plant|grown in greenhouse|plants grown in|planted from seed|planted from a seed)/i)){
+		    $cultivated = "P";
+	   		&log_change("CULT: Cultivated specimen found and purple flagged: $cultivated\t--\t$scientificName\t--\t$id\n");
+		}
+		else {		
+			if($cult{$scientificName}){
+				$cultivated = $cult{$scientificName};
+				print $cult{$scientificName},"\n";
+				&log_change("CULT: Documented cultivated taxon, now purple flagged: $cultivated\t--\t$scientificName\t--\t$id\n");	
+			}
+			else {
+			#&log_change("Taxon skipped purple flagging (1) $cultivated\t--\t$scientificName\n");
+			$cultivated = "";
+			}
+		}
 	}
+	else {
+		&log_change("CULT: Taxon flagged as cultivated in original database: $cultivated\t--\t$scientificName\n");
+	}
+
+
+
+##########COLLECTION DATE##########
+
+my $DD;
+my $DD2;
+my $MM;
+my $MM2;
+my $YYYY;
+my $EJD;
+my $LJD;
+my $formatEventDate;
+
+#YYYY-MM-DD format for dwc eventDate
+#EJD/LJD format for CCH machine date
+#verbatim date for dwc verbatimEventDate and CCH "Date"
+#<Date>2004-05-24T00:00:00</Date> CHSC format
+
+
+	foreach ($verbatimEventDate){
+		s/NULL//;
+		s/^ *//g;
+		s/  +//g;
+	}
+
+	if ($verbatimEventDate =~ m/^(\d{4}-\d{2}-\d{2})T\d+/){
+		$eventDate = $1;
+	}
+	elsif (length($verbatimEventDate) == 0){
+		$YYYY = "";
+		$DD = "";
+		$MM = "";
+		&log_change("DATE: No DATE\t$id");
+	}
+	else {
+		&log_change("DATE: Bad DATE, Check date format\t$verbatimEventDate\t--\t$id");
+		$eventDate = "";
+	}
+#CHSC does not need to convert to YYYY-MM-DD for eventDate and Julian Dates
+#it is in ISO_8601_date, and needs to be checked
+
+$formatEventDate = $eventDate;
+($YYYY, $MM, $DD)=&atomize_ISO_8601_date($formatEventDate);
+#warn "$formatEventDate\t--\t$id";
+
+if ($MM =~ m/^00$/){ #this is how original Chico parse script treated the 00 values in Dates, not sure if this works with the JulianDate module
+	$MM = "";
 }
-else{
-	$det_by="";
+if ($DD =~ m/^00$/){
+	$DD = "";
 }
-	if(m|<Elevation>(.+)</Elevation>|){
-		$elevation=$1;
-		if(m|<ElevationUnits>(.*)</ElevationUnits>|){
-			$elevation.=" $1";
-			$elevation=~s/\. *//;
-		}
-	}
-	elsif(s/ *(Elevation|Elev\.) (\d+) *//i){
-		$elevation="$2 ft";
-	}
-	elsif(s/ *(Elevation|Elev\.) (\d+) *ft\.?//i){
-		$elevation="$2 ft";
-	}
-	elsif(s/ *(Elevation|Elev\.) (\d+) *feet\.?//i){
-		$elevation="$2 ft";
-	}
-	elsif(s/ *(Elevation|Elev\.) (\d+) *m\.?//i){
-		$elevation="$2 m";
-	}
-	else{
-		$elevation="";
-	}
-	if(($locality)=m|<Locality>(.+)</Locality>|){
-		$locality=~s/<!\[CDATA\[(.*)\]\]>/$1/;
-		$locality=~s/CALIFORNIA[:,.] .*(CO|County)[.:;,]+//i;
-$locality=~s/^ *[,.:;] *//;
-$locality=~s/[,.:; ]+$//;
-		#print "$locality\n";
-	}
-	else{
-		$locality="";
-	}
-	
-	if($locality=~"Strybing Arb|Chico Tree Improvement Center"){
-		print ERROR "Specimen from cultivation, skipped: $locality $err_line\n";
-		next;
-	}
-	
-	if(m|<Date>(.*)</Date>|){
-		$date=$1;
-		$date=~s/T\d.*//;
-		$date=~s/<!\[CDATA\[ *(.*)\]\]>/$1/;
-#Note ells in date
-		$date=~s/l(9\d\d)/1$1/;
-=other date formats
-		if($date=~m/(\d\d\d\d)-(\d+)-(\d+)/){
-			$month=$2; $day=$3; $year=$1;
-		}
-		elsif($date=~m/^/){
-		elsif($date=~m/^\d+[- ]+[A-Za-z.]+[ -]+\d\d\d\d/){
-			($day,$month,$year)=split(/[- .]+/,$date);
-			$month=substr($month,0,3);
-			unless($month=~/[A-Za-z][a-z][a-z]/){
-				warn "1 Date problem:  $date\n";
-			}
-		}
-		elsif($date=~m/([A-Za-z.]+) +(\d+),? +(\d\d\d\d)/){
-			$month=$1; $day=$2; $year=$3;
-		}
-		elsif($date=~m/^([A-Za-z.,]+) +(\d\d\d\d)/){
-			$month=$1; $year=$2; $day="";
-		}
-		elsif($date=~m|\d+/\d+/\d\d\d\d|){
-			#date is OK;
-		}
-		elsif($date=~m|^(\d\d\d\d)\??|){
-			$date=$1;
-		}
-		elsif($date=~m|(\d+)[/ ]*([A-Za-z,.]+)[/ ]*(\d\d\d\d)|){
-				$day=$1; $month=$2;$year=$3;
-		}
-		elsif($date=~m|(\d+)[/ ]*([A-Za-z,.]+)[/ ]*([1-9]\d)$|){
-				$day=$1; $month=$2;$year="19$3";
-		print ERROR "Y2K problem, $date = $year?: $err_line\n";
-		}
-		elsif($date=~m|(\d+)/(\d+)/([1-9]\d)$|){
-				$day=$1; $month=$2;$year="19$3";
-		print ERROR "Y2K problem, $date = $year?: $err_line\n";
-		}
-		elsif($date=~m|(\d+)[/ ]*([A-Za-z,.]+)[/ ]*(0\d)$|){
-				$day=$1; $month=$2;$year="20$3";
-		print ERROR "Y2K problem, $date = $year?: $err_line\n";
-		}
-		elsif($date=~m|(\d+)/(\d+)/(0\d)$|){
-				$day=$1; $month=$2;$year="20$3";
-		print ERROR "Y2K problem, $date = $year?: $err_line\n";
-		}
-		elsif($date=~m|(\d+-\d+)[- ]+([A-Za-z.])+[ -]+(\d\d\d\d)|){
-				$day=$1; $month=$2;$year=$3;
-			}
-		elsif($date=~m|19(\d)_\?|){
-			$year="19${1}0s";
-			}
-		elsif($date=~m|19__\?|){
-			$year="1900s";
-			}
-		else{
-			print ERROR "Fall thru Date problem: $date made null $err_line\n";
-			$date="";
-		}
-=cut
-		if($date=~/^([12][0789]\d\d)-(\d\d)-(\d\d)$/){
-			$month=$2; $day=$3; $year=$1;
-			if(m|<DatePrecision>Month</DatePrecision>|){
-				$day="";
-				
-			}
-			elsif(m|<DatePrecision>Year</DatePrecision>|){
-				$day=""; $month="";
-			}
-		}
-		else{
-			print ERROR "Date format problem: $date made null $err_line\n";
-			$date="";
-		}
 
-$day="" if $day eq "00";
-			$month=substr($month,0,3);
-$date = "$month $day $year";
-$date=~s/  */ /g;
+if ($MM =~ m/^(\d)$/){ #see note above, JulianDate module needs leading zero's for single digit days and months
+	$MM = "0$1";
+}
+if ($DD =~ m/^(\d)$/){
+	$DD = "0$1";
+}
 
 
-#This is the date-checking code from newer loaders, which uses JD
-		if($year && $month && $day){	#If a year, month, and day value are present,
-					$JD=julian_day($year, $month, $day);	#create the Julian Day ($JD) based on that year, month, and day
-					$LJD=$JD;	#Then set the late Julian Day ($LJD) to $JD because there is no range
-		}
-		elsif($year && $month){	#elsif there is only a year and month present
-			if($month=12){		#if the month is december...
-					$JD=julian_day($year, $month, 1);		#Set $JD to Dec 1
-					$LJD=julian_day($year, $month, 31);	#Set $LJD to Dec 31
-			}
-			else{		#else (if it's not december)
-					$JD=julian_day($year, $month, 1);	#Set $JD to the 1st of this month
-					$LJD=julian_day($year, $month+1, 1);	#Set $LJD to the first of the next month...
-						$LJD -= 1;						#...Then subtract one day (to get the last dat of this month)
-			}
-		}
-		elsif($year){	#elsif there is only year
-					$JD=julian_day($year, 1, 1);	#Set $JD to Jan 1 of that year
-					$LJD=julian_day($year, 12, 31);	#Set $LJD to Dec 31 of that year 
-		}
-	}
-	else{	#else (there is no $eventDate)
-		$JD=$LJD=""; #Set $JD and $LJD to null
-	}
-
-	if ($LJD > $today_JD){	#If $LJD is later than today's JD (calculated at the top of the script)
-		print ERROR <<EOP;
-		$accession_id DATE nulled, $date ($LJD)  greater than today ($today_JD)\n
-EOP
-
-		$JD=$LJD="";	#...then null the date
-	}
-	elsif($year < 1800){	#elsif the year is earlier than 1800
-		print ERROR <<EOP;
-		$accession_id DATE nulled, $date ($year) less than 1800\n
-EOP
-		$JD=$LJD=""; #...then null the date
-	}
-
-###This is the old date-checking code, which as of 2014 is definitely out of date
-#		if($year > 2012 || $year < 1800){
-#			print ERROR "Date bounds problem: $year $date made null $err_line\n";
-#			$date="";
-#		}
+$MM2= $DD2 = ""; #set late date to blank since only one date exists
+($EJD, $LJD)=&make_julian_days($YYYY, $MM, $DD, $MM2, $DD2, $id);
+#warn "$formatEventDate\t--\t$EJD, $LJD\t--\t$id";
+($EJD, $LJD)=&check_julian_days($EJD, $LJD, $today_JD, $id);
 
 
-	if(m|<Ecology>(.*)</Ecology>|){
-		$ecology=$1;
-		$ecology=~s/<!\[CDATA\[(.*)\]\]>/$1/;
-		if($ecology=~s/(Assoc.*)//){
-			$assoc=$1;
-			foreach($assoc){
-				s/Associated? [Ss]pecies://;
-				s/Associated? sp+.?://;
-				s/Associate[ds]?[:;]? //;
-				s/Associations?[:;]? //;
-				s/Assoc. [Ss]pp\.?: //;
-				s/Assoc. [Ss]pecies: //;
-				s/Assoc. [Ss]p\.?: //;
-				s/Assoc[.,:]+ //;
-				s/^ *//;
-	if(length($assoc) > 255){
-$overage=length($assoc)- 255;
-#$assoc=substr($assoc, 0,252) . "...";
-#warn "Too long by $overage: $assoc\n";
-	}
-			}
-		}
-	}
-	else{
-		$ecology=""
-	}
-	if ($ecology=~"[Oo]rnamental|[Cc]ultivated|[Gg]reenhouse"){
-	print ERROR "Specimen from cultivation: $ecology $err_line\n";
-	next;
-	}
-	
-	if(m|<Habitat>(.*)</Habitat>|){
-		$habitat=$1;
-	}
-	else{
-		$habitat=""
-	}
-	if(m|<Collector>(.*)</Collector>|){
-		$collector=$1;
-		if ($collector=~/\d/){
-		warn "$collector\n";
-print ERROR "Collector problem: $collector $err_line\n";
-$collector=~s/.*1996/G. F. Hrusa/;
-$collector=~s/Carpenter 16/Carpenter/;
-$collector=~s/J. R. Nelson'14/J. R. Nelson/;
-$collector=~s/Janet Beckman 34/Janet Beckman/;
-$collector=~s!7/16/1996!!;
-		warn "$collector\n" if $collector=~/\d/;
-		}
-		$collector=~s/<!\[CDATA\[(.*)\]\]>/$1/;
-		if(m|<MoreCollectors>(.*)</MoreCollectors>|){
-			$other_coll=$1;
-			$other_coll=~s/<!\[CDATA\[(.*)\]\]>/$1/i;
-			$other_coll=~s/^ *and //;
-			$other_coll=~s/^ *[Ww]ith //;
-		}
-		#$collector=~s/([A-Z]\.[A-Z]\.)([A-Z][a-z])/$1 $2/g;
-		#$collector=~s/([A-Z]\.)([A-Z]\.)/$1 $2/g;
-		#$other_coll=~s/([A-Z]\.[A-Z]\.)([A-Z][a-z])/$1 $2/g;
-		#$other_coll=~s/([A-Z]\.)([A-Z]\.)/$1 $2/g;
-		$comb_coll="$collector, $other_coll" if $other_coll;
-	foreach($collector, $comb_coll){
-		s/([A-Z]\.)/$1 /g;
+###############COLLECTORS
+
+	foreach ($collector, $other_coll){
+		s/'$//g;
+		s/, M\. ?D\.//g;
+		s/, Jr\./ Jr./g;
+		s/, Jr/ Jr./g;
+		s/, Esq./ Esq./g;
+		s/, Sr\./ Sr./g;
+		s/5.29.2015/Richard R. Halse/; #CHSC113816
+		s/\(label illegible\)/Unknown/;
 		s/^ *//;
 		s/ *$//;
-		s/ +/ /g;
-#processing chico collectors
-#read all collectors into %smasch_coll
-#alters misspellings, generates isql statements for needed collectors
-#
-s/  / /g;
-s/: .*//;
-s/ \./. /g;
-s/, & /, /g;
-s/ & /, /g;
-s/&apos;/'/g;
-s/^B\. Castro, L\. P\. Janeway, G\. Kuenster, S\. Innecker, J\. Lacey$/B. Castro, L. P. Janeway, G. Kuenster, S. Innecken, J. Lacey/;
-s/^Samatha Mackey Hillaire, Katya Yarosevich, Joe Yarosevich$/Samantha Mackey Hillaire, Katya Yarosevich, Joe Yarosevich/;
-s/^V\. H\. Oswald, Lowell Ahart and Robin Ondricek-Fallscheer$/V. H. Oswald, Lowell Ahart, Robin Ondricek-Fallscheer/;
-s/^C\. Macdonald, P\. Powers, C\. Raley, J\. Spitler, D\. Stamp$/C. Macdonald, P. Powers, C. Raley, J. Spitler, and D. Stamp/;
-s/^Vernon H\. Oswald, B\. Corbin, K\. Earll, G\. Schoolscraft$/Vernon H. Oswald, B. Corbin, K. Earll, G. Schoolcraft/;
-s/^V\. H\. Oswald, Lowell Ahart, Robin Ondricek-Fallscheer\.$/V. H. Oswald, Lowell Ahart, Robin Ondricek-Fallscheer/;
-s/^V\. H\. Oswald, Lowell Ahart, Robin Ordricek-Fallscheer$/V. H. Oswald, Lowell Ahart, Robin Ondricek-Fallscheer/;
-s/^V\. H\. Oswald, Lowell Ahart, Robin Ondricek-Fallsheer$/V. H. Oswald, Lowell Ahart, Robin Ondricek-Fallscheer/;
-s/^B\. Castro, M\. A\. Griggs, Plumas NF [Bb]otanists\.$/B. Castro, M. A. Griggs, Plumas NF botanists/;
-s/^B\. Castro, M\. A\. Griggs, Plumas NF [bB]otanists?$/B. Castro, M. A. Griggs, Plumas NF botanists/;
-s/^Vernon H\. Oswald, Mike Wolder, Joe Silveira\.$/Vernon H. Oswald, Mike Wolder, Joe Silveira/;
-s/^J\. D\. Jokerst, T\. B\. Devine, D\. Greenstein$/J. D. Jokerst, T. B. Devine, D. Greemstein/;
-s/^Banchero, Fuller, Merryman, R\. A\. Schlising$/R. Banchero, J. Fuller, M. Merryman, R. Schlising/;
-s/^Vernon H\. Oswald, Mike Wolder, Joe Silveria$/Vernon H. Oswald, Mike Wolder, Joe Silveira/;
-s/^Robert A\. Schlising, N\. Lewsten, L\. Thurman$/Robert A. Schlising, N. Lersten, L. Thurman/;
-s/^Robert A\. Schlising, N\. Lerston, L\. Thurman$/Robert A. Schlising, N. Lersten, L. Thurman/;
-s/^H\. H\. Schmidt, M\. Merello & L\. Woodruff$/H. H. Schmidt, M. Merello, L. Woodruff/;
-s/^D\. E\. Anderson, J\. O\. Sawyer, J\. P\. Smith$/D. E. Anderson, J. O. Sawyer, J. P. Smith, Jr./;
-s/^Vernon H\. Oswald, Beth Corbin, Mike Dolan$/Vernon H. Oswald, Beth Corbin, Michael Dolan/;
-s/^B\. Castro, Gail Kuentster, Loren Gehrung$/B. Castro, G. Kuenster, L. Gehrung/;
-s/^J\. P\. Smith, J\. O\. Swayer, T\. W\. Nelson$/J. P. Smith, J. O. Sawyer, T. W. Nelson/;
-s/^H\. H\. Sshmidt, James S\. Miller, A\. Pool$/H. H. Schmidt, James S. Miller, A. Pool/;
-s/^Samatha Mackey Hillaire, Charles Hooks$/Samantha Mackey Hillaire, Charles Hooks/;
-s/^Samatha Mackey Hillaire, Brian Elliott$/Samantha Mackey Hillaire, Brian Elliott/;
-s/^K\. R\. Stern, D\. B\. Joley, J\. G\. Gescke$/K. R. Stern, D. B. Joley, J. G. Geschke/;
-s/^Mike O&apos;Bryan, Robert A\. Schlising$/Mike O'Bryan, Robert A. Schlising/;
-s/^B\. Castro, R\. Zebell and R\. Fallscheer$/B. Castro, R. Zebell, R. Fallscheer/;
-s/^K R\. Stern, D\. B\. Joley, J\. G\. Geschke$/K. R. Stern, D. B. Joley, J. G. Geschke/;
-s/^Coleta A\. Lawler, Robert A\. Schlising$/Coleta Lawler, Robert A. Schlising/;
-s/^Niall F\. McCarten, Roxanne L\. Bittman$/Niall McCarten, Roxanne Bittman/;
-s/^B\. Castro, Robin Ondricek-Fallscheer$/B. Castro, R. Fallscheer/;
-s/^B\. Castro, L\. Gehrung & H\. Durio$/B. Castro, L. Gehrung, H. Durio/;
-s/^B\. Castro, J\. Witzman, B\. Henrickson$/B. Castro, J. Witzman, B. Hendrickson/;
-s/^B\. CAStro, R\. Zebell, R\. Fallscheer$/B. Castro, R. Zebell, R. Fallscheer/;
-s/^B\. Castro, R\. Fallscherr, R\. Zebell$/B. Castro, R. Fallscheer, R. Zebell/;
-s/^M\. S\. Taylor, J\. Prouty, E Heinitz\.$/M. S. Taylor, J. Prouty, E. Heinitz/;
-s/^Timothy Spira, Robert A\. Schlising$/Timothy Spira, Robert Schlising/;
-s/^Vernon H\. Oswald, Vernon H\. Oswald$/Vernon H. Oswald/;
-s/^Robert A\. Schlising, Lloyd Thurman$/Robert A. Schlising, Lloy Thurman/;
-s/^B\. Castro, L\. Janeway, S\. Innecken$/B. Castro, L. P. Janeway, S. Innecken/;
-s/^J\. P\. Smith, J\. O\. Sawyer, J\. cole$/J. P. Smith, J. O. Sawyer, J. Cole/;
-s/^M\. S\. Taylor, W\. Dakon, T\. Griggs\.$/M. S. Taylor, W. Dakon, T. Griggs/;
-s/^Vernon H\. Oswald, Joseph Silveira\.$/Vernon H. Oswald, Joseph Silveira/;
-s/^C\. A\. Lawler, Robert A\. Schlising$/C. A. Lawler, R. A. Schlising/;
-s/^J\. Lacey, R\. Ondricek-Fallscheer\.$/J. Lacey, R. Ondricek-Fallscheer/;
-s/^Barbara Ertter, James R\. Shevock$/Barbara Ertter, J. R. Shevock/;
-s/^Robert F\. Thorne, C\. W\. Tolforth$/Robert F. Thorne, C. W. Tilforth/;
-s/^J\. Lacey, R\. Oncricek-Fallscheer$/J. Lacey, R. Ondricek-Fallscheer/;
-s/^Rober F\. Thorne, C\. W\. Tilforth$/Robert F. Thorne, C. W. Tilforth/;
-s/^Coleta Lawler, Robert Schlising$/Coleta Lawler, Robert A. Schlising/;
-s/^Vernon H\. Oswald, Lowelll Ahart$/Vernon H. Oswald, Lowell Ahart/;
-s/^V\. Oswald, W\. Dempsey, D Perske$/V. Oswald, W. Dempsey, D. Perske/;
-s/^Timothy Spora, Robert Schlising$/Timothy Spira, Robert Schlising/;
-s/^Vernon H\. Oswald, Lowell Ahart\.$/Vernon H. Oswald, Lowell Ahart/;
-s/^Vernin H\. Oswald, Lowell Ahart$/Vernon H. Oswald, Lowell Ahart/;
-s/^R\. A\. Schlising, Lloyd Thurman$/R. A. Schlising, Lloy Thurman/;
-s/^Dieter H\. Wilken, Gary Wallace$/Dieter H. Wilken, Gary D. Wallace/;
-s/^Tim Spira, Robert A\. Schlising$/Timothy Spira, Robert Schlising/;
-s/^Vernn H\. Oswald, Lowell Ahart$/Vernon H. Oswald, Lowell Ahart/;
-s/^Venon H\. Oswald, Lowell Ahart$/Vernon H. Oswald, Lowell Ahart/;
-s/^Mike Foster, Pauleen Broyles\.$/Mike Foster, Pauleen Broyles/;
-s/^Vernon H\. Oswald, Wes Dempsey$/Vernon H. Oswald, W. Dempsey/;
-s/^G\. Dougla Barbe, T\. C\. Fuller$/G. Douglas Barbe, T. C. Fuller/;
-s/^Vernon H\. Oswald, Jim Snowden$/Vernon H. Oswald, James Snowden/;
-s/^Vernon H\. Owald, Lowell Ahart$/Vernon H. Oswald, Lowell Ahart/;
-s/^G\. Douglas Barbe, Ed\. W\. Hale$/G. Douglas Barbe, Ed W. Hale/;
-s/^Vernon Oswald, Lowelll Ahart$/Vernon Oswald, Lowell Ahart/;
-s/^D\. E\. Brink Jr\., L\. M\. Mayer$/D. E. Brink, Jr., L. M. Mayer/;
-s/^Vernon Oswald\., Lowell Ahart$/Vernon Oswald, Lowell Ahart/;
-s/^L\. Constance, J\. L\. Morrison$/L. Constance and J. L. Morrison/;
-s/^F\. J\. Fuler, R\. A\. Schlising$/F. J. Fuller, R. A. Schlising/;
-s/^C\. A\. Janeway, J\. P\. Janeway$/C. A. Janeway, L. P. Janeway/;
-s/^M\. R\. Crosby, Nancy R\. Morin$/M. R. Crosby and Nancy Morin/;
-s/^Ira W\. Clokey, B\. Templeton$/Ira W. Clokey and B. Templeton/;
-s/^Frederic Hrusa, L\. Serafini$/G. F. Hrusa, L. Serafini/;
-s/^Vernon oswald, Lowell Ahart$/Vernon Oswald, Lowell Ahart/;
-s/^L\. P\. janeway, Jean Witzman$/L. P. Janeway, Jean Witzman/;
-s/^B\. Castro, Robin Fallscheer$/B. Castro, R. Fallscheer/;
-s/^C\. A\. Janewy, L\. P\. Janeway$/C. A. Janeway, L. P. Janeway/;
-s/^L\. P\. Janway, C\. A\. Janeway$/L. P. Janeway, C. A. Janeway/;
-s/^B\. Castro, Shirley Innecken$/B. Castro, S. Innecken/;
-s/^M\. R\. Crosby, Nancy Morin$/M. R. Crosby and Nancy Morin/;
-s/^Vernn Oswald, Lowell Ahart$/Vernon Oswald, Lowell Ahart/;
-s/^Tim Spira, Rober Schlising$/Timothy Spira, Robert Schlising/;
-s/^G\. F\. Hursa, T\. D\. Wilfred$/G. F. Hrusa, T. D. Wilfred/;
-s/^C\. A\. Lawler, R\. Schlising$/C. A. Lawler, R. A. Schlising/;
-s/^M\. S> Taylor, J\. Lacey$/M. S. Taylor, J. Lacey/;
-s/^L\. Constance, H\. L\. Mason$/L. Constance and H. L. Mason/;
-s/^C\. A\. Janeway, L\. Janeway$/C. A. Janeway, L. P. Janeway/;
-s/^M\. R\. Crosby, Mancy Morin$/M. R. Crosby and Nancy Morin/;
-s/^H\. H Schmidt, L\. Woodruff$/H. H. Schmidt, L. Woodruff/;
-s/^Susie Urie, Eric Schroder$/Susi Urie, Eric Schroder/;
-s/^Reid Moran, Chas\. Quibell$/Reid Moran and Chas. Quibell/;
-s/^R\. L\. Ondricek-Fallsheer$/R. L. Ondricek-Fallscheer/;
-s/^L\. J\. Janeway, B\. Castro$/L. P. Janeway, B. Castro/;
-s/^Jeffreyi Thomas Gautschi$/Jeffrey Thomas Gautschi/;
-s/^B\. Castro, Gail Kuenster$/B. Castro, G. Kuenster/;
-s/^B\. Castro, J\. D\. Jokerst$/B. Castro and J. D. Jokerst/;
-s/^M\. Pranther, N\. Pranther$/M. Prather, N. Prather/;
-s/^C\. Epling, W\. M\. Robison$/C. Epling, Wm. Robison/;
-s/^B\. Castro, R\. Fallsheer$/B. Castro, R. Fallscheer/;
-s/^Vernon Oswald, L\. Ahart$/Vernon Oswald, Lowell Ahart/;
-s/^B\. Castro, B\. Henderson$/B. Castro, B. Hendrickson/;
-s/^Samatha Mackey Hillaire$/Samantha Mackey Hillaire/;
-s/^M\. S Taylor, W\. Overton$/M. S. Taylor, W. Overton/;
-s/^Gary Wallace, L\. Debuhr$/Gary Wallace, L. DeBuhr/;
-s/^C\. Janeway, L\. Janeway$/C. A. Janeway, L. P. Janeway/;
-s/^Phillip A\. Silverstone$/Philip A. Silverstone/;
-s/^B\. Castro, J\. Jurewiez$/B. Castro, J. Jurewicz/;
-s/^James Payne Smith, JR\.$/James Payne Smith, Jr./;
-s/^B\. Castro, L\. Janeway$/B. Castro, L. P. Janeway/;
-s/^D\. E\. Brink, L\. Mayer$/D. E. Brink, Jr., L. M. Mayer/;
-s/^f\. t\. Griggs, A\. Pass$/F. T. Griggs, A. Pass/;
-s/^F\. T\. Briggs, A\. Pass$/F. T. Griggs, A. Pass/;
-s/^M\. S Taylor, M\. Hayes$/M. S. Taylor, M. Hayes/;
-s/^Edward Laidlaw Smith$/Edward L. Smith/;
-s/^James Payne Smith, Jr$/James Payne Smith, Jr./;
-s/^Ted\. H\. Thorsted, Jr\.$/Ted H. Thorsted, Jr./;
-s/^James Payne Smith Jr\.$/James Payne Smith, Jr./;
-s/^M\. &. N\. Pranther$/M. Prather, N. Prather/;
-s/^Robert A\. Schlisingc$/Robert A. Schlising/;
-s/^Roberst A\. Schlising$/Robert A. Schlising/;
-s/^B\. Castro, L\. Hanson$/B. Castro, Linnea Hanson/;
-s/^F\. T\. Giggs, A\. Pass$/F. T. Griggs, A. Pass/;
-s/^Thomas E\. Lewis\. Jr\.$/Thomas E. Lewis, Jr./;
-s/^B\. Castro, R\. Zabell$/B. Castro, R. Zebell/;
-s/^N\. Morin, J\. Griffin$/N. Morin and J. Griffin/;
-s/^Lichael P\. Crivello$/Michael P. Crivello/;
-s/^Sonia A\. Westerberg$/Sonia R. Westerberg/;
-s/^Thomas E\. Lewis Jr\.$/Thomas E. Lewis, Jr./;
-s/^L\. Oliver, D\. Slaon$/L. Oliver, D. Sloan/;
-s/^Sona R\. Westerberg$/Sonia R. Westerberg/;
-s/^Robin L\. Ondericek$/Robin L. Ondricek/;
-s/^Robert A\. Schising$/Robert A. Schlising/;
-s/^Robert A Schlising$/Robert A. Schlising/;
-s/^Robert A\. Schlisng$/Robert A. Schlising/;
-s/^Carol G\. Getzinger$/Carol C. Getzinger/;
-s/^R\. A> Schlising$/R. A. Schlising/;
-s/^Aurthur C\. Barrett$/Arthur C. Barrett/;
-s/^Arthur C\. Barrett\.$/Arthur C. Barrett/;
-s/^Arthur O\. Barrett$/Arthur C. Barrett/;
-s/^Fobin L\. Ondricek$/Robin L. Ondricek/;
-s/^W\. Micheal Foster$/W. Michael Foster/;
-s/^James D\. Jokerst\.$/James D. Jokerst/;
-s/^James D Jokerst$/James D. Jokerst/;
-s/^Robert\. F\. Thorne$/Robert F. Thorne/;
-s/^Gary J\. Stebbings$/Gary J. Stebbins/;
-s/^Virginiga Hagaman$/Virginia Hagaman/;
-s/^Mike Carpenter$/Mike Carpenter/;
-s/^Dierter H\. Wilken$/Dieter H. Wilken/;
-s/^G\. C\. Strausbaugh$/G. Ctrausbaugh/;
-s/^James R\. Brownell$/James Brownell/;
-s/^Mike O&apos;Bryan$/Mike O'Bryan/;
-s/^Dibble and Griggs$/Dibble, Griggs/;
-s/^David m\. Thompson$/David M. Thompson/;
-s/^M\. A> Callahan$/M. A. Callahan/;
-s/^Arthur G\. Barrett$/Arthur C. Barrett/;
-s/^Suesie Boergadine$/Sue Boergadine/;
-s/^Marria Ulloa-Cruz$/Maria Ulloa-Cruz/;
-s/^Michaelle Snipes$/Michelle Snipes/;
-s/^Beverly J\. Wise$/Beverley J. Wise/;
-s/^Maria Ulloa-Crus$/Maria Ulloa-Cruz/;
-s/^Arthur C\. Barret$/Arthur C. Barrett/;
-s/^Coleta A\. Lawler$/Coleta Lawler/;
-s/^Mary Mac Arthur$/Mary MacArthur/;
-s/^Virignia Hagaman$/Virginia Hagaman/;
-s/^Gary J\. Sebbings$/Gary J. Stebbins/;
-s/^Charles Crannell$/Charlie Crannell/;
-s/^Sandra C\. Morey\.$/Sandra C. Morey/;
-s/^P\. Delaplane, eb$/P. Delaplane/;
-s/^Jomes D\. Jokerst$/James D. Jokerst/;
-s/^Vernin H\. Oswald$/Vernon H. Oswald/;
-s/^Kath Sommarstrom$/Kathy Sommarstrom/;
-s/^Rober F\. Thorne$/Robert F. Thorne/;
-s/^Sadie Gaultieri$/Sadie Gualtieri/;
-s/^Vernon H Oswald$/Vernon H. Oswald/;
-s/^Robin Ondricek$/Robin L. Ondricek/;
-s/^G\. Dougla Barbe$/G. Douglas Barbe/;
-s/^Roberta A\. Boen$/Roberta A. Boer/;
-s/^Pamela Cladwell$/Pamela Caldwell/;
-s/^James\. P\. Smith$/James P. Smith/;
-s/^Carol Getzinger$/Carol C. Getzinger/;
-s/^Vernon H\. Owald$/Vernon H. Oswald/;
-s/^Thomas E\. Lewis$/Thomas E. Lewis, Jr./;
-s/^D\. E\. Brink Jr\.$/D. E. Brink, Jr./;
-s/^Donald M\. Burke$/Donald M. Burk/;
-s/^Venon H\. Oswald$/Vernon H. Oswald/;
-s/^Veron H\. Oswald$/Vernon H. Oswald/;
-s/^Margie Ceollins$/Margie Collins/;
-s/^Thomes Chastain$/Thomas Chastain/;
-s/^M\. S> Taylor$/M. S. Taylor/;
-s/^Jerry Sullivan\.$/Jerry Sullivan/;
-s/^H\. E\. MacLennan$/H. E. Mac Lennan/;
-s/^Donna Kingsford$/Dona Kingsford/;
-s/^G\. Schoolcraft\.$/G. Schoolcraft/;
-s/^Paulenn Broyles$/Pauleen Broyles/;
-s/^Dibble, Griggs\.$/Dibble, Griggs/;
-s/^J\. P\. Kroessing$/J. P. Kroessig/;
-s/^Heffrey R\. Peek$/Jeffrey R. Peek/;
-s/^Mary Mae Arthur$/Mary MacArthur/;
-s/^Lynn R\. Thomas$/Lynn R Thomas/;
-s/^Jame D\. Jokerst$/James D. Jokerst/;
-s/^David Cherrtham$/David Cheetham/;
-s/^Vernn H\. Oswald$/Vernon H. Oswald/;
-s/^R\. A\. Schisling$/R. A. Schlisling/;
-s/^Theresa Coasta$/Theresa Costa/;
-s/^J\. D\. Jokerst`$/J. D. Jokerst/;
-s/^Pauleen Broyes$/Pauleen Broyles/;
-s/^Puleen Broyles$/Pauleen Broyles/;
-s/^Sue Boerqadine$/Sue Boergadine/;
-s/^Vernon Oswald\.$/Vernon Oswald/;
-s/^Edward L Smith$/Edward L. Smith/;
-s/^Frederic Hrusa$/G. F. Hrusa/;
-s/^James t\. Nicol$/James T. Nicol/;
-s/^J\. D\. Jokerst\.$/J. D. Jokerst/;
-s/^Cona Kingsford$/Dona Kingsford/;
-s/^H\. Durio, s\.n\.$/H. Durio/;
-s/^Jeffrey M Lund$/Jeffrey M. Lund/;
-s/^Jerry Sndgrass$/Jerry Snodgrass/;
-s/^Sue Boergadino$/Sue Boergadine/;
-s/^Vernon Oswalf$/Vernon Oswald/;
-s/^Timothy Spora$/Timothy Spira/;
-s/^Don Kroessing$/Don Kroessig/;
-s/^Robert Jaegal$/Robert Jaegel/;
-s/^Eric J\. Miler$/Eric J. Miller/;
-s/^Shuan E\. Sims$/Shaun E. Sims/;
-s/^M\. A Callahan$/M. A. Callahan/;
-s/^S\. Westenberg$/S. Westerberg/;
-s/^George Deriso$/George Deniso/;
-s/^G\. Stausbaugh$/G. Strausbaugh/;
-s/^l\. P\. Janeway$/L. P. Janeway/;
-s/^John La Salle$/John LaSalle/;
-s/^Edna Caufield$/Edna Canfield/;
-s/^Terrance Finn$/Terrence Finn/;
-s/^Jomes Jokerst$/James Jokerst/;
-s/^Eric Hartwell$/Eric G. Hartwell/;
-s/^G\. Straubaugh$/G. Strausbaugh/;
-s/^Nancy Mosman\.$/Nancy Mosman/;
-s/^A\. W\. Harilik$/A. W. Harvilik/;
-s/^Jones Jokerst$/James Jokerst/;
-s/^Vernon oswald$/Vernon Oswald/;
-s/^Jenifer Estep$/Jennifer Estep/;
-s/^Ahart-Jokerst$/Ahart, Jokerst/;
-s/^Steven Triana$/Steven Triano/;
-s/^Fredric Hrusa$/G. F. Hrusa/;
-s/^Ted Edminston$/Ted Edmiston/;
-s/^M\. S\. Taylor\.$/M. S. Taylor/;
-s/^R\. Cliquennoi$/R. Clicquennoi/;
-s/^M\. MacAurther$/M. MacArthur/;
-s/^H\. H\. Sshmidt$/H. H. Schmidt/;
-s/^R\. Pierce Jr\.$/R. Pierce, Jr./;
-s/^Shelly A Kirn$/Shelly A. Kirn/;
-s/^L\. J\. Janeway$/L. P. Janeway/;
-s/^J\. R\. Neslon$/J. R. Nelson/;
-s/^C\. A\. Janewy$/C. A. Janeway/;
-s/^W\. Fitswater$/W. Fitzwater/;
-s/^Roger Jaegal$/Roger Jaegel/;
-s/^Julie Jenson$/Julie Jensen/;
-s/^L\. P\. Janewy$/L. P. Janeway/;
-s/^H\. H Schmidt$/H. H. Schmidt/;
-s/^C\. E\. Leaver$/C. E. Laver/;
-s/^C\. F\. Sonnee$/C. F. Sonne/;
-s/^D\. G\. Miller$/D. G. Miller III/;
-s/^Vernn Oswald$/Vernon Oswald/;
-s/^M\. MacSrthur$/M. MacArthur/;
-s/^W\. Follettee$/W. Follette/;
-s/^Paula Minton$/Paula J. Minton/;
-s/^Darci Fields$/Darci Field/;
-s/^Sam Poolswat$/Sam Poolsawat/;
-s/^Jannae Pitts$/Jeanne Pitts/;
-s/^F\. T\. Briggs$/F. T. Griggs/;
-s/^f\. t\. Griggs$/F. T. Griggs/;
-s/^Rober Jaegel$/Robert Jaegel/;
-s/^A\. K\. Reverd$/A. K. Revard/;
-s/^L\. P\. Janway$/L. P. Janeway/;
-s/^Terence Finn$/Terrence Finn/;
-s/^Michaul Ward$/Michael Ward/;
-s/^Phil Bulmert$/Phil Blumert/;
-s/^C\. E\. Iaver$/C. E. Laver/;
-s/^K, R\. Stern$/K. R. Stern/;
-s/^G\. F\. Hursa$/G. F. Hrusa/;
-s/^P\. Delplane$/P. Delaplane/;
-s/^E\. Parreno$/E. P. Parreno/;
-s/^Susie Urie$/Susi Urie/;
-s/^Susie Uri$/Susi Urie/;
-s/^Susi Uri$/Susi Urie/;
-s/^F\. J\. Fuler$/F. J. Fuller/;
-s/^M\. S Taylor$/M. S. Taylor/;
-s/^D\. E\. Brink$/D. E. Brink, Jr./;
-s/^C\. Janeway$/C. A. Janeway/;
-s/^Agnus Riker$/Agnes Riker/;
-s/^Sori H Shad$/Sori H. Shad/;
-s/^F\. T\. Giggs$/F. T. Griggs/;
-s/^Gail Bufton$/Gail A. Bufton/;
-s/^G\. Nielson$/G. Nielsen/;
-s/^Bryon Case$/Bryan Case/;
-s/^K\. Heneger$/K. Henegar/;
-s/^K R\. Stern$/K. R. Stern/;
-s/^NEH Prouty$/N. E. H. Prouty/;
-s/^D\. Crummet$/D. Crummett/;
-s/^Cark Pejsa$/Carl Pejsa/;
-s/^A\. Revard$/A. K. Revard/;
-s/^M\. Hiller$/M. Hillier/;
-s/^NE Heiken$/N. E. Heiken/;
-s/^m\. Robbie$/M. Robbie/;
-s/^B\. CAStro$/B. Castro/;
-s/^R\. Jaegal$/R. Jaegel/;
-s/^B\. Castrp$/B. Castro/;
-s/^E Parreno$/E. Parreno/;
-s/^Kenn Cole$/Ken Cole/;
-s/^N\. Jaekal$/N. Jaekel/;
-s/^Linda Osborn$/Linda Osborne/;
-s/^Ben Mhre$/Ben Myhre/;
-s/^Kenn Cole$/Ken Cole/;
-s/^H\. Durio, s\.n\.$/H. Durio/;
-s/^Wayne \) Baum$/Wayne Baum/;
-s/^Waynes O\. Baum$/Wayne O. Baum/;
-s/^Z\. Parkenvich$/Z. Parkevich/;
-s/^Z\. Barkevich$/Z. Parkevich/;
-s/^V\. holt$/V. Holt/;
-s/Wesley O\. Griesal$/Wesley O. Griesel/;
-s/^V\. H\. Oswald, B\. Corbin, A Sanger, G\. Schoolcraft$/V. H. Oswald, B. Corbin, A. Sanger, G. Schoolcraft/;
-s/^Heidi West, Jenny Marr, Caroline Warren, Joyce Lacey-Rickert,$/Heidi West, Jenny Marr, Caroline Warren, Joyce Lacey-Rickert/;
-s/^L\. P\. Janeway, Eric Schroder, Katherine Murrell, Todd Adams\.$/L. P. Janeway, Eric Schroder, Katherine Murrell, Todd Adams/;
-s/^L\. P\. Janeway, R\. A\. Schlising, B\. Castro, Pauleen Broyles\.$/L. P. Janeway, R. A. Schlising, B. Castro, Pauleen Broyles/;
-s/^Caroline Warren, Jenny Marr, Julie Cunningham, Heidi Westq$/Caroline Warren, Jenny Marr, Julie Cunningham, Heidi West/;
-s/^Heidi West, Jenny Marr, C\. Warren,J\. Cunningham, N\. Wight$/Heidi West, Jenny Marr, C. Warren, J. Cunningham, N. Wight/;
-s/^Lowell Ahart, Barbara Castro, Dan Barth, Diane Mastalir\.$/Lowell Ahart, Barbara Castro, Dan Barth, Diane Mastalir/;
-s/^Lowell Ahart, Barbare Castro, Dan Barth, Diane Mastalir$/Lowell Ahart, Barbara Castro, Dan Barth, Diane Mastalir/;
-s/^L\. P\. Janeway, B\. Castro, Linnea Hanson, Hal Durio\.$/L. P. Janeway, B. Castro, Linnea Hanson, Hal Durio/;
-s/^Robert A\. Schlising, Anna Eagel, Dick Rosenzweig$/Robert A. Schlising, Anna Eagle, Dick Rosenzweig/;
-s/^D\. Boud, M\. Eichelberger, T\. Messick, T\. Ranker$/D. Boyd, M. Eichelberger, T. Messick, T. Ranker/;
-s/^Julie Cunningham, Heidi West, Caroline Warren\.$/Julie Cunningham, Heidi West, Caroline Warren/;
-s/^Robert A\. Schlising, Ben Lilies, Gina Purelis$/Robert A. Schlising, Ben Liles, Gina Purelis/;
-s/^L\. P\. Janeway, Lela Burdett, Bernard Burdett\.$/L. P. Janeway, Lela Burdett, Bernard Burdett/;
-s/^J\. D\. Jokerst, R\. A\., Schlising, B\. Banchero$/J. D. Jokerst, R. A. Schlising, B. Banchero/;
-s/^L\. P\. Janeway, Linnea Hanson, Perrie Cobb\.$/L. P. Janeway, Linnea Hanson, Perrie Cobb/;
-s/^Heidi West, Caroline Warren, Jenny Marr`$/Heidi West, Caroline Warren, Jenny Marr/;
-s/^M\. S\. Taylor, M\. Hayes, R\. Schlising\.$/M. S. Taylor, M. Hayes, R. Schlising/;
-s/^Lowel Ahart, Vernon H\. Oswald$/Lowell Ahart, Vernon H. Oswald/;
-s/^L\. M\. Mayer, D\. E\. Brink Jr\.$/L. M. Mayer, D. E. Brink, Jr./;
-s/^J\. D\. Jokerst, R\. A\.$/J. D. Jokerst, R. A. Schlising/;
-s/^Roberta G\. Roberston$/Roberta G. Robertson/;
-s/^Herb Allan Mc Lane$/Herb Allan McLane/;
-s/^James Hendrickson$/James Henrickson/;
-s/^Herb Allen McLane$/Herb Allan McLane/;
-s/^Robert F\. thorne$/Robert F. Thorne/;
-s/^Herber G\. Baker$/Herbert G. Baker/;
-s/^J\. D> Prouty$/J. D. Prouty/;
-s/^G\. Ctrausbaugh$/G. Strausbaugh/;
-s/^M\.\. S\. Taylor$/M. S. Taylor/;
-s/^Lynn R Thomas$/Lynn R. Thomas/;
-s/^Lowell Ahart\.$/Lowell Ahart/;
-s/^K\. B\. McShea\.$/K. B. McShea/;
-s/^Steve Alverez$/Steve Alvarez/;
-s/^Marsha Caount$/Marsha Count/;
-s/^L\. P\. janeway$/L. P. Janeway/;
-s/^Pauline kunst$/Pauline Kunst/;
-s/^Lowell Ahart`$/Lowell Ahart/;
-s/^Lowelll Ahart$/Lowell Ahart/;
-s/^T\. N\. Cassale$/T. N. Casale/;
-s/^Marsha Caunt$/Marsha Count/;
-s/^Loweel Ahart$/Lowell Ahart/;
-s/^V\. S\. Jacson$/V. S. Jackson/;
-s/^Lowel Ahart$/Lowell Ahart/;
-s/^K\. Mckenzie$/K. McKenzie/;
-s/^M S\. Taylor$/M. S. Taylor/;
-s/^K\. Bandegee$/K. Brandegee/;
-s/^N\. Jeakel$/N. Jaekel/;
-s/^K\. Jaekal$/K. Jaekel/;
-s/^M\. yoder$/M. Yoder/;
-s/^D\. Boud$/D. Boyd/;
-		s/\([^)]+\)//g;
-		s/([A-Z]), ([A-Z][a-z])/$1. $2/g;
-		#s/([A-Z])\. ([A-Z]) /$1. $2./g;
-		s/ ,/,/g;
-		s/,,/,/g;
+		s/  +/ /;
+	}
+	$other_collectors = ucfirst($other_coll);
 
-	}
-$seen_coll{$collector}++;
-$seen_coll{$comb_coll}++ if $other_coll;
-	if(m|<CollectionNumber>(.*)</CollectionNumber>|){
-		$collnum=$1;
-		$collnum=~s/<!\[CDATA\[ *(.*)\]\]>/$1/;
-		if(m|<Prefix>(.*)</Prefix>|){
-			$coll_num_prefix=$1;
-warn "Explicit prefix problem\n";
-		}
-		if(m|<Suffix>(.*)</Suffix>|){
-			$coll_num_suffix=$1;
-warn "Explicit suffix problem\n";
-		}
-unless ($collnum=~/^\d+$/){
-#print "$collnum\n";
- if($collnum=~s/^([0-9]+)-([0-9]+)([A-Za-z]*)/$2/){
-                $CNUM_PREFIX="$1-";
-                $CNUM_SUFFIX=$3;
-        }
- if($collnum=~s/^([A-Z]*[0-9]+)-([0-9]+)([A-Za-z]+)/$2/){
-                $CNUM_PREFIX="$1-";
-                $CNUM_SUFFIX=$3;
-        }
-        if($collnum=~s/^([A-Z]*[0-9]+-)([0-9]+)(-.*)/$2/){
-                $CNUM_PREFIX=$1;
-                $CNUM_SUFFIX=$3;
-        }
-        if($collnum=~s/^([^0-9]+)//){
-                $CNUM_PREFIX=$1;
-        }
-        if($collnum=~s/^(\d+)([^\d].*)/$1/){
-                $CNUM_SUFFIX=$2;
-        }
 
-                #print <<EOP;
-#C: $collnum
-#P: $CNUM_PREFIX
-#S: $CNUM_SUFFIX
-#
-#EOP
-	}
+if (($collector =~ m/^NULL/) && ($other_collectors =~ m/^NULL/)){
+	$recordedBy = "";
+	$verbatimCollectors = "";
+	&log_change("COLLECTOR: Collector name and Other Collector fields missing, changed to NULL\t$id\n");
 }
+elsif (($collector =~ m/^NULL/) && ($other_collectors !~ m/^NULL/)){
+	$recordedBy = &CCH::validate_single_collector($other_collectors, $id);
+	$verbatimCollectors = "$other_collectors";
+	&log_change("COLLECTOR: Collector name field missing, using other collector field\t$id\n");
 }
-if(m|<LongitudeDegree>(.+)</LongitudeDegree>|){
-	$long=$1;
-	$long=~s/^ //;
-	if(m|<LongitudeMinutes>(.+)</LongitudeMinutes>|){
-		$minutes=$1;
-		$minutes="0$minutes" if $minutes=~/^.$/;
-		$long.=" $minutes";
-		if(m|<LongitudeSeconds>(.+)</LongitudeSeconds>|){
-			$long.=" $1";
-		}
-	}
-	elsif(m|<LongitudeSeconds>(.+)</LongitudeSeconds>|){
-		$long.=" 00 $1";
-		}
-($LongitudeDirection)=m|<LongitudeDirection>(.*)</LongitudeDirection>|;
-if($LongitudeDirection eq "N"){
-$LongitudeDirection="W";
-print ERROR "Longitude problem: $err_line\n";
+elsif (($collector !~ m/^NULL/) && ($other_collectors =~ m/^NULL/)){
+	$recordedBy = &CCH::validate_single_collector($collector, $id);
+	$verbatimCollectors = "$collector";
+	&log_change("COLLECTOR: Other Collector field missing, using only Collector\t$id\n");
 }
-$LongitudeDirection="W" unless $LongitudeDirection;
-$long .= $LongitudeDirection;
-$long=~s/  */ /g;
+elsif (($collector !~ m/^NULL/) && ($other_collectors !~ m/^NULL/)){
+	$recordedBy = &CCH::validate_single_collector($collector, $id);
+	$verbatimCollectors = "$collector, $other_collectors";
+	#warn "Names 1: $verbatimCollectors\t--\t$recordedBy\t--\t$other_collectors\n";}
 }
-else{
-$long="";
+elsif ((length($collector) == 0) && (length($other_collectors) == 0)){
+		&log_change("COLLECTOR: Collector name NULL\t$id\n");
+		$recordedBy =  $other_collectors = $verbatimCollectors = "";
 }
-if(m|<LatitudeDegree>(.+)</LatitudeDegree>|){
-	$lat=$1;
-	$lat=~s/^ //;
-	if(m|<LatitudeMinutes>(.+)</LatitudeMinutes>|){
-		$minutes=$1;
-		$minutes="0$minutes" if $minutes=~/^.$/;
-		$lat.=" $minutes";
-		if(m|<LatitudeSeconds>(.+)</LatitudeSeconds>|){
-			$lat.=" $1";
-		}
-	}
-	elsif(m|<LatitudeSeconds>(.+)</LatitudeSeconds>|){
-		$lat.=" 00 $1";
-		}
-($LatitudeDirection)=m|<LatitudeDirection>(.*)</LatitudeDirection>|;
-$LatitudeDirection="N" unless $Latitude_Direction;
-$lat .= $LatitudeDirection;
-$lat=~s/  */ /g;
+else {
+		&log_change("COLLECTOR: Collector name problem\t$id\n");
+		$recordedBy =  $other_collectors = $verbatimCollectors = "";
 }
-else{
-$lat="";
+
+foreach ($verbatimCollectors){
+	s/'$//g;
+	s/NULL//;
+	s/^ *//;
+	s/ *$//;
+	s/  +/ /;
 }
 
 
-if(m|<LatitudeDecimal>([\d.]+)</LatitudeDecimal>|){
-$decimal_lat=$1;
-}
-else{
-$decimal_lat="";
-}
-if(m|<LongitudeDecimal>(-[\d.]+)</LongitudeDecimal>|){
-$decimal_long=$1;
-}
-else{
-$decimal_long="";
-}
-if(m!<LatLongPrecision>(.+)</LatLongPrecision>!){
-$extent=$1;
-}
-else{
-$extent="";
-}
-if(m!<LatLongPrecisionUnits>(.+)</LatLongPrecisionUnits>!){
-$ExtUnits = lc($1);
-}
-else{
-$ExtUnits = "";
-}
-if(m!<Notes>(.+)</Notes>!){
-	$notes=$1;
-}
-else{
-$notes="";
-}
-if(m!<USGSQuadrangle>(.+)</USGSQuadrangle>!){
-	$quad="USGS quad $1";
-	if(m!<USGSQuadrangleScale>(.+)</USGSQuadrangleScale>!){
-		$quad.= " $1";
-	}
-}
-else{
-$quad="";
-}
-if(m!<LatLongDatum>(.+)</LatLongDatum>!){
-$datum=$1;
-foreach($datum){
-s/NAD 1927/NAD27/;
-s/NAD 1983/NAD83/;
-s/WGS 1984/WGS84/;
-s/\'//
-}
-}
-else{
-$datum="";
+#############CNUM##################COLLECTOR NUMBER####
+#clean up collector numbers, prefixes and suffixes
+
+my $CNUM_suffix;
+my $CNUM;
+my $CNUM_prefix;
+
+foreach ($recordNumber){
+	s/NULL//;
+	s/^ *//;
+	s/ *$//;
+	s/I439I/14391/;
+	s/[Ss],?[Nn][,.]?/s.n./;
+	s/  +/ /;
 }
 
-###COORD SOURCE
-if(m!<LatLongAddedCheck>(.+)</LatLongAddedCheck!){
-$LatLongAdded=$1;
-	if($LatLongAdded=m/yes/){
-		$coordSource="Coordinates added by herbarium";
+
+($CNUM_prefix,$CNUM,$CNUM_suffix)=&parse_CNUM($recordNumber);
+
+
+####COUNTRY
+foreach ($country){
+	s/^ *//;
+	s/ *$//;
+	s/  +/ /;
+}
+
+####STATE
+foreach ($stateProvince){
+	s/^ *//;
+	s/ *$//;
+	s/  +/ /;
+}
+######################COUNTY
+foreach($tempCounty){#for each $county value
+	s/"//g;
+	s/'//g;
+	s/unknown/Unknown/;
+	s/NULL/Unknown/;
+	s/^ *//;
+	s/  +/ /;
+	s/Playas De Rosarito/Rosarito, Playas de/g; #this is not being detected by the below checker despite many tries
+
+
+
+######################Unknown County List
+
+	if($county=~m/(unknown|Unknown)/){	#list each $county with unknown value
+		&log_change("COUNTY (1):unknown -> $stateProvince\t--\t$county\t--\t$locality\t$id");		
 	}
-	elsif($LatLongAdded=m/no/){
-		if($lat || $long || $decimal_lat || $decimal_long){
-			$coordSource="Coordinates from specimen label";
+
+##############validate county
+my $v_county;
+
+$county=&CCH::format_county($tempCounty,$id);
+
+foreach($county){#for each $county value
+
+	unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|Unknown)$/){
+		$v_county = &verify_co($_);	#Unless $county matches one of the county names from the above list, create a value $v_county for that value using the &verify_co function
+		if($v_county=~/SKIP/){		#If $v_county is "/SKIP/" (i.e. &verify_co cannot recognize it)
+			&log_skip("COUNTY (2): NON-CA COUNTY?\t$_\t--\t$id");	#run the &skip function, printing the following message to the error log
+			++$skipped{one};
+			next Record;
+		}
+		unless($v_county eq $_){	#unless $v_county is exactly equal to what was input into the &verify_co function (i.e. if &verify_co successfully changed the county)
+			&log_change("COUNTY (3): COUNTY $_ ==> $v_county--\t$id");		#call the &log function to print this log message into the change log...
+			$_=$v_county;	#and then set $county to whatever the verified $v_county is.
+		}
+	}
+}
+####LOCALITY
+
+foreach ($locality){
+	s/NULL//;
+	s/"/'/g;
+	s/'$//g;
+	s/^'//g;
+	s/  +/ /;
+	s/^ +//;
+	s/ +$//;
+}
+
+#informationWithheld
+		if($locality=~m/(.*) ?DUE TO CONCERNS .*/){ #if there is text stating that text has been redacted, use the string
+			$locality = "$1... Field redacted by CHSC, contact the data manager for more information";
+			$informationWithheld = "DUE TO CONCERNS FOR THE PROTECTION OF CERTAIN RARE OR COLLECTIBLE  SPECIES, FOR THIS SPECIES THE LOCATION INFO HAS BEEN TRUNCATED, SECTION INFO HAS BEEN DELETED FROM THE TOWNSHIP AND RANGE FIELD, AND SECONDS HAVE BEEN REMOVED FROM LATITUDE AND LONGITUDE.";
+			&log_change("specimen redacted by CHSC\t$id");
+	 	}
+		else{
+			$informationWithheld="";
+		}
+	
+}	
+####ELEVATION
+my $feet_to_meters="3.2808";
+
+#$elevationInMeters is the darwin core compliant value
+#verify if elevation fields are just numbers
+
+#process verbatim elevation fields into CCH format
+
+
+####Elevation
+
+foreach($elevation){
+	s/,//g;
+	s/^ *//;
+	s/ *$//;
+	s/ //g;
+	s/\.//g;
+}
+
+foreach($elev_units){
+	s/,//g;
+	s/`//g;
+	s/`//g;
+	s/'//g;
+	s/^ *//;
+	s/ *$//;
+	s/ //g;
+	s/Mm/m/g; #fix an error
+	s/\.//g;
+}
+
+	if(($elevation =~ m/^NULL/) && ($elev_units =~ m/^NULL/)){
+		$verbatimElevation=$CCH_elevationInMeters=$elevationInMeters="";
+		&log_change("ELEVATION NULL, $id\n");		#call the &log function to print this log message into the change log...
+	}		
+	elsif(($elevation =~ m/^-?[0-9]+/) && ($elev_units =~ m/^NULL/)){
+		$CCH_elevationInMeters = $elevationInMeters="";
+		$verbatimElevation = $elevation;
+		&log_change("ELEVATION missing units, $id\n");		#call the &log function to print this log message into the change log...
+	}		
+	elsif(($elevation =~ m/^NULL/) && ($elev_units =~ m/.*/)){
+		$verbatimElevation = $CCH_elevationInMeters = $elevationInMeters="";
+		&log_change("ELEVATION field NULL, but Units field contains partial data\t($elev_units)\t$id\n");		#call the &log function to print this log message into the change log...
+	}
+	elsif(($elevation =~ m/^-?[0-9]+/) && ($elev_units =~ m/^[MmFfeEtTRrSs]+$/)){
+		$verbatimElevation = $elevation . $elev_units;
+	}
+	elsif(($elevation !~ m/^-?[0-9]+/) && ($elev_units =~ m/.+/)){
+		&log_change("ELEVATION poorly formatted or has only non-numeric data\t($elevation)\t($elev_units)\t$id\n");		#call the &log function to print this log message into the change log...
+		$verbatimElevation = $CCH_elevationInMeters = $elevationInFeet = $elevationInMeters="";
+	}		
+	else {
+		&log_change("ELEVATION problem\t($elevation)($elev_units)\t$id\n");
+		$verbatimElevation = $CCH_elevationInMeters = $elevationInFeet = $elevationInMeters="";
+	}
+
+foreach($verbatimElevation){
+	s/feet/ ft/g;
+	s/ft/ ft/g;
+	s/m/ m/g;
+	s/`//g;
+	s/([A-Za-z]+)/ $1/g;
+	s/  +/ /g;
+	s/^ *//;
+	s/ *$//;
+
+}
+
+
+if (length($verbatimElevation) >= 1){
+
+	if ($verbatimElevation =~ m/^(-?[0-9]+) ?m/){
+		$elevationInMeters = $1;
+		$CCH_elevationInMeters = "$elevationInMeters m";
+	}
+	elsif ($verbatimElevation =~ m/^(-?[0-9]+) ?f/){
+		$elevationInFeet = $1;
+		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+		$CCH_elevationInMeters = "$elevationInMeters m";
+	}
+	elsif ($verbatimElevation =~ m/^-?[0-9]+ ?- ?(-?[0-9]+) ?f/){
+		$elevationInFeet = $1;
+		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+		$CCH_elevationInMeters = "$elevationInMeters m";
+	}
+	else {
+		&log_change("ELEVATION Check: '$verbatimElevation' has missing units, is non-numeric, or has typographic errors\t$id");
+		$elevationInMeters="";
+		$elevationInFeet="";
+		$CCH_elevationInMeters = "";
+	}	
+}
+else {
+	$CCH_elevationInMeters = "";
+}
+
+
+#this code was originally in consort_bulkload.pl, but it was moved here so that the county elevation maximum test can be performed on these data, which consort_bulkload.pl does not do
+#this being in consort_bulkload instead of here may be adding to elevation anomalies that have been found in records with no elevations
+my $pre_e;
+my $e;
+
+if (length($CCH_elevationInMeters) == 0){
+
+		if($locality=~m/(\b[Ee]lev\.?:? [,0-9 -]+ *[MFmf'])/ || $locality=~m/([Ee]levation:? [,0-9 -]+ *[MFmf'])/ || $locality=~m/([,0-9 -]+ *(feet|ft|ft\.|m|meter|meters|'|f|f\.) *[Ee]lev)/i || $locality=~m/\b([Ee]lev\.? (ca\.?|about) [0-9, -]+ *[MmFf])/|| $locality=~m/([Ee]levation (about|ca\.) [0-9, -] *[FfmM'])/){
+#		# print "LF: $locality: $1\n";
+				$pre_e=$e=$1;
+				foreach($e){
+					s/Elevation[.:]* *//i;
+					s/Elev[.:]* *//i;
+					s/(about|ca\.?)//i;
+					s/ ?, ?//g;
+					s/(feet|ft|f|ft\.|f\.|')/ ft/i;
+					s/(m\.|meters?|m\.?)/ m/i;
+					s/  +/ /g;
+					s/^ +//;
+					s/[. ]*$//;
+					s/ *- */-/;
+					s/-ft/ ft/;
+					s/(\d) (\d)/$1$2/g;
+					next unless m/\d/;
+					if (m/^(-?[0-9]+) ?m/){
+						$elevationInMeters = $1;
+						$elevationInFeet = int($elevationInMeters * 3.2808);
+						$CCH_elevationInMeters = "$elevationInMeters m";
+						&log_change("Elevation in meters found within $id\t$locality\t$id");
+					}
+					elsif (m/^(-?[0-9]+) ?f/){
+						$elevationInFeet = $1;
+						$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+						$CCH_elevationInMeters = "$elevationInMeters m";
+						&log_change("Elevation in feet found within $id\t$locality");
+					}
+					elsif (m/^-?[0-9]+-(-?[0-9]+) ?f/){
+						$elevationInFeet = $1;
+						$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+						$CCH_elevationInMeters = "$elevationInMeters m";
+						&log_change("Elevation range in feet found within $id\t$locality");
+					}
+					elsif (m/^-?[0-9]+-(-?[0-9]+) ?m/){
+						$elevationInMeters = $1;
+						$elevationInFeet = int($elevationInMeters * 3.2808);
+						$CCH_elevationInMeters = "$elevationInMeters m";
+						&log_change("Elevation in meters found within $id\t$locality\t$id");
+					}
+					else {
+						&log_change("Elevation in $locality has missing units, is non-numeric, or has typographic errors\t$id");
+						$elevationInFeet = "";
+						$elevationInMeters="";
+						$CCH_elevationInMeters = "";
+					}	
+				}
+		}
+}
+
+#####check to see if elevation exceeds maximum and minimum for each county
+
+my $elevation_test = int($elevationInFeet);
+	if($elevation_test > $max_elev{$county}){
+		&log_change ("ELEV\t$county:\t $elevation_test ft. ($elevationInMeters m.) greater than $county maximum ($max_elev{$county} ft.): discrepancy=", (($elevation_test)-$max_elev{$county}),"\t$id\n");
+		if ((($elevation_test)-$max_elev{$county}) >= 500 ){
+			$CCH_elevationInMeters = "";
+			&log_change ("ELEV\t$county: discrepancy=", (($elevation_test)-$max_elev{$county})," greater than 500 ft, elevation changed to NULL\t$id\n");
+		}
+	}
+
+#########COORDS, DATUM, ER, SOURCE#########
+#Source is a free text field so no editing required
+my $lat_sum;
+my $long_sum;
+my $Check;
+my $lat_decimal;
+my $long_decimal;
+my $hold;
+
+#######Latitude and Longitude
+
+	foreach ($lat_degrees,$lat_minutes,$lat_seconds,$long_degrees,$long_minutes,$long_seconds){
+		s/NULL//g;
+		s/  +/ /g;
+		s/^ *//;
+		s/ *$//;
+	}
+
+$verbatimLatitude = $lat_degrees ." " .  $lat_minutes . " ".  $lat_seconds;
+
+$verbatimLongitude = $long_degrees ." " .  $long_minutes . " ".  $long_seconds;
+
+
+foreach ($verbatimLatitude){
+		s/ø/ /g;
+		s/'/ /g;
+		s/"/ /g;
+		s/\*//g;
+		s/,/ /g;
+		s/-//g; #remove negative latitudes, we dont map specimens from southern hemisphere, so if "-" is present, it is an error
+		s/deg\.?/ /;
+	s/  +/ /;
+	s/^ $//;
+	s/^ +//;
+	s/ +$//;
+		
+}
+
+foreach ($verbatimLongitude){
+		s/ø/ /g;
+		s/'/ /g;
+		s/\*//g;
+		s/"/ /g;
+		s/,/ /g;
+		s/deg\.?/ /;
+	s/  +/ /;
+	s/^ $//;
+	s/^ +//;
+	s/ +$//;
+		
+}
+	
+
+#check to see if lat and lon reversed
+	if (($verbatimLatitude =~ m/^-?1\d\d\./) && ($verbatimLongitude =~ m/^\d\d\./)){
+		$hold = $verbatimLatitude;
+		$latitude = $verbatimLongitude;
+		$longitude = $hold;
+		 print "COORDINATE 2 $id\n";
+		&log_change("COORDINATE decimals apparently reversed, switching latitude with longitude\t$id");
+	}
+	elsif (($verbatimLatitude =~ m/^-?1\d\d +\d/) && ($verbatimLongitude =~ m/^\d\d +\d/)){
+		$hold = $verbatimLatitude;
+		$latitude = $verbatimLongitude;
+		$longitude = $hold;
+		print "COORDINATE 3 $id\n"; 
+		&log_change("COORDINATE apparently reversed, switching latitude with longitude\t$id");
+	}	
+	elsif (($verbatimLatitude =~ m/^-?1\d\d$/) && ($verbatimLongitude =~ m/^\d\d/)){
+		$hold = $verbatimLatitude;
+		$latitude = sprintf ("%.3f",$verbatimLongitude); #convert to decimal, should report cf. 38.000
+		$longitude = $hold;
+		 print "COORDINATE 4 $id\n";
+		&log_change("COORDINATE latitude degree only (no decimal or seconds) and apparently reversed, switching latitude with longitude\t$id");
+	}
+	elsif (($verbatimLatitude =~ m/^-?1\d\d/) && ($verbatimLongitude =~ m/^\d\d$/)){
+		$hold = $verbatimLatitude;
+		$latitude = sprintf ("%.3f",$verbatimLongitude); #convert to decimal, should report cf. 38.000
+		$longitude = $hold;
+		print "COORDINATE 5 $id\n";
+		&log_change("COORDINATE longitude degree only (no decimal or seconds) and apparently reversed, switching latitude with longitude\t$id");
+	}
+	elsif (($verbatimLatitude =~ m/^\d\d\./) && ($verbatimLongitude =~ m/^-?1\d\d\./)){
+			$latitude = $verbatimLatitude;
+			$longitude = $verbatimLongitude;
+	print "COORDINATE 6 $id\n";
+	}
+	elsif (($verbatimLatitude =~ m/^\d\d \d/) && ($verbatimLongitude =~ m/^-?1\d\d \d/)){
+			$latitude = $verbatimLatitude;
+			$longitude = $verbatimLongitude;
+	#print "COORDINATE 7 $id\n";
+	}
+	elsif (($verbatimLatitude =~ m/^\d\d$/) && ($verbatimLongitude =~ m/^-?1\d\d/)){
+			$latitude = sprintf ("%.3f",$verbatimLatitude); #convert to decimal, should report cf. 38.000
+			$longitude = $verbatimLongitude; #parser below will catch variant of this one, except where both lat & long are degree only, no decimal or minutes, which we do not want as they are almost always very inaccurate
+	print "COORDINATE 8 $id\n";
+			&log_change("COORDINATE latitude integer degree only: $verbatimLatitude converted to $latitude==>$id");
+	}
+	elsif (($verbatimLatitude =~ m/^\d\d/) && ($verbatimLongitude =~ m/^-?1\d\d$/)){
+			$latitude = $verbatimLatitude; #parser below will catch variant of this one, except where both lat & long are degree only, no decimal or minutes, which we do not want as they are almost always very inaccurate
+			$longitude = sprintf ("%.3f",$verbatimLongitude); #convert to decimal, should report cf. 122.000
+	print "COORDINATE 9 $id\n";
+			&log_change("COORDINATE longitude integer degree only: $verbatimLongitude converted to $longitude==>$id");
+	}	
+	elsif ((length($verbatimLatitude) == 0) && (length($verbatimLongitude) == 0)){
+		$decimalLongitude = $decimalLatitude = $latitude = $longitude = "";
+	#print "COORDINATE NULL $id\n";
+	}
+	else {
+		&log_change("COORDINATE: Coordinate conversion problem for $id\t$verbatimLatitude\t--\t$verbatimLongitude\n");
+		$decimalLongitude = $decimalLatitude = $latitude = $longitude = "";
+		print "COORDINATE PROBLEM \t$verbatimLatitude\t--\t$verbatimLongitude\t$id\n";
+	}
+
+#NULL coordinates that are only integer degrees, these are highly inaccurate and not useful for mapping
+	if (($verbatimLatitude =~ m/^\d\d$/) && ($verbatimLongitude =~ m/^-?1\d\d$/)){
+		$decimalLatitude=$latitude = "";
+		$decimalLongitude=$longitude = "";
+		print "COORDINATE DEGREE ONLY\t$id\n";
+		&log_change("COORDINATE decimal Lat/Long only to degree, now NULL: $verbatimLatitude\t--\t$verbatimLongitude\n");
+	}
+
+
+foreach ($latitude, $longitude){
+		s/  +/ /g;
+		s/^ +//;
+		s/ +$//;
+		s/^\s$//;
+}	
+
+#use combined Lat/Long field format for CHSC
+
+	#convert to decimal degrees
+if((length($latitude) >= 2)  && (length($longitude) >= 3)){ 
+		if ($latitude =~ m/^(\d\d) +(\d\d?) +(\d\d?\.?\d*)/){ #if there are seconds
+				$lat_degrees = $1;
+				$lat_minutes = $2;
+				$lat_seconds = $3;
+				if($lat_seconds == 60){ #translating 60 seconds into +1 minute
+					$lat_seconds == 0;
+					$lat_minutes += 1;
+				}
+				if($lat_minutes == 60){
+					$lat_minutes == 0;
+					$lat_degrees += 1;
+				}
+				if(($lat_degrees > 90) || $lat_minutes > 60 || $lat_seconds > 60){
+					&log_change("COORDINATE 1) Latitude problem, set to null,\t$id\t$verbatimLatitude\n");
+					$lat_degrees=$lat_minutes=$lat_seconds=$decimalLatitude="";
+				}
+				else{
+					#print "1a) $lat_degrees\t-\t$lat_minutes\t-\t$lat_seconds\t-\t$latitude\n";
+	  				$lat_decimal = $lat_degrees + ($lat_minutes/60) + ($lat_seconds/3600);
+					$decimalLatitude = sprintf ("%.6f",$lat_decimal);
+					#print "1b)$decimalLatitude\t--\t$id\n";
+					$georeferenceSource = "DMS conversion by CCH loading script"; #only needed to be stated once, if lat id converted, so is long
+				}
+		}
+		elsif ($latitude =~ m/^(\d\d) +(\d\d?\.\d*)/){
+				$lat_degrees= $1;
+				$lat_minutes= $2;
+				if($lat_minutes == 60){
+					$lat_minutes == 0;
+					$lat_degrees += 1;
+				}
+				if(($lat_degrees > 90) || ($lat_minutes > 60) ){
+					&log_change("COORDINATE 2) Latitude problem, set to null,\t$id\t$latitude\n");
+					$lat_degrees=$lat_minutes=$decimalLatitude="";
+				}
+				else{
+					#print "2a) $lat_degrees\t-\t$lat_minutes\t-\t$latitude\n";
+					$lat_decimal= $lat_degrees+($lat_minutes/60);
+					$decimalLatitude=sprintf ("%.6f",$lat_decimal);
+					print "2b) $decimalLatitude\t--\t$id\n";
+					$georeferenceSource = "DMS conversion by CCH loading script";
+				}
+		}
+		elsif ($latitude =~ m/^(\d\d) +(\d\d?)/){
+				$lat_degrees= $1;
+				$lat_minutes= $2;
+				if($lat_minutes == 60){
+					$lat_minutes == 0;
+					$lat_degrees += 1;
+				}
+				if(($lat_degrees > 90) || ($lat_minutes > 60) ){
+					&log_change("COORDINATE 2c) Latitude problem, set to null,\t$id\t$latitude\n");
+					$lat_degrees=$lat_minutes=$decimalLatitude="";
+				}
+				else{
+					#print "2a) $lat_degrees\t-\t$lat_minutes\t-\t$latitude\n";
+					$lat_decimal= $lat_degrees+($lat_minutes/60);
+					$decimalLatitude=sprintf ("%.6f",$lat_decimal);
+					#print "2d) $decimalLatitude\t--\t$id\n";
+					$georeferenceSource = "DMS conversion by CCH loading script";
+				}
+		}
+		elsif ($latitude =~ m/^(\d\d\.\d+)/){
+				$lat_degrees = $1;
+				if($lat_degrees > 90){
+					&log_change("COORDINATE 3) Latitude problem, set to null,\t$id\t$lat_degrees\n");
+					$lat_degrees=$latitude=$decimalLatitude="";		
+				}
+				else{
+					$decimalLatitude=sprintf ("%.6f",$lat_degrees);
+					#print "3a) $decimalLatitude\t--\t$id\n";
+				}
+		}
+		elsif (length($latitude) == 0){
+			$decimalLatitude="";
+		}
+		else {
+			&log_change("check Latitude format: ($latitude) $id");	
+			$decimalLatitude="";
+		}
+		
+		if ($longitude =~ m/^(-?1\d\d) +(\d\d?) +(\d\d?\.?\d*)/){ #if there are seconds
+				$long_degrees = $1;
+				$long_minutes = $2;
+				$long_seconds = $3;
+				if($long_seconds == 60){ #translating 60 seconds into +1 minute
+					$long_seconds == 0;
+					$long_minutes += 1;
+				}
+				if($long_minutes == 60){
+					$long_minutes == 0;
+					$long_degrees += 1;
+				}
+				if(($long_degrees > 180) || $long_minutes > 60 || $long_seconds > 60){
+					&log_change("COORDINATE 5) Longitude problem, set to null,\t$id\t$longitude\n");
+					$long_degrees=$long_minutes=$long_seconds=$decimalLongitude="";
+				}
+				else{				
+					#print "5a) $long_degrees\t-\t$long_minutes\t-\t$long_seconds\t-\t$longitude\n";
+ 	 				$long_decimal = $long_degrees + ($long_minutes/60) + ($long_seconds/3600);
+					$decimalLongitude=sprintf ("%.6f",$long_decimal);
+					#print "5b) $decimalLongitude\t--\t$id\n";
+				}
+		}	
+		elsif ($longitude =~m /^(-?1\d\d) +(\d\d?\.\d*)/){
+				$long_degrees= $1;
+				$long_minutes= $2;
+				if($long_minutes == 60){
+					$long_minutes == 0;
+					$long_degrees += 1;
+				}
+				if(($long_degrees > 180) || ($long_minutes > 60) ){
+					&log_change("COORDINATE 6) Longitude problem, set to null,\t$id\t$longitude\n");
+					$long_degrees=$long_minutes=$decimalLongitude="";
+				}
+				else{
+					$long_decimal= $long_degrees+($long_minutes/60);
+					$decimalLongitude = sprintf ("%.6f",$long_decimal);
+					print "6a) $decimalLongitude\t--\t$id\n";
+					$georeferenceSource = "DMS conversion by CCH loading script";
+				}
+		}
+		elsif ($longitude =~m /^(-?1\d\d) +(\d\d?)/){
+			$long_degrees= $1;
+			$long_minutes= $2;
+			if($long_minutes == 60){
+				$long_minutes == 0;
+				$long_degrees += 1;
+			}
+			if(($long_degrees > 180) || ($long_minutes > 60) ){
+				&log_change("COORDINATE 6c) Longitude problem, set to null,\t$id\t$longitude\n");
+				$long_degrees=$long_minutes=$decimalLongitude="";
+			}
+			else{
+				$long_decimal= $long_degrees+($long_minutes/60);
+				$decimalLongitude = sprintf ("%.6f",$long_decimal);
+				#print "6d) $decimalLongitude\t--\t$id\n";
+				$georeferenceSource = "DMS conversion by CCH loading script";
+			}
+		}
+		elsif ($longitude =~m /^(-?1\d\d\.\d+)/){
+				$long_degrees= $1;
+				if($long_degrees > 180){
+					&log_change("COORDINATE 7) Longitude problem, set to null,\t$id\t$long_degrees\n");
+					$long_degrees=$longitude=$decimalLongitude="";		
+				}
+				else{
+					$decimalLongitude=sprintf ("%.6f",$long_degrees);
+					#print "7a) $decimalLongitude\t--\t$id\n";
+				}
+		}
+		elsif (length($longitude == 0)) {
+			$decimalLongitude="";
+		}
+		else {
+			&log_change("COORDINATE check longitude format: $longitude $id");
+			$decimalLongitude="";
+		}
+}
+elsif ((length($latitude) == 0) && (length($longitude) == 0)){ 
+#UTM is not present in these data, skipping conversion of UTM and reporting if there are cases where lat/long is problematic only
+		&log_change("COORDINATE: No coordinates for $id\n");
+		$decimalLatitude = $decimalLongitude = $georeferenceSource = "";
+}
+else {
+			&log_change("COORDINATE poorly formatted or non-numeric coordinates for $id: ($verbatimLatitude) \t($verbatimLongitude) \t(ZONE:$zone \t($UTME) \t($UTMN)\n");
+			$decimalLatitude = $decimalLongitude = $datum = $georeferenceSource = "";
+}
+
+
+
+#check datum
+if(($verbatimLatitude=~/\d/ && $verbatimLongitude=~/\d/)){ #If decLat and decLong are digits
+	if ($datum){ #report is datum is present
+		s/1984//g;
+		s/ +//;
+		s/  +/ /g;
+		s/NULL/not recorded/g;
+		s/^ +//g;
+		s/ +$//g;
+
+	}
+	else {
+		$datum = "not recorded"; #use this only if datum are blank, set it for records with coords
+	}
+}	
+
+#check georeference source
+if ((length($lat_degrees) >= 1) && (length($long_degrees) >= 1) && (length($georeferenceSource) == 0)){
+	$georeferenceSource = $LatLongAdded;
+		if($LatLongAdded=~m/yes/i){
+			$georeferenceSource="Coordinates added by CHSC, DMS conversion by CCH loading script";
+		}
+		elsif($LatLongAdded=~m/no/i){
+			$georeferenceSource="Coordinates from specimen label, DMS conversion by CCH loading script";
 		}
 		else{
-			$coordSource="";
+			$georeferenceSource="";
 		}
+}
+
+#final check of Longitude
+
+	if ($decimalLongitude > 0) {
+			$decimalLongitude="-$decimalLongitude";	#make decLong = -decLong if it is greater than zero
+			&log_change("COORDINATE: Longitude made negative\t--\t$id");
+	}
+#final check for rough out-of-boundary coordinates
+if((length($decimalLatitude) >= 2)  && (length($decimalLongitude) >= 3)){ 
+	if($decimalLatitude > 42.1 || $decimalLatitude < 30.0 || $decimalLongitude > -114.0 || $decimalLongitude < -124.5){ #if the coordinate range is not within the rough box of california and northern Baja...
+	###was 32.5 for California, now 30.0 to include CFP-Baja
+		&log_change("coordinates set to null for $id, Outside California and CA-FP in Baja: >$decimalLatitude< >$decimalLongitude<\n");	#print this message in the error log...
+		$decimalLatitude = $decimalLongitude = $georeferenceSource = $datum="";	#and set $decLat and $decLong to ""  
+	}
+}
+else {
+		if((length($decimalLatitude) == 0)  && (length($decimalLongitude) == 0)){
+			#do nothing, NULL reported elsewhere above, this is done to shorten the error log
+		}
+		else{
+			&log_change("COORDINATE poorly formatted or non-numeric coordinates for $id: ($verbatimLatitude) \t($verbatimLongitude)\n");
+			$decimalLatitude = $decimalLongitude = $datum = $georeferenceSource = "";
+		}
+}
+	
+	
+
+foreach ($errorRadius){
+	s/NULL//;
+	s/  +/ /g;
+	s/,//g;
+	s/^ *//g;
+	s/ *$//g;
+}
+foreach ($errorRadiusUnits){
+	s/NULL//;
+	s/  +/ /g;
+	s/\.//g;
+	s/^ *//g;
+	s/ *$//g;
+}
+
+##############TRS
+foreach($TRS){
+	s/NULL//;
+	s/,/ /g;
+	s/\./ /g;
+	s/[Ss]ecf/Sec/g;
+	s/  +/ /g;
+	s/^ *//g;
+	s/ *$//g;
+
+}
+
+
+#######Notes (dwc occurrenceRemarks) and Other_Data
+#Macromorphology, including abundance
+my $note_string;
+
+foreach ($occurrenceRemarks){
+	s/NULL//;
+	s/ ssp / subsp. /g;
+	s/ ssp. / subsp. /g;
+	s/ var / var. /g;
+	s/ [xX×] / X /;	#change  " x " or " X " to the multiplication sign
+	s/×/X/;
+	s/^ *//g;
+	s/ *$//g;
+	s/'$//;
+	s/  +/ /g;
+}
+
+foreach ($informationWithheld){
+	s/NULL//;
+	s/'$//g;
+	s/^ *//;
+	s/ *$//;
+	s/  +/ /;
+}
+
+foreach ($other){
+	s/NULL//;
+	s/^ *//g;
+	s/ *$//g;
+	s/  +/ /g;
+}
+
+#format note_string correctly
+	if ((length($informationWithheld) >= 1) && (length($other) == 0)){
+		$note_string="$informationWithheld";
+	}
+	elsif ((length($informationWithheld) == 0) && (length($other) >= 1)){
+		$note_string="Other Notes: $other";
+	}
+	elsif ((length($informationWithheld) >= 1) && (length($other) >= 1)){
+		$note_string="$informationWithheld| Other Notes: $other";
+	}
+	elsif ((length($informationWithheld) == 0) && (length($other) == 0)){
+		$note_string="";
 	}
 	else{
-		$coordSource="";
+		&log_change("NOTES: problem with notes field\t$id($informationWithheld| Other Notes: $other");
+		$note_string="";
 	}
 
-}
+            print OUT <<EOP;
 
-		if( m!<TownshipAndRange>([^<]+)</TownshipAndRange>!){
-#if(m|<TownshipAndRange>T.*(\d+).*(N).*R.*(\d+).*(E).*Sect.*(\d+)</TownshipAndRange>|){
-$Unified_TRS="$1";
-}
-else{
-$Unified_TRS="";
-}
-if(m/<GeoTertiaryDivision>(.+)</){
-$county=$1;
-$county=~s/ *County//i;
-	}
-else{
-$county="Unknown";
-}
-
-#the rest of this required code should be made into a separate subroutine that uses &verify_co
-
-		unless ($county=~m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown|Unknown)$/){
-			$v_county= &verify_co($county);	#Unless $county matches one of the county names from the above list, create a value $v_county for that value using the &verify_co function
-			if($v_county=~/SKIP/){		#If $v_county is "/SKIP/" (i.e. &verify_co cannot recognize it)
-				&log_skip("$id NON-CA COUNTY? $county");	#run the &skip function, printing the following message to the error log
-				++$skipped{one};
-				next;
-			}
-
-			unless($v_county eq $county){	#unless $v_county is exactly equal to what was input into the &verify_co function (i.e. if &verify_co successfully changed the county)
-				&log_change("$id COUNTY $county -> $v_county");		#call the &log function to print this log message into the change log...
-				$county=$v_county;	#and then set $county to whatever the verified $v_county is.
-			}
-		}
-
-
-
-
-if($ecology=~s/[.,;] *([Ff]lowers [^.]+)\././){
-$color=$1;
-}
-else{
-$color="";
-}
-
-
-
-
-
-
-
-
-
-	if(length($locality) > 555){
-		foreach($locality){
-			s/[Aa]bout /ca. /g;
-			s/Highway/Hwy/g;
-			s/River/R./g;
-			s/[eE]ast-north-?east/NE/g;
-			s/[Nn]orth-?west/NW/g;
-			s/north-?east/NE/g;
-			s/south-?east/SE/g;
-			s/south-?west/SW/g;
-			s/\b[Ss]outh\b/S/g;
-			s/\b[Nn]orth\b/N/g;
-			s/ &amp; / & /g;
-			s/National Forest/N.F./g;
-			s/National Wildlife/N.W./g;
-			s/\bRoad\b/Rd/g;
-			s/ miles / mi /g;
-			s/ mile / mi /g;
-			s/\byards\b/yd/g;
-			s/ west / W /g;
-			s/ east / E /g;
-			s/Campground/Cpgd/g;
-			s/\bvery\b//g;
-			s/DUE TO CONCERNS.*/MORE INFORMATION IS AVAILABLE ON THE SPECIMEN LABEL/;
-			s/Western Transverse Range/WTR/;
-			s/Thomas Creek Ecol/Thomes Creek Ecol/;
-		s/  */ /g;
-		s/\.\././g;
-		s/ the / /;
-		s/ a / /g;
-		s/Northern High Sierra Nevada Range/n SNH/;
-		s/High Sierra Nevada Range/SNH/;
-		s/Sierra Nevada Range/SN/;
-		}
-	if(length($locality) > 255){
-$overage=length($locality)- 255;
-#$locality=substr($locality, 0,252) . "...";
-#warn "Too long by $overage: $locality\n";
-	}
-	}
-	
-print OUT <<EOP;
-Date: $date
-EJD: $JD
+Accession_id: $id
+Name: $scientificName
+Date: $eventDate
+EJD: $EJD
 LJD: $LJD
-CNUM: $collnum
-CNUM_prefix: $CNUM_PREFIX
-CNUM_suffix: $CNUM_SUFFIX
-Name: $name
-Accession_id: $accession_id
-Country: USA
-State: California
+Collector: $recordedBy
+Other_coll: $other_collectors
+Combined_coll: $verbatimCollectors
+CNUM_prefix: $CNUM_prefix
+CNUM: $CNUM
+CNUM_suffix: $CNUM_suffix
+Country: $country
+State: $stateProvince
 County: $county
 Location: $locality
-T/R/Section: $Unified_TRS
-Elevation: $elevation
-Collector: $collector
-Other_coll: $other_coll
-Combined_collector: $comb_coll
-Habitat: $ecology
-Associated_species: $assoc
-Color: $color
-Latitude: $lat
-Longitude: $long
-Max_error_distance: $extent
-Max_error_units: $ExtUnits
-Lat_long_ref_source: $coordSource
-Decimal_latitude: $decimal_lat
-Decimal_longitude: $decimal_long
+Habitat: $occurrenceRemarks
+Associated_species:
+T/R/Section: $TRS
+USGS_Quadrangle: $topo_quad
+UTM: 
+Decimal_latitude: $decimalLatitude
+Decimal_longitude: $decimalLongitude
 Datum: $datum
+Lat_long_ref_source: $georeferenceSource
+Max_error_distance: $errorRadius
+Max_error_units: $errorRadiusUnits
+Elevation: $CCH_elevationInMeters
+Verbatim_elevation: $verbatimElevation
+Verbatim_county: $tempCounty
+Notes: $note_string
+Cultivated: $cultivated
 Hybrid_annotation: $hybrid_annotation
-Annotation: $annotation
-Notes: $notes
-USGS_Quadrangle: $quad
+Annotation: $det_string
 
 EOP
+++$included;
 }
 
-############SOME OLD CODE from when we processed collectors
-#foreach(sort(keys(%seen_coll))){
-#if($coll_comm{$_}){
-	##warn "$_ seen\n";
-#}
-#else{
-	##print "$_\n";
-#print <<EOP;
-#print "$_\n";
-#insert into committee (chair_id, committee_func, committee_abbr, comments, data_src_id) values(0,"coll","$_","Chico bload",6)
-#go
-#EOP
-#}
-#}
+my $skipped_taxa = $count-$included;
+print <<EOP;
+INCL: $included
+EXCL: $skipped{one}
+TOTAL: $count
 
-sub skip {	#for each skipped item...
-	print ERR "skipping: @_\n"	#print into the ERR file "skipping: "+[item from skip array]+new line
+SKIPPED TAXA: $skipped_taxa
+
+SKIPPED NON_VASCULAR TAXA: $NONV_count
+(these non-vasculars are skipped early and not included in TOTAL above)
+EOP
+
+close(IN);
+close(OUT);
+
+
+#####Check final output for characters in problematic formats (non UTF-8), this is Dick's accent_detector.pl
+my @words;
+my $word;
+my $store;
+my $match;
+my %store;
+my %match;
+my %seen;
+%seen=();
+
+
+    my $file_in = 'CHSC_out.txt';	#the file this script will act upon is called 'CATA.out'
+open(IN,"$file_in" ) || die;
+
+while(<IN>){
+        chomp;
+#split on tab, space and quote
+        @words=split(/["        ]+/);
+        foreach (@words){
+                $word=$_;
+#as long as there is a non-ascii string to delete, delete it
+                while(s/([^\x00-\x7F]+)//){
+#store the word it occurs in unless you've seen that word already
+
+                        unless ($seen{$word . $1}++){
+                                $store{$1} .= "$word\t";
+                        }
+                }
+        }
 }
-sub log {	#for each logged change...
-	print ERR "logging: @_\n";	#print into the ERR file "logging: "+[item from log array]+new line
+
+	foreach(sort(keys(%store))){
+#Get the hex representation of the accent
+		$match=  unpack("H*", "$_"), "\n";
+#add backslash-x for the pattern
+		$match=~s/(..)/\\x$1/g;
+#Print out the hex representation of the accent as it occurs in a pattern, followed by the accent, followed by the list of words the accent occurs in
+				&log_skip("problem character detected: s/$match/    /g   $_ ---> $store{$_}\n\n");
+	}
+close(IN);
+
+	
+################SUBROUTINES#############
+#original XML file does not have line for fields with no data, these sub's add NULL values for records that do not contain a line for a field, thus producing a table with values (NULL or the original value) in every field for processing
+sub get_cult {#this section is added for the cultivated processing by adding this line using search and replace after each "<CurrentName_with_all_fields>"
+#<CULT>N</CULT>
+		my $par = shift;
+		
+	if($par=~/<CULT>(.*)<\/CULT>/){
+			return $1;
+		}
+	else{
+		return "NULL";
+	}		
+}
+sub get_id {
+#<Accession>114905</Accession>
+		my $par = shift;
+		
+	if($par=~/<Accession>(\d+)<\/Accession>/){
+			return $1;
+		}
+		else{
+		return "NULL";
+		}		
+}
+sub get_genus {
+#<CGenus>Amelanchier</CGenus>	
+		my $par = shift;
+
+	if($par=~/<CGenus>(.*)<\/CGenus>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_species {
+#<CSpecificEpithet>utahensis</CSpecificEpithet>	
+		my $par = shift;
+
+	if($par=~/<CSpecificEpithet>(.*)<\/CSpecificEpithet>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_rank {
+#<CRank>ssp.</CRank>	
+		my $par = shift;
+
+		if($par=~/<CRank>(.*)<\/CRank>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_subtaxon {
+#<CInfraspecificName>montevidensis</CInfraspecificName>	
+		my $par = shift;
+
+	if($par=~/<CInfraspecificName>(.*)<\/CInfraspecificName>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_collector {
+#<Collector>D.G. Kelch</Collector>
+		my $par = shift;
+
+	if($par=~/<Collector>(.*)<\/Collector>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_other_coll {
+#<MoreCollectors>D. L. Haws</MoreCollectors>
+		my $par = shift;
+
+	if($par=~/<MoreCollectors>(.*)<\/MoreCollectors>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_recordNumber {
+#<CollectionNumber>11510</CollectionNumber>
+		my $par = shift;
+
+	if($par=~/<CollectionNumber>(.*)<\/CollectionNumber>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_eventDate {
+#<Date>2004-05-24T00:00:00</Date>
+		my $par = shift;
+
+	if($par=~/<Date>(.*)<\/Date>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_country {
+#<GeoPrimaryDivision>United States</GeoPrimaryDivision>
+		my $par = shift;
+
+	if($par=~/<GeoPrimaryDivision>(.*)<\/GeoPrimaryDivision>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_stateProvince {
+#<GeoSecondaryDivision>United States</GeoSecondaryDivision>
+		my $par = shift;
+
+	if($par=~/<GeoSecondaryDivision>(.*)<\/GeoSecondaryDivision>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_county {
+#<GeoTertiaryDivision>San Francisco</GeoTertiaryDivision>
+		my $par = shift;
+
+	if($par=~/<GeoTertiaryDivision>(.*)<\/GeoTertiaryDivision>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_TRS {
+#<TownshipAndRange>T33N  R04W S24</TownshipAndRange>
+		my $par = shift;
+
+	if($par=~/<TownshipAndRange>(.*)<\/TownshipAndRange>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_elevation {
+#<Elevation>366</Elevation>
+		my $par = shift;
+
+	if($par=~/<Elevation>(.*)<\/Elevation>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_elev_units {
+#<ElevationUnits>ft.</ElevationUnits>
+		my $par = shift;
+
+	if($par=~/<ElevationUnits>(.*)<\/ElevationUnits>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_locality {
+#<Locality>Vicinity of Blairsden.</Locality>
+		my $par = shift;
+
+	if($par=~/<Locality>(.*)<\/Locality>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_lat_degrees {
+#<LatitudeDegree>39</LatitudeDegree>
+		my $par = shift;
+
+	if($par=~/<LatitudeDegree>(.*)<\/LatitudeDegree>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_lat_minutes {
+#<LatitudeMinutes>10</LatitudeMinutes>
+		my $par = shift;
+
+	if($par=~/<LatitudeMinutes>(.*)<\/LatitudeMinutes>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_lat_seconds {
+#LatitudeSeconds>1</LatitudeSeconds>
+		my $par = shift;
+
+	if($par=~/<LatitudeSeconds>(.*)<\/LatitudeSeconds>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_lat_dir {
+#<LatitudeDirection>N</LatitudeDirection>
+		my $par = shift;
+
+	if($par=~/<LatitudeDirection>(.*)<\/LatitudeDirection>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_long_degrees {
+#<LongitudeDegree>122</LongitudeDegree>
+		my $par = shift;
+
+	if($par=~/<LongitudeDegree>(.*)<\/LongitudeDegree>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_long_minutes {
+#<LongitudeMinutes>31</LongitudeMinutes>
+		my $par = shift;
+
+	if($par=~/<LongitudeMinutes>(.*)<\/LongitudeMinutes>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_long_seconds {
+#<LongitudeSeconds>44</LongitudeSeconds>
+		my $par = shift;
+
+	if($par=~/<LongitudeSeconds>(.*)<\/LongitudeSeconds>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_long_dir {
+#<LongitudeDirection>W</LongitudeDirection>
+		my $par = shift;
+
+	if($par=~/<LongitudeDirection>(.*)<\/LongitudeDirection>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_datum {
+#<LatLongDatum>NAD 1983</LatLongDatum>
+		my $par = shift;
+
+	if($par=~/<LatLongDatum>(.*)<\/LatLongDatum>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_errorRadius {
+#<LatLongPrecision>0.25</LatLongPrecision>
+		my $par = shift;
+
+	if($par=~/<LatLongPrecision>(.*)<\/LatLongPrecision>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_errorRadiusUnits {
+#<LatLongPrecisionUnits>mi.</LatLongPrecisionUnits>
+		my $par = shift;
+
+	if($par=~/<LatLongPrecisionUnits>(.*)<\/LatLongPrecisionUnits>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_LatLongAdded {
+#<LatLongAddedCheck>yes</LatLongAddedCheck>
+		my $par = shift;
+
+	if($par=~/<LatLongAddedCheck>(.*)<\/LatLongAddedCheck>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_topo_quad {
+#<USGSQuadrangle>Kettle Peak</USGSQuadrangle>
+		my $par = shift;
+
+	if($par=~/<USGSQuadrangle>(.*)<\/USGSQuadrangle>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_notes { 
+#made into notes field, this is not just habitat or ecology, 
+#it is associates, macromorphology, plant description, population biology, habitat, and general notes all combined  
+#in one field of multiple sentences and phrases, separated by punctuation, mostly periods and spaces
+#<Ecology>Ocassional here. Flowers a creamy white- yellow. On Heteromeles arbutifolia.</Ecology>
+		my $par = shift;
+
+	if($par=~/<Ecology>(.*)<\/Ecology>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_other { 
+#misc. information about the label and where the specimen came from, not a typical notes field, placed in Other_data herein 
+#<Notes>Label says: California Academy of Sciences.</Notes>
+		my $par = shift;
+
+	if($par=~/<Notes>(.*)<\/Notes>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
 }
 
+sub get_AnnoRank { 
+#<AnnoYesNo>0</AnnoYesNo>
+		my $par = shift;
 
+	if($par=~/<AnnoYesNo>(.*)<\/AnnoYesNo>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_identifiedBy { 
+#<CDeterminedBy>A. O. Tucker</CDeterminedBy>
+		my $par = shift;
 
-__END__
-<CHSC_for_CalHerbConsort>
-<Accession>
-<Division>
-<CFamily>
-<CGenus>
-<CSpecificEpithet>
-<Collector>
-<Date>
-<DatePrecision>
-<GeoTertiaryDivision>
-<Elevation>
-<ElevationUnits>
-<Locality>
-<LatLongAddedCheck>
-<Notes>
-<AnnoYesNo>
-</CHSC_for_CalHerbConsort>
-<CRank>
-<CInfraspecificName>
-<CDeterminedBy>
-<LatitudeDegree>
-<LatitudeMinutes>
-<LatitudeSeconds>
-<LatitudeDirection>
-<LongitudeDegree>
-<LongitudeMinutes>
-<LongitudeSeconds>
-<LongitudeDirection>
-<LatLongPrecision>
-<LatLongPrecisionUnits>
-<DeterminedDate>
-<Ecology>
-<MoreCollectors>
-</Collector>
-<CollectionNumber>
-<TownshipAndRange>
-<USGSQuadrangle>
-<USGSQuadrangleScale>
-</GeoTertiaryDivision>
-</Notes>
-</MoreCollectors>
-</Ecology>
-</dataroot>
+	if($par=~/<CDeterminedBy>(.*)<\/CDeterminedBy>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_dateIdentified { 
+#<DeterminedDate>2011-09-09T00:00:00</DeterminedDate>
+		my $par = shift;
+
+	if($par=~/<DeterminedDate>(.*)<\/DeterminedDate>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
