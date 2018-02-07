@@ -1,70 +1,70 @@
-open(IN,"../collectors_id") || die;
+open(IN,"../CDL/collectors_id") || die;
 while(<IN>){
+	if(m/\cM/){
+	die;
+	}
 	chomp;
 s/\t.*//;
 	$coll_comm{$_}++;
 }
-open(IN,"../tnoan.out") || die;
+open(IN,"../../CDL_buffer/buffer/tnoan.out") || die;
 while(<IN>){
 	chomp;
+	if(m/\cM/){
+	die;
+	}
 	s/^.*\t//;
 	$taxon{$_}++;
 }
 open(IN,"chico_non_vasc") || die;
 while(<IN>){
 	chomp;
+	if(m/\cM/){
+	die;
+	}
 	$exclude{$_}++;
 }
-open(IN,"../riv_non_vasc") || die;
+open(IN,"../CDL/alter_names") || die;
 while(<IN>){
-	chomp;
-	$exclude{$_}++;
-}
-open(IN,"../riv_alter_names") || die;
-while(<IN>){
+	if(m/\cM/){
+	die;
+	}
 	chomp;
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
 	$alter{$riv}=$smasch;
 }
-open(IN,"../davis/davis_exclude") || die;
+open(IN,"../DAVIS/davis_exclude") || die;
 while(<IN>){
+	if(m/\cM/){
+	die;
+	}
 	chomp;
 	$exclude{$_}++;
 }
 open(IN,"alter_chico.in") || die;
-@alters=<IN>;
-chomp(@alters);
-foreach $i (0 .. $#alters){
-	unless($i % 2){
-		if($alters[$i]=~s/ :.*//){
-			$alter{$alters[$i]}=$alters[$i+1];
-		}
-		else{
-			die "misconfig: $i $alters[$i]";
-		}
+while(<IN>){
+	if(m/\cM/){
+	die;
 	}
+chomp;
+			@alters=split(/\t/);
+			$alter{$alters[0]}=$alters[1];
 }
-open(IN,"../davis/alter_davis") || die;
-@alters=<IN>;
-chomp(@alters);
-foreach $i (0 .. $#alters){
-	unless($i % 2){
-		if($alters[$i]=~s/ :.*//){
-			$alter{$alters[$i]}=$alters[$i+1];
-		}
-		else{
-			die "misconfig: $i $alters[$i]";
-		}
-	}
-}
-$/= "<CHSC_for_CalHerbConsort>";
+
+#$/= "<CHSC_for_CalHerbConsort>";
+$/="<CHSC_for_x0020_CalHerbConsort>";
 open(ERROR, ">Chico_error") || die;
 open(OUT, ">parse_Chico.out") || die;
-open(IN,"chsc.xml") || die;
+open(IN,"chsc_for_CALHERBCONSORT.xml") || die;
 #open(IN,"chico_test") || die;
 while(<IN>){
+	if(m/\cM/){
+	die;
+	}
+	next if m/<Division>.*Anthocerotae|Hepaticae|lichens|Musci/;
 	($err_line=$_)=~s/\n/\t/g;
-$comb_coll=$assoc=$genus=$LatitudeDirection=$LongitudeDirection=$date= $collnum= $coll_num_prefix= $coll_num_suffix= $name= $accession_id= $county= $locality= $Unified_TRS= $elevation= $collector= $other_coll= $ecology= $color= $lat= $long= $decimal_lat= $decimal_long="";
+$comb_coll=$assoc=$genus=$LatitudeDirection=$LongitudeDirection=$date= $collnum= $coll_num_prefix= $coll_num_suffix= $name= $accession_id= $county= $locality= $Unified_TRS= $elevation= $collector= $other_coll= $ecology= $color= $lat= $long= $decimal_lat= $decimal_long=$annotation="";
+$hybrid_annotation="";
 s/&quot;/"/g;
 s/&apos;/'/g;
 s/&amp;/&/g;
@@ -119,6 +119,21 @@ EOP
 	next;
 }
 $name=~s/  */ /g;
+			if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
+				$hybrid_annotation=$name;
+				warn "$1 from $name\n";
+				$name=$1;
+			}
+			elsif($name=~/([A-Z][a-z-]+ [a-z-]+) [Xx]\.? /){
+				$hybrid_annotation=$name;
+				warn "$1 from $name\n";
+				$name=$1;
+			}
+			elsif($name=~/([A-Z][a-z-]+ [a-z-]+ var. [a-z-]+) × /){
+				$hybrid_annotation=$name;
+				warn "$1 from $name\n";
+				$name=$1;
+			}
 if($alter{$name}){
 	print ERROR <<EOP;
 Spelling altered to $alter{$name}: $name 
@@ -140,17 +155,36 @@ EOP
 	$name=$alter{$name};
 }
 			unless($taxon{$name}){
-				$name=~s/subsp\./var./;
-if($alter{$name}){
-	print ERROR <<EOP;
-Spelling altered to $alter{$name}: $name 
+					$on=$name;
+		if($name=~s/subsp\./var./){
+			if($taxon{$name}){
+				print ERROR <<EOP;
+
+Not yet entered into SMASCH taxon name table: $on entered as $name
 EOP
-	$name=$alter{$name};
-}
+			}
+			else{
+				print ERROR <<EOP;
+
+Name not yet entered into SMASCH taxon name table, skipped: $accession_id $on
+EOP
+		++$skipped{$on};
+		next;
+		}
+	}
+	elsif($name=~s/var\./subsp./){
+		if($taxon{$name}){
+			print ERROR <<EOP;
+
+Not yet entered into SMASCH taxon name table: $on entered as $name
+EOP
+		
+		}
+	}
 				unless($taxon{$name}){
 					$noname{$name}++;
 	print ERROR <<EOP;
-Name not yet entered into smasch, skipped: $accession_id $name 
+Name not yet entered into SMASCH taxon name table, skipped: $accession_id $name 
 EOP
 	next;
 				}
@@ -160,6 +194,22 @@ EOP
 
 
 $name=~s/ *\?//;
+if(m/<DeterminedDate>(.*)<\/Det/){
+	($det_date=$1)=~s/T.*//;;
+}
+else{
+	$det_date="";
+}
+if(m/<CDeterminedBy>(.*)<\/CDet/){
+	$det_by=$1;
+	$det_by="" if $det_by =~/erbarium/;
+	if($det_by){
+		$annotation="$name; $det_by; $det_date";
+	}
+}
+else{
+	$det_by="";
+}
 	if(m|<Elevation>(.+)</Elevation>|){
 		$elevation=$1;
 		if(m|<ElevationUnits>(.*)</ElevationUnits>|){
@@ -256,10 +306,20 @@ $locality=~s/[,.:; ]+$//;
 		}
 =cut
 		if($date=~/^([12][0789]\d\d)-(\d\d)-(\d\d)$/){
-			$month=$1; $day=$2; $year=$3;
+			$month=$2; $day=$3; $year=$1;
+			if(m|<DatePrecision>Month</DatePrecision>|){
+				$day="";
+			}
+			elsif(m|<DatePrecision>Year</DatePrecision>|){
+				$day=""; $month="";
+			}
 		}
 		else{
-			print ERROR "Date problem: $date made null $err_line\n";
+			print ERROR "Date format problem: $date made null $err_line\n";
+			$date="";
+		}
+		if($year > 2008 || $year < 1800){
+			print ERROR "Date bounds problem: $year $date made null $err_line\n";
 			$date="";
 		}
 $day="" if $day eq "00";
@@ -284,8 +344,8 @@ $date=~s/  */ /g;
 				s/^ *//;
 	if(length($assoc) > 255){
 $overage=length($assoc)- 255;
-$assoc=substr($assoc, 0,252) . "...";
-		warn "Too long by $overage: $assoc\n";
+#$assoc=substr($assoc, 0,252) . "...";
+#warn "Too long by $overage: $assoc\n";
 	}
 			}
 		}
@@ -301,10 +361,16 @@ $assoc=substr($assoc, 0,252) . "...";
 	}
 	if(m|<Collector>(.*)</Collector>|){
 		$collector=$1;
-		warn "$collector\n" if $collector=~/\d/;
+		if ($collector=~/\d/){
+		warn "$collector\n";
+print ERROR "Collector problem: $collector $err_line\n";
 $collector=~s/.*1996/G. F. Hrusa/;
 $collector=~s/Carpenter 16/Carpenter/;
+$collector=~s/J. R. Nelson'14/J. R. Nelson/;
+$collector=~s/Janet Beckman 34/Janet Beckman/;
+$collector=~s!7/16/1996!!;
 		warn "$collector\n" if $collector=~/\d/;
+		}
 		$collector=~s/<!\[CDATA\[(.*)\]\]>/$1/;
 		if(m|<MoreCollectors>(.*)</MoreCollectors>|){
 			$other_coll=$1;
@@ -782,8 +848,9 @@ $decimal_long=$1;
 else{
 $decimal_long="";
 }
-if(m|<TownshipAndRange>T.*(\d+).*(N).*R.*(\d+).*(E).*Sect.*(\d+)</TownshipAndRange>|){
-$Unified_TRS="$1$2$3$4$5";
+		if( m!<TownshipAndRange>([^<]+)</TownshipAndRange>!){
+#if(m|<TownshipAndRange>T.*(\d+).*(N).*R.*(\d+).*(E).*Sect.*(\d+)</TownshipAndRange>|){
+$Unified_TRS="$1";
 }
 else{
 $Unified_TRS="";
@@ -911,7 +978,7 @@ $color="";
 
 
 
-	if(length($locality) > 255){
+	if(length($locality) > 555){
 		foreach($locality){
 			s/[Aa]bout /ca. /g;
 			s/Highway/Hwy/g;
@@ -947,8 +1014,8 @@ $color="";
 		}
 	if(length($locality) > 255){
 $overage=length($locality)- 255;
-$locality=substr($locality, 0,252) . "...";
-		warn "Too long by $overage: $locality\n";
+#$locality=substr($locality, 0,252) . "...";
+#warn "Too long by $overage: $locality\n";
 	}
 	}
 print OUT <<EOP;
@@ -974,6 +1041,8 @@ Latitude: $lat
 Longitude: $long
 Decimal_latitude: $decimal_lat
 Decimal_longitude: $decimal_long
+Hybrid_annotation: $hybrid_annotation
+Annotation: $annotation
 Notes: 
 
 EOP
