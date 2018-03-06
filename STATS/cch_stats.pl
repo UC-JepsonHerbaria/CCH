@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 #cch_query_log is the one to truncate
+# in ucjeps_data on annie, use the command cat /dev/null >| cch_query_log
+
 use CGI;
 $query = new CGI;                        # create new CGI object
 print $query->header unless $header_printed++;                    # create the HTTP header
@@ -32,8 +34,12 @@ foreach (@QL){
 		}
 	}
 	else{
-s/UCLA/UC/;
-s/ECON/HUH/;
+s/^CLARK-A/CLARK/;
+s/^YM-YOSE/YM/;
+s/^CAS-BOT-BC/CAS/; #change to account for the CAS/DS code change
+s/^DS/CAS/;
+#s/UCLA/UC/; not sure this is needed because the UCLA specimens at UC are converted to UC in the loader now
+s/^ECON/HUH/;
 s/^AMES/HUH/;
 s/^A/HUH/;
 s/^GH/HUH/;
@@ -153,6 +159,706 @@ return <<EOH;
 EOH
 }
 __END__
+<table border=1 cellpadding=5><tr><td align="center">
+
+<table bgcolor="#dddddd" cellspacing=5 cellpadding=5>
+<tr><td>From:</td><td><tt>Tue Feb 13 10:50:59 2018</tt></td></tr>
+<tr><td>To:</td><td><tt>Tue Mar  6 09:11:53 2018</tt></td></tr>
+</table>
+</td></tr>
+<tr><td><h3>Records returned in general searches</h3>
+<table><tr><th>BFRS</th><td align=right>3830</td></tr>
+<tr><th>BLMAR</th><td align=right>1729</td></tr>
+<tr><th>C</th><td align=right>1</td></tr>
+<tr><th>CAS</th><td align=right>1408803</td></tr>
+<tr><th>CATA</th><td align=right>33062</td></tr>
+<tr><th>CDA</th><td align=right>108168</td></tr>
+<tr><th>CHSC</th><td align=right>303916</td></tr>
+<tr><th>CLARK</th><td align=right>33579</td></tr>
+<tr><th>CSUSB</th><td align=right>9896</td></tr>
+<tr><th>GMDRC</th><td align=right>46686</td></tr>
+<tr><th>HREC</th><td align=right>2142</td></tr>
+<tr><th>HSC</th><td align=right>248225</td></tr>
+<tr><th>HUH</th><td align=right>223645</td></tr>
+<tr><th>IRVC</th><td align=right>30928</td></tr>
+<tr><th>JEPS</th><td align=right>554435</td></tr>
+<tr><th>JOTR</th><td align=right>46336</td></tr>
+<tr><th>JROH</th><td align=right>36327</td></tr>
+<tr><th>LA</th><td align=right>86448</td></tr>
+<tr><th>MACF</th><td align=right>1152</td></tr>
+<tr><th>NY</th><td align=right>51451</td></tr>
+<tr><th>OBI</th><td align=right>165513</td></tr>
+<tr><th>PASA</th><td align=right>8695</td></tr>
+<tr><th>PGM</th><td align=right>22760</td></tr>
+<tr><th>POM</th><td align=right>382214</td></tr>
+<tr><th>RSA</th><td align=right>1781603</td></tr>
+<tr><th>SACT</th><td align=right>5995</td></tr>
+<tr><th>SBBG</th><td align=right>763213</td></tr>
+<tr><th>SCFS</th><td align=right>4147</td></tr>
+<tr><th>SD</th><td align=right>796408</td></tr>
+<tr><th>SDSU</th><td align=right>103416</td></tr>
+<tr><th>SEINET</th><td align=right>317407</td></tr>
+<tr><th>SFV</th><td align=right>36617</td></tr>
+<tr><th>SJSU</th><td align=right>35153</td></tr>
+<tr><th>U</th><td align=right>1</td></tr>
+<tr><th>UC</th><td align=right>1107984</td></tr>
+<tr><th>UCD</th><td align=right>382724</td></tr>
+<tr><th>UCR</th><td align=right>922314</td></tr>
+<tr><th>UCSB</th><td align=right>180021</td></tr>
+<tr><th>UCSC</th><td align=right>33126</td></tr>
+<tr><th>VVC</th><td align=right>10193</td></tr>
+<tr><th>YM</th><td align=right>25370</td></tr>
+</table>Total: 10315633 in 267057 searches</td></tr><tr><td><h3>Records returned in detail displays</h3>
+<table><tr><th>BFRS</th><td align=right> 10</td></tr>
+<tr><th>BLMAR</th><td align=right> 26</td></tr>
+<tr><th>CAS</th><td align=right> 8091</td></tr>
+<tr><th>CATA</th><td align=right> 59</td></tr>
+<tr><th>CDA</th><td align=right> 1170</td></tr>
+<tr><th>CHSC</th><td align=right> 3439</td></tr>
+<tr><th>CLARK</th><td align=right> 256</td></tr>
+<tr><th>CSUSB</th><td align=right> 36</td></tr>
+<tr><th>GMDRC</th><td align=right> 336</td></tr>
+<tr><th>HREC</th><td align=right> 15</td></tr>
+<tr><th>HSC</th><td align=right> 2965</td></tr>
+<tr><th>HUH</th><td align=right> 2056</td></tr>
+<tr><th>IRVC</th><td align=right> 166</td></tr>
+<tr><th>JEPS</th><td align=right> 11650</td></tr>
+<tr><th>JOTR</th><td align=right> 204</td></tr>
+<tr><th>JROH</th><td align=right> 259</td></tr>
+<tr><th>LA</th><td align=right> 654</td></tr>
+<tr><th>MACF</th><td align=right> 12</td></tr>
+<tr><th>NY</th><td align=right> 641</td></tr>
+<tr><th>OBI</th><td align=right> 1602</td></tr>
+<tr><th>PASA</th><td align=right> 54</td></tr>
+<tr><th>PGM</th><td align=right> 318</td></tr>
+<tr><th>POM</th><td align=right> 2931</td></tr>
+<tr><th>RSA</th><td align=right> 13702</td></tr>
+<tr><th>SACT</th><td align=right> 52</td></tr>
+<tr><th>SBBG</th><td align=right> 4064</td></tr>
+<tr><th>SCFS</th><td align=right> 37</td></tr>
+<tr><th>SD</th><td align=right> 4572</td></tr>
+<tr><th>SDSU</th><td align=right> 702</td></tr>
+<tr><th>SEINET</th><td align=right> 2256</td></tr>
+<tr><th>SFV</th><td align=right> 245</td></tr>
+<tr><th>SJSU</th><td align=right> 437</td></tr>
+<tr><th>UC</th><td align=right> 10788</td></tr>
+<tr><th>UCD</th><td align=right> 3984</td></tr>
+<tr><th>UCR</th><td align=right> 6709</td></tr>
+<tr><th>UCSB</th><td align=right> 1445</td></tr>
+<tr><th>UCSC</th><td align=right> 341</td></tr>
+<tr><th>VVC</th><td align=right> 76</td></tr>
+<tr><th>YM</th><td align=right> 331</td></tr>
+</table>Total: 86691</td></tr></table>
+
+<table border=1 cellpadding=5><tr><td align="center">
+
+<table bgcolor="#dddddd" cellspacing=5 cellpadding=5>
+<tr><td>From:</td><td><tt>Wed Jan 24 13:25:53 2018</tt></td></tr>
+<tr><td>To:</td><td><tt>Tue Feb 13 10:50:59 2018</tt></td></tr>
+</table>
+</td></tr>
+<tr><td><h3>Records returned in general searches</h3>
+<table><tr><th>BFRS</th><td align=right>435</td></tr>
+<tr><th>BLMAR</th><td align=right>3365</td></tr>
+<tr><th>CAS</th><td align=right>2092100</td></tr>
+<tr><th>CATA</th><td align=right>30809</td></tr>
+<tr><th>CDA</th><td align=right>178163</td></tr>
+<tr><th>CHSC</th><td align=right>522529</td></tr>
+<tr><th>CLARK</th><td align=right>69062</td></tr>
+<tr><th>CSUSB</th><td align=right>20699</td></tr>
+<tr><th>GMDRC</th><td align=right>29131</td></tr>
+<tr><th>HREC</th><td align=right>2023</td></tr>
+<tr><th>HSC</th><td align=right>379808</td></tr>
+<tr><th>HUH</th><td align=right>397903</td></tr>
+<tr><th>IRVC</th><td align=right>47847</td></tr>
+<tr><th>JEPS</th><td align=right>765496</td></tr>
+<tr><th>JOTR</th><td align=right>24465</td></tr>
+<tr><th>JROH</th><td align=right>63853</td></tr>
+<tr><th>LA</th><td align=right>164559</td></tr>
+<tr><th>MACF</th><td align=right>2140</td></tr>
+<tr><th>NY</th><td align=right>82918</td></tr>
+<tr><th>OBI</th><td align=right>551017</td></tr>
+<tr><th>PASA</th><td align=right>16191</td></tr>
+<tr><th>PGM</th><td align=right>48714</td></tr>
+<tr><th>POM</th><td align=right>799469</td></tr>
+<tr><th>RSA</th><td align=right>3021336</td></tr>
+<tr><th>SACT</th><td align=right>9819</td></tr>
+<tr><th>SBBG</th><td align=right>1053487</td></tr>
+<tr><th>SCFS</th><td align=right>9017</td></tr>
+<tr><th>SD</th><td align=right>1819324</td></tr>
+<tr><th>SDSU</th><td align=right>226047</td></tr>
+<tr><th>SEINET</th><td align=right>564047</td></tr>
+<tr><th>SFV</th><td align=right>54380</td></tr>
+<tr><th>SJSU</th><td align=right>57655</td></tr>
+<tr><th>UC</th><td align=right>1987451</td></tr>
+<tr><th>UCD</th><td align=right>671176</td></tr>
+<tr><th>UCR</th><td align=right>1566531</td></tr>
+<tr><th>UCSB</th><td align=right>267662</td></tr>
+<tr><th>UCSC</th><td align=right>98968</td></tr>
+<tr><th>VVC</th><td align=right>17523</td></tr>
+<tr><th>YM</th><td align=right>44983</td></tr>
+</table>Total: 17762102 in 237900 searches</td></tr><tr><td><h3>Records returned in detail displays</h3>
+<table><tr><th>BFRS</th><td align=right> 2</td></tr>
+<tr><th>BLMAR</th><td align=right> 46</td></tr>
+<tr><th>CAS</th><td align=right> 16676</td></tr>
+<tr><th>CATA</th><td align=right> 90</td></tr>
+<tr><th>CDA</th><td align=right> 1575</td></tr>
+<tr><th>CHSC</th><td align=right> 3826</td></tr>
+<tr><th>CLARK</th><td align=right> 266</td></tr>
+<tr><th>CSUSB</th><td align=right> 56</td></tr>
+<tr><th>GMDRC</th><td align=right> 240</td></tr>
+<tr><th>HREC</th><td align=right> 13</td></tr>
+<tr><th>HSC</th><td align=right> 3173</td></tr>
+<tr><th>HUH</th><td align=right> 2152</td></tr>
+<tr><th>IRVC</th><td align=right> 191</td></tr>
+<tr><th>JEPS</th><td align=right> 6735</td></tr>
+<tr><th>JOTR</th><td align=right> 259</td></tr>
+<tr><th>JROH</th><td align=right> 200</td></tr>
+<tr><th>LA</th><td align=right> 882</td></tr>
+<tr><th>MACF</th><td align=right> 22</td></tr>
+<tr><th>NY</th><td align=right> 653</td></tr>
+<tr><th>OBI</th><td align=right> 2518</td></tr>
+<tr><th>PASA</th><td align=right> 62</td></tr>
+<tr><th>PGM</th><td align=right> 503</td></tr>
+<tr><th>POM</th><td align=right> 4343</td></tr>
+<tr><th>RSA</th><td align=right> 15337</td></tr>
+<tr><th>SACT</th><td align=right> 77</td></tr>
+<tr><th>SBBG</th><td align=right> 5041</td></tr>
+<tr><th>SCFS</th><td align=right> 66</td></tr>
+<tr><th>SD</th><td align=right> 7100</td></tr>
+<tr><th>SDSU</th><td align=right> 765</td></tr>
+<tr><th>SEINET</th><td align=right> 3647</td></tr>
+<tr><th>SFV</th><td align=right> 324</td></tr>
+<tr><th>SJSU</th><td align=right> 649</td></tr>
+<tr><th>UC</th><td align=right> 14820</td></tr>
+<tr><th>UCD</th><td align=right> 5294</td></tr>
+<tr><th>UCR</th><td align=right> 6613</td></tr>
+<tr><th>UCSB</th><td align=right> 1727</td></tr>
+<tr><th>UCSC</th><td align=right> 460</td></tr>
+<tr><th>VVC</th><td align=right> 74</td></tr>
+<tr><th>YM</th><td align=right> 300</td></tr>
+</table>Total: 106777</td></tr></table>
+<table border=1 cellpadding=5><tr><td align="center">
+
+<table bgcolor="#dddddd" cellspacing=5 cellpadding=5>
+<tr><td>From:</td><td><tt>Wed Nov 22 08:38:05 2017</tt></td></tr>
+<tr><td>To:</td><td><tt>Wed Jan 24 13:25:53 2018</tt></td></tr>
+</table>
+</td></tr>
+<tr><td><h3>Records returned in general searches</h3>
+<table><tr><th>BFRS</th><td align=right>17</td></tr>
+<tr><th>BLMAR</th><td align=right>2735</td></tr>
+<tr><th>CAS</th><td align=right>16829</td></tr>
+<tr><th>CATA</th><td align=right>56461</td></tr>
+<tr><th>CDA</th><td align=right>215918</td></tr>
+<tr><th>CHSC</th><td align=right>488312</td></tr>
+<tr><th>CLARK</th><td align=right>493</td></tr>
+<tr><th>CSUSB</th><td align=right>23686</td></tr>
+<tr><th>GMDRC</th><td align=right>78912</td></tr>
+<tr><th>HREC</th><td align=right>17</td></tr>
+<tr><th>HSC</th><td align=right>486986</td></tr>
+<tr><th>HUH</th><td align=right>452236</td></tr>
+<tr><th>IRVC</th><td align=right>51613</td></tr>
+<tr><th>JEPS</th><td align=right>975704</td></tr>
+<tr><th>JOTR</th><td align=right>77112</td></tr>
+<tr><th>JROH</th><td align=right>38543</td></tr>
+<tr><th>LA</th><td align=right>169773</td></tr>
+<tr><th>MACF</th><td align=right>2578</td></tr>
+<tr><th>NY</th><td align=right>167286</td></tr>
+<tr><th>OBI</th><td align=right>690619</td></tr>
+<tr><th>PASA</th><td align=right>17991</td></tr>
+<tr><th>PGM</th><td align=right>47598</td></tr>
+<tr><th>POM</th><td align=right>783335</td></tr>
+<tr><th>RSA</th><td align=right>3401432</td></tr>
+<tr><th>SACT</th><td align=right>12363</td></tr>
+<tr><th>SBBG</th><td align=right>1321135</td></tr>
+<tr><th>SCFS</th><td align=right>8805</td></tr>
+<tr><th>SD</th><td align=right>1539358</td></tr>
+<tr><th>SDSU</th><td align=right>188788</td></tr>
+<tr><th>SEINET</th><td align=right>720824</td></tr>
+<tr><th>SFV</th><td align=right>70687</td></tr>
+<tr><th>SJSU</th><td align=right>74447</td></tr>
+<tr><th>UC</th><td align=right>2400095</td></tr>
+<tr><th>UCD</th><td align=right>739328</td></tr>
+<tr><th>UCR</th><td align=right>1768774</td></tr>
+<tr><th>UCSB</th><td align=right>366069</td></tr>
+<tr><th>UCSC</th><td align=right>84838</td></tr>
+<tr><th>VVC</th><td align=right>47178</td></tr>
+<tr><th>YM</th><td align=right>818</td></tr>
+</table>Total: 17589693 in 410309 searches</td></tr><tr><td><h3>Records returned in detail displays</h3>
+<table><tr><th>BFRS</th><td align=right> 17</td></tr>
+<tr><th>BLMAR</th><td align=right> 46</td></tr>
+<tr><th>CAS</th><td align=right> 16829</td></tr>
+<tr><th>CATA</th><td align=right> 245</td></tr>
+<tr><th>CDA</th><td align=right> 2318</td></tr>
+<tr><th>CHSC</th><td align=right> 5891</td></tr>
+<tr><th>CLARK</th><td align=right> 493</td></tr>
+<tr><th>CSUSB</th><td align=right> 75</td></tr>
+<tr><th>GMDRC</th><td align=right> 588</td></tr>
+<tr><th>HREC</th><td align=right> 17</td></tr>
+<tr><th>HSC</th><td align=right> 6414</td></tr>
+<tr><th>HUH</th><td align=right> 6954</td></tr>
+<tr><th>IRVC</th><td align=right> 335</td></tr>
+<tr><th>JEPS</th><td align=right> 10667</td></tr>
+<tr><th>JOTR</th><td align=right> 695</td></tr>
+<tr><th>JROH</th><td align=right> 485</td></tr>
+<tr><th>LA</th><td align=right> 1784</td></tr>
+<tr><th>MACF</th><td align=right> 33</td></tr>
+<tr><th>NY</th><td align=right> 2452</td></tr>
+<tr><th>OBI</th><td align=right> 3782</td></tr>
+<tr><th>PASA</th><td align=right> 115</td></tr>
+<tr><th>PGM</th><td align=right> 506</td></tr>
+<tr><th>POM</th><td align=right> 9272</td></tr>
+<tr><th>RSA</th><td align=right> 39130</td></tr>
+<tr><th>SACT</th><td align=right> 97</td></tr>
+<tr><th>SBBG</th><td align=right> 8949</td></tr>
+<tr><th>SCFS</th><td align=right> 65</td></tr>
+<tr><th>SD</th><td align=right> 10304</td></tr>
+<tr><th>SDSU</th><td align=right> 1365</td></tr>
+<tr><th>SEINET</th><td align=right> 6396</td></tr>
+<tr><th>SFV</th><td align=right> 641</td></tr>
+<tr><th>SJSU</th><td align=right> 902</td></tr>
+<tr><th>UC</th><td align=right> 24021</td></tr>
+<tr><th>UCD</th><td align=right> 9610</td></tr>
+<tr><th>UCR</th><td align=right> 15624</td></tr>
+<tr><th>UCSB</th><td align=right> 3423</td></tr>
+<tr><th>UCSC</th><td align=right> 819</td></tr>
+<tr><th>VVC</th><td align=right> 2052</td></tr>
+<tr><th>YM</th><td align=right> 818</td></tr>
+</table>Total: 194229</td></tr></table>
+
+<table border=1 cellpadding=5><tr><td align="center">
+
+<table bgcolor="#dddddd" cellspacing=5 cellpadding=5>
+<tr><td>From:</td><td><tt>Thu Oct  5 12:51:54 2017</tt></td></tr>
+<tr><td>To:</td><td><tt>Wed Nov 22 08:21:23 2017</tt></td></tr>
+</table>
+</td></tr>
+<tr><td><h3>Records returned in general searches</h3>
+<table><tr><th>BFRS</th><td align=right>7</td></tr>
+<tr><th>BLMAR</th><td align=right>2599</td></tr>
+<tr><th>CAS</th><td align=right>18001</td></tr>
+<tr><th>CATA</th><td align=right>52440</td></tr>
+<tr><th>CD</th><td align=right>1</td></tr>
+<tr><th>CDA</th><td align=right>200800</td></tr>
+<tr><th>CHSC</th><td align=right>511373</td></tr>
+<tr><th>CLARK</th><td align=right>889</td></tr>
+<tr><th>CSUSB</th><td align=right>21500</td></tr>
+<tr><th>GMDRC</th><td align=right>70479</td></tr>
+<tr><th>HREC</th><td align=right>33</td></tr>
+<tr><th>HSC</th><td align=right>391921</td></tr>
+<tr><th>HUH</th><td align=right>451713</td></tr>
+<tr><th>IRVC</th><td align=right>59593</td></tr>
+<tr><th>JEPS</th><td align=right>871492</td></tr>
+<tr><th>JOTR</th><td align=right>49751</td></tr>
+<tr><th>JROH</th><td align=right>42232</td></tr>
+<tr><th>LA</th><td align=right>228045</td></tr>
+<tr><th>MACF</th><td align=right>2313</td></tr>
+<tr><th>NY</th><td align=right>129119</td></tr>
+<tr><th>OBI</th><td align=right>440037</td></tr>
+<tr><th>PASA</th><td align=right>17356</td></tr>
+<tr><th>PGM</th><td align=right>53482</td></tr>
+<tr><th>POM</th><td align=right>802830</td></tr>
+<tr><th>RSA</th><td align=right>3399896</td></tr>
+<tr><th>SACT</th><td align=right>9679</td></tr>
+<tr><th>SBBG</th><td align=right>1229546</td></tr>
+<tr><th>SCFS</th><td align=right>9189</td></tr>
+<tr><th>SD</th><td align=right>1656672</td></tr>
+<tr><th>SDSU</th><td align=right>210981</td></tr>
+<tr><th>SEINET</th><td align=right>761487</td></tr>
+<tr><th>SFV</th><td align=right>73859</td></tr>
+<tr><th>SJSU</th><td align=right>89573</td></tr>
+<tr><th>U</th><td align=right>1</td></tr>
+<tr><th>UC</th><td align=right>2263663</td></tr>
+<tr><th>UCD</th><td align=right>759226</td></tr>
+<tr><th>UCR</th><td align=right>1949045</td></tr>
+<tr><th>UCSB</th><td align=right>294052</td></tr>
+<tr><th>UCSC</th><td align=right>78457</td></tr>
+<tr><th>VVC</th><td align=right>31332</td></tr>
+<tr><th>YM</th><td align=right>1483</td></tr>
+</table>Total: 17236147 in 564667 searches</td></tr><tr><td><h3>Records returned in detail displays</h3>
+<table><tr><th>BFRS</th><td align=right> 7</td></tr>
+<tr><th>BLMAR</th><td align=right> 130</td></tr>
+<tr><th>CAS</th><td align=right> 18001</td></tr>
+<tr><th>CATA</th><td align=right> 225</td></tr>
+<tr><th>CDA</th><td align=right> 4470</td></tr>
+<tr><th>CHSC</th><td align=right> 14152</td></tr>
+<tr><th>CLARK</th><td align=right> 889</td></tr>
+<tr><th>CSUSB</th><td align=right> 182</td></tr>
+<tr><th>GMDRC</th><td align=right> 1054</td></tr>
+<tr><th>HREC</th><td align=right> 33</td></tr>
+<tr><th>HSC</th><td align=right> 12088</td></tr>
+<tr><th>HUH</th><td align=right> 7446</td></tr>
+<tr><th>IRVC</th><td align=right> 639</td></tr>
+<tr><th>JEPS</th><td align=right> 21205</td></tr>
+<tr><th>JOTR</th><td align=right> 919</td></tr>
+<tr><th>JROH</th><td align=right> 733</td></tr>
+<tr><th>LA</th><td align=right> 2706</td></tr>
+<tr><th>MACF</th><td align=right> 66</td></tr>
+<tr><th>NY</th><td align=right> 2474</td></tr>
+<tr><th>OBI</th><td align=right> 6560</td></tr>
+<tr><th>PASA</th><td align=right> 197</td></tr>
+<tr><th>PGM</th><td align=right> 1250</td></tr>
+<tr><th>POM</th><td align=right> 12014</td></tr>
+<tr><th>RSA</th><td align=right> 50911</td></tr>
+<tr><th>SACT</th><td align=right> 311</td></tr>
+<tr><th>SBBG</th><td align=right> 15985</td></tr>
+<tr><th>SCFS</th><td align=right> 146</td></tr>
+<tr><th>SD</th><td align=right> 18751</td></tr>
+<tr><th>SDSU</th><td align=right> 2782</td></tr>
+<tr><th>SEINET</th><td align=right> 8817</td></tr>
+<tr><th>SFV</th><td align=right> 1090</td></tr>
+<tr><th>SJSU</th><td align=right> 1902</td></tr>
+<tr><th>UC</th><td align=right> 45798</td></tr>
+<tr><th>UCD</th><td align=right> 17534</td></tr>
+<tr><th>UCR</th><td align=right> 26243</td></tr>
+<tr><th>UCSB</th><td align=right> 5397</td></tr>
+<tr><th>UCSC</th><td align=right> 1685</td></tr>
+<tr><th>VVC</th><td align=right> 675</td></tr>
+<tr><th>YM</th><td align=right> 1483</td></tr>
+</table>Total: 306950</td></tr></table>
+
+<table border=1 cellpadding=5><tr><td align="center">
+
+<table bgcolor="#dddddd" cellspacing=5 cellpadding=5>
+<tr><td>From:</td><td><tt>Mon Aug 21 14:35:35 2017</tt></td></tr>
+<tr><td>To:</td><td><tt>Thu Oct  5 12:07:33 2017</tt></td></tr>
+</table>
+</td></tr>
+<tr><td><h3>Records returned in general searches</h3>
+<table><tr><th>BFRS</th><td align=right>1660</td></tr>
+<tr><th>BLMAR</th><td align=right>4022</td></tr>
+<tr><th>CAS</th><td align=right>1932417</td></tr>
+<tr><th>CATA</th><td align=right>25190</td></tr>
+<tr><th>CDA</th><td align=right>223085</td></tr>
+<tr><th>CHSC</th><td align=right>585420</td></tr>
+<tr><th>CLARK</th><td align=right>51076</td></tr>
+<tr><th>CSUSB</th><td align=right>15131</td></tr>
+<tr><th>GMDRC</th><td align=right>77203</td></tr>
+<tr><th>HREC</th><td align=right>6876</td></tr>
+<tr><th>HSC</th><td align=right>605469</td></tr>
+<tr><th>HUH</th><td align=right>432498</td></tr>
+<tr><th>IRVC</th><td align=right>43666</td></tr>
+<tr><th>JEPS</th><td align=right>1027243</td></tr>
+<tr><th>JOTR</th><td align=right>37206</td></tr>
+<tr><th>JROH</th><td align=right>46515</td></tr>
+<tr><th>LA</th><td align=right>164561</td></tr>
+<tr><th>MACF</th><td align=right>1890</td></tr>
+<tr><th>NY</th><td align=right>149791</td></tr>
+<tr><th>OBI</th><td align=right>496624</td></tr>
+<tr><th>PASA</th><td align=right>13725</td></tr>
+<tr><th>PGM</th><td align=right>48304</td></tr>
+<tr><th>POM</th><td align=right>766255</td></tr>
+<tr><th>RSA</th><td align=right>3065258</td></tr>
+<tr><th>SACT</th><td align=right>16504</td></tr>
+<tr><th>SBBG</th><td align=right>960726</td></tr>
+<tr><th>SCFS</th><td align=right>10279</td></tr>
+<tr><th>SD</th><td align=right>1298664</td></tr>
+<tr><th>SDSU</th><td align=right>157545</td></tr>
+<tr><th>SEINET</th><td align=right>847731</td></tr>
+<tr><th>SFV</th><td align=right>69866</td></tr>
+<tr><th>SJSU</th><td align=right>99244</td></tr>
+<tr><th>UC</th><td align=right>2401940</td></tr>
+<tr><th>UCD</th><td align=right>829302</td></tr>
+<tr><th>UCR</th><td align=right>1581180</td></tr>
+<tr><th>UCSB</th><td align=right>298949</td></tr>
+<tr><th>UCSC</th><td align=right>59891</td></tr>
+<tr><th>VVC</th><td align=right>23655</td></tr>
+<tr><th>YM</th><td align=right>75143</td></tr>
+</table>Total: 18551704 in 662995 searches</td></tr><tr><td><h3>Records returned in detail displays</h3>
+<table><tr><th>BFRS</th><td align=right> 13</td></tr>
+<tr><th>BLMAR</th><td align=right> 160</td></tr>
+<tr><th>CAS</th><td align=right> 13674</td></tr>
+<tr><th>CATA</th><td align=right> 279</td></tr>
+<tr><th>CDA</th><td align=right> 5844</td></tr>
+<tr><th>CHSC</th><td align=right> 17278</td></tr>
+<tr><th>CLARK</th><td align=right> 1100</td></tr>
+<tr><th>CSUSB</th><td align=right> 234</td></tr>
+<tr><th>GMDRC</th><td align=right> 1416</td></tr>
+<tr><th>HREC</th><td align=right> 16</td></tr>
+<tr><th>HSC</th><td align=right> 15028</td></tr>
+<tr><th>HUH</th><td align=right> 7815</td></tr>
+<tr><th>IRVC</th><td align=right> 809</td></tr>
+<tr><th>JEPS</th><td align=right> 26326</td></tr>
+<tr><th>JOTR</th><td align=right> 991</td></tr>
+<tr><th>JROH</th><td align=right> 518</td></tr>
+<tr><th>LA</th><td align=right> 2893</td></tr>
+<tr><th>MACF</th><td align=right> 62</td></tr>
+<tr><th>NY</th><td align=right> 2862</td></tr>
+<tr><th>OBI</th><td align=right> 7052</td></tr>
+<tr><th>PASA</th><td align=right> 231</td></tr>
+<tr><th>PGM</th><td align=right> 1230</td></tr>
+<tr><th>POM</th><td align=right> 14710</td></tr>
+<tr><th>RSA</th><td align=right> 61056</td></tr>
+<tr><th>SACT</th><td align=right> 344</td></tr>
+<tr><th>SBBG</th><td align=right> 17613</td></tr>
+<tr><th>SCFS</th><td align=right> 170</td></tr>
+<tr><th>SD</th><td align=right> 20266</td></tr>
+<tr><th>SDSU</th><td align=right> 2877</td></tr>
+<tr><th>SEINET</th><td align=right> 9351</td></tr>
+<tr><th>SFV</th><td align=right> 1410</td></tr>
+<tr><th>SJSU</th><td align=right> 2124</td></tr>
+<tr><th>UC</th><td align=right> 54616</td></tr>
+<tr><th>UCD</th><td align=right> 20861</td></tr>
+<tr><th>UCR</th><td align=right> 32229</td></tr>
+<tr><th>UCSB</th><td align=right> 5611</td></tr>
+<tr><th>UCSC</th><td align=right> 1503</td></tr>
+<tr><th>VVC</th><td align=right> 477</td></tr>
+<tr><th>YM</th><td align=right> 1691</td></tr>
+</table>Total: 352740</td></tr></table>
+
+<table border=1 cellpadding=5><tr><td align="center">
+
+<table bgcolor="#dddddd" cellspacing=5 cellpadding=5>
+<tr><td>From:</td><td><tt>Tue Jul 11 11:05:39 2017</tt></td></tr>
+<tr><td>To:</td><td><tt>Mon Aug 21 14:31:48 2017</tt></td></tr>
+</table>
+</td></tr>
+<tr><td><h3>Records returned in general searches</h3>
+<table><tr><th>BFRS</th><td align=right>172</td></tr>
+<tr><th>BLMAR</th><td align=right>2164</td></tr>
+<tr><th>CAS</th><td align=right>1153146</td></tr>
+<tr><th>CATA</th><td align=right>26950</td></tr>
+<tr><th>CDA</th><td align=right>164712</td></tr>
+<tr><th>CHSC</th><td align=right>337358</td></tr>
+<tr><th>CLARK</th><td align=right>1</td></tr>
+<tr><th>CSUSB</th><td align=right>11476</td></tr>
+<tr><th>GMDRC</th><td align=right>27298</td></tr>
+<tr><th>HREC</th><td align=right>468</td></tr>
+<tr><th>HSC</th><td align=right>335179</td></tr>
+<tr><th>HUH</th><td align=right>309318</td></tr>
+<tr><th>IRVC</th><td align=right>35443</td></tr>
+<tr><th>JEPS</th><td align=right>616980</td></tr>
+<tr><th>JOTR</th><td align=right>29089</td></tr>
+<tr><th>JROH</th><td align=right>35749</td></tr>
+<tr><th>LA</th><td align=right>130394</td></tr>
+<tr><th>MACF</th><td align=right>1308</td></tr>
+<tr><th>NY</th><td align=right>93697</td></tr>
+<tr><th>OBI</th><td align=right>263046</td></tr>
+<tr><th>PASA</th><td align=right>9460</td></tr>
+<tr><th>PGM</th><td align=right>31751</td></tr>
+<tr><th>POM</th><td align=right>579915</td></tr>
+<tr><th>RSA</th><td align=right>2260422</td></tr>
+<tr><th>SACT</th><td align=right>9318</td></tr>
+<tr><th>SBBG</th><td align=right>782626</td></tr>
+<tr><th>SCFS</th><td align=right>3765</td></tr>
+<tr><th>SD</th><td align=right>1314848</td></tr>
+<tr><th>SDSU</th><td align=right>143113</td></tr>
+<tr><th>SEINET</th><td align=right>352266</td></tr>
+<tr><th>SFV</th><td align=right>42672</td></tr>
+<tr><th>SJSU</th><td align=right>49368</td></tr>
+<tr><th>UC</th><td align=right>1609599</td></tr>
+<tr><th>UCD</th><td align=right>508029</td></tr>
+<tr><th>UCR</th><td align=right>1244129</td></tr>
+<tr><th>UCSB</th><td align=right>215149</td></tr>
+<tr><th>UCSC</th><td align=right>43924</td></tr>
+<tr><th>VVC</th><td align=right>11805</td></tr>
+<tr><th>YM</th><td align=right>1557</td></tr>
+</table>Total: 12787666 in 682677 searches</td></tr><tr><td><h3>Records returned in detail displays</h3>
+<table><tr><th>BLMAR</th><td align=right> 120</td></tr>
+<tr><th>CAS</th><td align=right> 54593</td></tr>
+<tr><th>CATA</th><td align=right> 415</td></tr>
+<tr><th>CDA</th><td align=right> 5592</td></tr>
+<tr><th>CHSC</th><td align=right> 14976</td></tr>
+<tr><th>CLARK</th><td align=right> 1</td></tr>
+<tr><th>CSUSB</th><td align=right> 221</td></tr>
+<tr><th>GMDRC</th><td align=right> 1068</td></tr>
+<tr><th>HSC</th><td align=right> 13840</td></tr>
+<tr><th>HUH</th><td align=right> 8140</td></tr>
+<tr><th>IRVC</th><td align=right> 693</td></tr>
+<tr><th>JEPS</th><td align=right> 23384</td></tr>
+<tr><th>JOTR</th><td align=right> 862</td></tr>
+<tr><th>JROH</th><td align=right> 658</td></tr>
+<tr><th>LA</th><td align=right> 3543</td></tr>
+<tr><th>MACF</th><td align=right> 68</td></tr>
+<tr><th>NY</th><td align=right> 2780</td></tr>
+<tr><th>OBI</th><td align=right> 9303</td></tr>
+<tr><th>PASA</th><td align=right> 261</td></tr>
+<tr><th>PGM</th><td align=right> 1177</td></tr>
+<tr><th>POM</th><td align=right> 15471</td></tr>
+<tr><th>RSA</th><td align=right> 64841</td></tr>
+<tr><th>SACT</th><td align=right> 321</td></tr>
+<tr><th>SBBG</th><td align=right> 21052</td></tr>
+<tr><th>SCFS</th><td align=right> 153</td></tr>
+<tr><th>SD</th><td align=right> 27163</td></tr>
+<tr><th>SDSU</th><td align=right> 3171</td></tr>
+<tr><th>SEINET</th><td align=right> 7123</td></tr>
+<tr><th>SFV</th><td align=right> 1452</td></tr>
+<tr><th>SJSU</th><td align=right> 2149</td></tr>
+<tr><th>UC</th><td align=right> 54872</td></tr>
+<tr><th>UCD</th><td align=right> 18697</td></tr>
+<tr><th>UCR</th><td align=right> 32129</td></tr>
+<tr><th>UCSB</th><td align=right> 5948</td></tr>
+<tr><th>UCSC</th><td align=right> 1484</td></tr>
+<tr><th>VVC</th><td align=right> 407</td></tr>
+<tr><th>YM</th><td align=right> 1557</td></tr>
+</table>Total: 399685</td></tr></table>
+
+<table border=1 cellpadding=5><tr><td align="center">
+
+<table bgcolor="#dddddd" cellspacing=5 cellpadding=5>
+<tr><td>From:</td><td><tt>Wed May  3 05:05:03 2017</tt></td></tr>
+<tr><td>To:</td><td><tt>Tue Jul 11 11:05:39 2017</tt></td></tr>
+</table>
+</td></tr>
+<tr><td><h3>Records returned in general searches</h3>
+<table><tr><th>BLMAR</th><td align=right>3193</td></tr>
+<tr><th>CAS</th><td align=right>2612697</td></tr>
+<tr><th>CATA</th><td align=right>29436</td></tr>
+<tr><th>CDA</th><td align=right>213788</td></tr>
+<tr><th>CHSC</th><td align=right>561193</td></tr>
+<tr><th>CSUSB</th><td align=right>13993</td></tr>
+<tr><th>GMDRC</th><td align=right>61808</td></tr>
+<tr><th>HSC</th><td align=right>558256</td></tr>
+<tr><th>HUH</th><td align=right>410082</td></tr>
+<tr><th>IRVC</th><td align=right>40543</td></tr>
+<tr><th>JEPS</th><td align=right>906421</td></tr>
+<tr><th>JOTR</th><td align=right>34122</td></tr>
+<tr><th>JROH</th><td align=right>60367</td></tr>
+<tr><th>LA</th><td align=right>158998</td></tr>
+<tr><th>MACF</th><td align=right>2160</td></tr>
+<tr><th>NY</th><td align=right>135815</td></tr>
+<tr><th>OBI</th><td align=right>355932</td></tr>
+<tr><th>PASA</th><td align=right>16132</td></tr>
+<tr><th>PGM</th><td align=right>55084</td></tr>
+<tr><th>POM</th><td align=right>773536</td></tr>
+<tr><th>RSA</th><td align=right>3236784</td></tr>
+<tr><th>SACT</th><td align=right>12436</td></tr>
+<tr><th>SBBG</th><td align=right>1016382</td></tr>
+<tr><th>SDSU</th><td align=right>130537</td></tr>
+<tr><th>SCFS</th><td align=right>6907</td></tr>
+<tr><th>SD</th><td align=right>1096885</td></tr>
+<tr><th>SEINET</th><td align=right>304572</td></tr>
+<tr><th>SFV</th><td align=right>69484</td></tr>
+<tr><th>SJSU</th><td align=right>86187</td></tr>
+<tr><th>UC</th><td align=right>2325853</td></tr>
+<tr><th>UCD</th><td align=right>711095</td></tr>
+<tr><th>UCR</th><td align=right>1739119</td></tr>
+<tr><th>UCSB</th><td align=right>291799</td></tr>
+<tr><th>UCSC</th><td align=right>46617</td></tr>
+<tr><th>VVC</th><td align=right>28896</td></tr>
+<tr><th>YM</th><td align=right>2936</td></tr>
+</table>Total: 18110070 in 891555 searches</td></tr><tr><td><h3>Records returned in detail displays</h3>
+<table><tr><th>BLMAR</th><td align=right> 188</td></tr>
+<tr><th>CAS</th><td align=right> 80335</td></tr>
+<tr><th>CATA</th><td align=right> 391</td></tr>
+<tr><th>CDA</th><td align=right> 6894</td></tr>
+<tr><th>CHSC</th><td align=right> 23086</td></tr>
+<tr><th>CSUSB</th><td align=right> 298</td></tr>
+<tr><th>GMDRC</th><td align=right> 1662</td></tr>
+<tr><th>HSC</th><td align=right> 20912</td></tr>
+<tr><th>HUH</th><td align=right> 11260</td></tr>
+<tr><th>IRVC</th><td align=right> 1044</td></tr>
+<tr><th>JEPS</th><td align=right> 31903</td></tr>
+<tr><th>JOTR</th><td align=right> 1213</td></tr>
+<tr><th>JROH</th><td align=right> 849</td></tr>
+<tr><th>LA</th><td align=right> 4187</td></tr>
+<tr><th>MACF</th><td align=right> 87</td></tr>
+<tr><th>NY</th><td align=right> 4164</td></tr>
+<tr><th>OBI</th><td align=right> 9653</td></tr>
+<tr><th>PASA</th><td align=right> 347</td></tr>
+<tr><th>PGM</th><td align=right> 1603</td></tr>
+<tr><th>POM</th><td align=right> 19594</td></tr>
+<tr><th>RSA</th><td align=right> 80374</td></tr>
+<tr><th>SACT</th><td align=right> 476</td></tr>
+<tr><th>SBBG</th><td align=right> 23586</td></tr>
+<tr><th>SDSU</th><td align=right> 3557</td></tr>
+<tr><th>SCFS</th><td align=right> 225</td></tr>
+<tr><th>SD</th><td align=right> 28506</td></tr>
+<tr><th>SEINET</th><td align=right> 8057</td></tr>
+<tr><th>SFV</th><td align=right> 1894</td></tr>
+<tr><th>SJSU</th><td align=right> 2609</td></tr>
+<tr><th>UC</th><td align=right> 72234</td></tr>
+<tr><th>UCD</th><td align=right> 28191</td></tr>
+<tr><th>UCR</th><td align=right> 45976</td></tr>
+<tr><th>UCSB</th><td align=right> 9016</td></tr>
+<tr><th>UCSC</th><td align=right> 1999</td></tr>
+<tr><th>VVC</th><td align=right> 705</td></tr>
+<tr><th>YM</th><td align=right> 2936</td></tr>
+</table>Total: 530011</td></tr></table>
+
+<table border=1 cellpadding=5><tr><td align="center">
+
+<table bgcolor="#dddddd" cellspacing=5 cellpadding=5>
+<tr><td>From:</td><td><tt>Mon Feb  6 12:21:41 2017</tt></td></tr>
+<tr><td>To:</td><td><tt>Wed May  3 05:05:03 2017</tt></td></tr>
+</table>
+</td></tr>
+<tr><td><h3>Records returned in general searches</h3>
+<table><tr><th>BLMAR</th><td align=right>4961</td></tr>
+<tr><th>CAS</th><td align=right>2799037</td></tr>
+<tr><th>CATA</th><td align=right>20662</td></tr>
+<tr><th>CDA</th><td align=right>224439</td></tr>
+<tr><th>CHSC</th><td align=right>544267</td></tr>
+<tr><th>CSUSB</th><td align=right>20637</td></tr>
+<tr><th>GMDRC</th><td align=right>70756</td></tr>
+<tr><th>HSC</th><td align=right>506879</td></tr>
+<tr><th>HUH</th><td align=right>428022</td></tr>
+<tr><th>IRVC</th><td align=right>56015</td></tr>
+<tr><th>JEPS</th><td align=right>947017</td></tr>
+<tr><th>JOTR</th><td align=right>57003</td></tr>
+<tr><th>JROH</th><td align=right>46145</td></tr>
+<tr><th>LA</th><td align=right>171548</td></tr>
+<tr><th>MACF</th><td align=right>1643</td></tr>
+<tr><th>NY</th><td align=right>135988</td></tr>
+<tr><th>OBI</th><td align=right>394392</td></tr>
+<tr><th>PASA</th><td align=right>21756</td></tr>
+<tr><th>PGM</th><td align=right>69454</td></tr>
+<tr><th>POM</th><td align=right>792900</td></tr>
+<tr><th>RSA</th><td align=right>3300774</td></tr>
+<tr><th>SACT</th><td align=right>10800</td></tr>
+<tr><th>SBBG</th><td align=right>995287</td></tr>
+<tr><th>SDSU</th><td align=right>160833</td></tr>
+<tr><th>SCFS</th><td align=right>5802</td></tr>
+<tr><th>SD</th><td align=right>1340391</td></tr>
+<tr><th>SEINET</th><td align=right>319635</td></tr>
+<tr><th>SFV</th><td align=right>66997</td></tr>
+<tr><th>SJSU</th><td align=right>77255</td></tr>
+<tr><th>UC</th><td align=right>2321338</td></tr>
+<tr><th>UCD</th><td align=right>702101</td></tr>
+<tr><th>UCR</th><td align=right>1754365</td></tr>
+<tr><th>UCSB</th><td align=right>333477</td></tr>
+<tr><th>UCSC</th><td align=right>53661</td></tr>
+<tr><th>VVC</th><td align=right>25422</td></tr>
+<tr><th>YM</th><td align=right>187</td></tr>
+</table>Total: 18781851 in 218166 searches</td></tr><tr><td><h3>Records returned in detail displays</h3>
+<table><tr><th>BLMAR</th><td align=right> 28</td></tr>
+<tr><th>CAS</th><td align=right> 13060</td></tr>
+<tr><th>CATA</th><td align=right> 81</td></tr>
+<tr><th>CDA</th><td align=right> 1194</td></tr>
+<tr><th>CHSC</th><td align=right> 2782</td></tr>
+<tr><th>CSUSB</th><td align=right> 67</td></tr>
+<tr><th>GMDRC</th><td align=right> 461</td></tr>
+<tr><th>HSC</th><td align=right> 2435</td></tr>
+<tr><th>HUH</th><td align=right> 2814</td></tr>
+<tr><th>IRVC</th><td align=right> 207</td></tr>
+<tr><th>JEPS</th><td align=right> 4684</td></tr>
+<tr><th>JOTR</th><td align=right> 231</td></tr>
+<tr><th>JROH</th><td align=right> 108</td></tr>
+<tr><th>LA</th><td align=right> 1029</td></tr>
+<tr><th>MACF</th><td align=right> 9</td></tr>
+<tr><th>NY</th><td align=right> 1760</td></tr>
+<tr><th>OBI</th><td align=right> 2114</td></tr>
+<tr><th>PASA</th><td align=right> 70</td></tr>
+<tr><th>PGM</th><td align=right> 318</td></tr>
+<tr><th>POM</th><td align=right> 2796</td></tr>
+<tr><th>RSA</th><td align=right> 15368</td></tr>
+<tr><th>SACT</th><td align=right> 28</td></tr>
+<tr><th>SBBG</th><td align=right> 4172</td></tr>
+<tr><th>SCASU</th><td align=right> 799</td></tr>
+<tr><th>SCFS</th><td align=right> 4</td></tr>
+<tr><th>SD</th><td align=right> 5561</td></tr>
+<tr><th>SEINET</th><td align=right> 1655</td></tr>
+<tr><th>SFV</th><td align=right> 284</td></tr>
+<tr><th>SJSU</th><td align=right> 326</td></tr>
+<tr><th>UC</th><td align=right> 11419</td></tr>
+<tr><th>UCD</th><td align=right> 3139</td></tr>
+<tr><th>UCR</th><td align=right> 8352</td></tr>
+<tr><th>UCSB</th><td align=right> 1429</td></tr>
+<tr><th>UCSC</th><td align=right> 315</td></tr>
+<tr><th>VVC</th><td align=right> 111</td></tr>
+<tr><th>YM</th><td align=right> 187</td></tr>
+</table>Total: 89397</td></tr></table>
 
 <table border=1 cellpadding=5><tr><td align="center">
 
@@ -247,61 +953,42 @@ __END__
 </table>
 </td></tr>
 <tr><td><h3>Records returned in general searches</h3>
-<table><tr><th>B</th><td align=right>1</td></tr>
+<table>
 <tr><th>BLMAR</th><td align=right>3898</td></tr>
-<tr><th>C</th><td align=right>3</td></tr>
-<tr><th>CA</th><td align=right>1</td></tr>
 <tr><th>CAS</th><td align=right>1789594</td></tr>
-<tr><th>CAT</th><td align=right>1</td></tr>
 <tr><th>CATA</th><td align=right>16431</td></tr>
-<tr><th>CD</th><td align=right>2</td></tr>
 <tr><th>CDA</th><td align=right>189811</td></tr>
-<tr><th>CHS</th><td align=right>1</td></tr>
 <tr><th>CHSC</th><td align=right>503925</td></tr>
 <tr><th>CSUSB</th><td align=right>14919</td></tr>
 <tr><th>DS</th><td align=right>1075193</td></tr>
-<tr><th>GMD</th><td align=right>4</td></tr>
 <tr><th>GMDRC</th><td align=right>57675</td></tr>
 <tr><th>HSC</th><td align=right>516025</td></tr>
 <tr><th>HUH</th><td align=right>380036</td></tr>
 <tr><th>IRVC</th><td align=right>42608</td></tr>
-<tr><th>J</th><td align=right>3</td></tr>
-<tr><th>JEP</th><td align=right>2</td></tr>
 <tr><th>JEPS</th><td align=right>936753</td></tr>
 <tr><th>JOTR</th><td align=right>53340</td></tr>
 <tr><th>JROH</th><td align=right>58137</td></tr>
 <tr><th>LA</th><td align=right>159902</td></tr>
-<tr><th>M</th><td align=right>1</td></tr>
 <tr><th>MACF</th><td align=right>2591</td></tr>
 <tr><th>NY</th><td align=right>134882</td></tr>
 <tr><th>OBI</th><td align=right>331123</td></tr>
 <tr><th>PASA</th><td align=right>18927</td></tr>
 <tr><th>PGM</th><td align=right>58681</td></tr>
-<tr><th>PO</th><td align=right>1</td></tr>
 <tr><th>POM</th><td align=right>924578</td></tr>
-<tr><th>R</th><td align=right>5</td></tr>
-<tr><th>ROH</th><td align=right>2</td></tr>
-<tr><th>RS</th><td align=right>2</td></tr>
 <tr><th>RSA</th><td align=right>3805049</td></tr>
-<tr><th>S</th><td align=right>3</td></tr>
 <tr><th>SACT</th><td align=right>6994</td></tr>
 <tr><th>SBBG</th><td align=right>946020</td></tr>
-<tr><th>SBBGR</th><td align=right>1</td></tr>
 <tr><th>SCFS</th><td align=right>6290</td></tr>
 <tr><th>SD</th><td align=right>929078</td></tr>
 <tr><th>SDSU</th><td align=right>125138</td></tr>
-<tr><th>SEINE</th><td align=right>1</td></tr>
 <tr><th>SEINET</th><td align=right>315300</td></tr>
 <tr><th>SFV</th><td align=right>65275</td></tr>
 <tr><th>SJSU</th><td align=right>81256</td></tr>
-<tr><th>U</th><td align=right>3</td></tr>
 <tr><th>UC</th><td align=right>2383824</td></tr>
 <tr><th>UCD</th><td align=right>637138</td></tr>
 <tr><th>UCR</th><td align=right>1764703</td></tr>
-<tr><th>UCRR</th><td align=right>1</td></tr>
 <tr><th>UCSB</th><td align=right>312616</td></tr>
 <tr><th>UCSC</th><td align=right>43908</td></tr>
-<tr><th>US</th><td align=right>1</td></tr>
 <tr><th>VVC</th><td align=right>36645</td></tr>
 <tr><th>YM</th><td align=right>2088</td></tr>
 </table>Total: 18730390 in 1269648 searches</td></tr><tr><td><h3>Records returned in detail displays</h3>
@@ -358,13 +1045,11 @@ __END__
 <tr><th>CDA</th><td align=right>168655</td></tr>
 <tr><th>CHSC</th><td align=right>392165</td></tr>
 <tr><th>CSUSB</th><td align=right>35432</td></tr>
-<tr><th>D</th><td align=right>1</td></tr>
 <tr><th>DS</th><td align=right>898973</td></tr>
 <tr><th>GMDRC</th><td align=right>75446</td></tr>
 <tr><th>HSC</th><td align=right>314747</td></tr>
 <tr><th>HUH</th><td align=right>393169</td></tr>
 <tr><th>IRVC</th><td align=right>63943</td></tr>
-<tr><th>JEGM</th><td align=right>1</td></tr>
 <tr><th>JEPS</th><td align=right>749974</td></tr>
 <tr><th>JOTR</th><td align=right>46466</td></tr>
 <tr><th>JROH</th><td align=right>23192</td></tr>
@@ -375,7 +1060,6 @@ __END__
 <tr><th>PASA</th><td align=right>28697</td></tr>
 <tr><th>PGM</th><td align=right>28646</td></tr>
 <tr><th>POM</th><td align=right>1102802</td></tr>
-<tr><th>PS</th><td align=right>1</td></tr>
 <tr><th>RSA</th><td align=right>5100957</td></tr>
 <tr><th>SACT</th><td align=right>11990</td></tr>
 <tr><th>SBBG</th><td align=right>758777</td></tr>
@@ -385,7 +1069,6 @@ __END__
 <tr><th>SEINET</th><td align=right>339120</td></tr>
 <tr><th>SFV</th><td align=right>65149</td></tr>
 <tr><th>SJSU</th><td align=right>51887</td></tr>
-<tr><th>U</th><td align=right>1</td></tr>
 <tr><th>UC</th><td align=right>2040591</td></tr>
 <tr><th>UCD</th><td align=right>509950</td></tr>
 <tr><th>UCR</th><td align=right>2743947</td></tr>
@@ -442,9 +1125,7 @@ __END__
 </table>
 </td></tr>
 <tr><td><h3>Records returned in general searches</h3>
-<table><tr><th>BG</th><td align=right>3</td></tr>
-<tr><th>BLMAR</th><td align=right>2590</td></tr>
-<tr><th>C</th><td align=right>1</td></tr>
+<table><tr><th>BLMAR</th><td align=right>2590</td></tr>
 <tr><th>CAS</th><td align=right>1686348</td></tr>
 <tr><th>CATA</th><td align=right>30612</td></tr>
 <tr><th>CDA</th><td align=right>215825</td></tr>
@@ -454,25 +1135,19 @@ __END__
 <tr><th>GMDRC</th><td align=right>68491</td></tr>
 <tr><th>HSC</th><td align=right>421353</td></tr>
 <tr><th>HUH</th><td align=right>465185</td></tr>
-<tr><th>HUHS</th><td align=right>1</td></tr>
 <tr><th>IRVC</th><td align=right>65836</td></tr>
 <tr><th>JEPS</th><td align=right>939272</td></tr>
-<tr><th>JEPSUCD</th><td align=right>1</td></tr>
 <tr><th>JOTR</th><td align=right>33228</td></tr>
 <tr><th>JROH</th><td align=right>29210</td></tr>
 <tr><th>LA</th><td align=right>203300</td></tr>
 <tr><th>MACF</th><td align=right>2488</td></tr>
 <tr><th>NY</th><td align=right>245963</td></tr>
 <tr><th>OBI</th><td align=right>424030</td></tr>
-<tr><th>P</th><td align=right>1</td></tr>
 <tr><th>PASA</th><td align=right>30619</td></tr>
 <tr><th>PGM</th><td align=right>39147</td></tr>
 <tr><th>POM</th><td align=right>787890</td></tr>
-<tr><th>RS</th><td align=right>1</td></tr>
 <tr><th>RSA</th><td align=right>3636707</td></tr>
-<tr><th>S</th><td align=right>1</td></tr>
 <tr><th>SACT</th><td align=right>12134</td></tr>
-<tr><th>SB</th><td align=right>3</td></tr>
 <tr><th>SBBG</th><td align=right>1051824</td></tr>
 <tr><th>SCFS</th><td align=right>7057</td></tr>
 <tr><th>SD</th><td align=right>1360180</td></tr>
@@ -543,31 +1218,22 @@ __END__
 <tr><th>CDA</th><td align=right>176978</td></tr>
 <tr><th>CHSC</th><td align=right>626137</td></tr>
 <tr><th>CSUSB</th><td align=right>23111</td></tr>
-<tr><th>D</th><td align=right>1</td></tr>
 <tr><th>DS</th><td align=right>1048521</td></tr>
 <tr><th>GMDRC</th><td align=right>83463</td></tr>
 <tr><th>HSC</th><td align=right>526614</td></tr>
 <tr><th>HUH</th><td align=right>493834</td></tr>
 <tr><th>IRVC</th><td align=right>56563</td></tr>
 <tr><th>JEPS</th><td align=right>1002853</td></tr>
-<tr><th>JEPSJEPS</th><td align=right>2</td></tr>
 <tr><th>JOTR</th><td align=right>34796</td></tr>
 <tr><th>JROH</th><td align=right>68572</td></tr>
 <tr><th>LA</th><td align=right>198109</td></tr>
 <tr><th>MACF</th><td align=right>2798</td></tr>
 <tr><th>NY</th><td align=right>106809</td></tr>
 <tr><th>OBI</th><td align=right>412922</td></tr>
-<tr><th>P</th><td align=right>1</td></tr>
 <tr><th>PASA</th><td align=right>18548</td></tr>
 <tr><th>PGM</th><td align=right>47526</td></tr>
 <tr><th>POM</th><td align=right>871868</td></tr>
-<tr><th>PSBBG</th><td align=right>1</td></tr>
-<tr><th>R</th><td align=right>1</td></tr>
-<tr><th>RR</th><td align=right>1</td></tr>
-<tr><th>RS</th><td align=right>2</td></tr>
 <tr><th>RSA</th><td align=right>3513272</td></tr>
-<tr><th>RSASBBG</th><td align=right>1</td></tr>
-<tr><th>S</th><td align=right>1</td></tr>
 <tr><th>SACT</th><td align=right>15371</td></tr>
 <tr><th>SBBG</th><td align=right>1136060</td></tr>
 <tr><th>SCFS</th><td align=right>11388</td></tr>
@@ -1095,7 +1761,6 @@ __END__
 <tr><th>SEINET</th><td align=right>256839</td></tr>
 <tr><th>SFV</th><td align=right>81649</td></tr>
 <tr><th>SJSU</th><td align=right>65760</td></tr>
-<tr><th>U</th><td align=right>2</td></tr>
 <tr><th>UC</th><td align=right>2479862</td></tr>
 <tr><th>UCD</th><td align=right>684104</td></tr>
 <tr><th>UCR</th><td align=right>1690856</td></tr>
@@ -1694,7 +2359,6 @@ __END__
 <tr><th>SEINET</th><td align=right>313253</td></tr>
 <tr><th>SFV</th><td align=right>55445</td></tr>
 <tr><th>SJSU</th><td align=right>46081</td></tr>
-<tr><th>U</th><td align=right>4</td></tr>
 <tr><th>UC</th><td align=right>2169604</td></tr>
 <tr><th>UCD</th><td align=right>514842</td></tr>
 <tr><th>UCR</th><td align=right>2075537</td></tr>
@@ -1827,8 +2491,6 @@ __END__
 <tr><th>YM</th><td align=right> 559</td></tr>
 </table>Total: 110212</td></tr></table>
 
-
-
 <table border=1 cellpadding=5><tr><td align="center">
 
 <table bgcolor="#dddddd" cellspacing=5 cellpadding=5>
@@ -1859,7 +2521,6 @@ __END__
 <tr><th>PGM</th><td align=right>53122</td></tr>
 <tr><th>POM</th><td align=right>972363</td></tr>
 <tr><th>RSA</th><td align=right>3850055</td></tr>
-<tr><th>S</th><td align=right>2</td></tr>
 <tr><th>SACT</th><td align=right>17972</td></tr>
 <tr><th>SBBG</th><td align=right>1563198</td></tr>
 <tr><th>SCFS</th><td align=right>8560</td></tr>
@@ -1944,7 +2605,6 @@ __END__
 <tr><th>PASA</th><td align=right>26323</td></tr>
 <tr><th>PGM</th><td align=right>85467</td></tr>
 <tr><th>POM</th><td align=right>1008168</td></tr>
-<tr><th>R</th><td align=right>4</td></tr>
 <tr><th>RS</th><td align=right>2</td></tr>
 <tr><th>RSA</th><td align=right>4266685</td></tr>
 <tr><th>SACT</th><td align=right>23011</td></tr>
@@ -2019,7 +2679,6 @@ __END__
 <tr><th>HSC</th><td align=right>203296</td></tr>
 <tr><th>HUH</th><td align=right>238708</td></tr>
 <tr><th>IRVC</th><td align=right>36051</td></tr>
-<tr><th>J</th><td align=right>2</td></tr>
 <tr><th>JEPS</th><td align=right>429040</td></tr>
 <tr><th>JOTR</th><td align=right>20375</td></tr>
 <tr><th>JROH</th><td align=right>19838</td></tr>
@@ -2090,7 +2749,6 @@ __END__
 </td></tr>
 <tr><td><h3>Records returned in general searches</h3>
 <table><tr><th>BLMAR</th><td align=right>3865</td></tr>
-<tr><th>C</th><td align=right>4</td></tr>
 <tr><th>CAS</th><td align=right>1814185</td></tr>
 <tr><th>CDA</th><td align=right>196569</td></tr>
 <tr><th>CHSC</th><td align=right>562354</td></tr>
@@ -2110,7 +2768,6 @@ __END__
 <tr><th>POM</th><td align=right>957410</td></tr>
 <tr><th>RSA</th><td align=right>4149783</td></tr>
 <tr><th>RSASD</th><td align=right>2</td></tr>
-<tr><th>S</th><td align=right>5</td></tr>
 <tr><th>SACT</th><td align=right>17560</td></tr>
 <tr><th>SBBG</th><td align=right>1082684</td></tr>
 <tr><th>SCFS</th><td align=right>9902</td></tr>
@@ -2315,10 +2972,6 @@ __END__
 <tr><th>VVC</th><td align=right> 29</td></tr>
 <tr><th>YM</th><td align=right> 141</td></tr>
 </table>Total: 49100</td></tr></table>
-
-
-
-
 
 <table border=1 cellpadding=5><tr><td align="center">
 
@@ -3236,7 +3889,6 @@ __END__
 </table>Total: 6824144 in 89864 searches</td></tr><tr><td><h3>Records returned in detail displays</h3>
 <table><tr><th>CAS</th><td align=right> 1247</td></tr>
 <tr><th>CDA</th><td align=right> 923</td></tr>
-
 <tr><th>CHSC</th><td align=right> 1982</td></tr>
 <tr><th>DS</th><td align=right> 521</td></tr>
 <tr><th>HSC</th><td align=right> 1055</td></tr>
@@ -3248,13 +3900,11 @@ __END__
 <tr><th>POM</th><td align=right> 897</td></tr>
 <tr><th>RSA</th><td align=right> 4790</td></tr>
 <tr><th>SBBG</th><td align=right> 1387</td></tr>
-
 <tr><th>SD</th><td align=right> 1803</td></tr>
 <tr><th>SDSU</th><td align=right> 429</td></tr>
 <tr><th>SJSU</th><td align=right> 226</td></tr>
 <tr><th>UC</th><td align=right> 7277</td></tr>
 <tr><th>UCD</th><td align=right> 1279</td></tr>
-
 <tr><th>UCR</th><td align=right> 3779</td></tr>
 <tr><th>UCSB</th><td align=right> 231</td></tr>
 <tr><th>UCSC</th><td align=right> 134</td></tr>
@@ -3268,14 +3918,12 @@ __END__
 </td></tr>
 <tr><td><h3>Records returned in general searches</h3>
 <table><tr><th>CAS</th><td align=right>109115</td></tr>
-
 <tr><th>CDA</th><td align=right>57637</td></tr>
 <tr><th>CHSC</th><td align=right>151843</td></tr>
 <tr><th>DS</th><td align=right>62220</td></tr>
 <tr><th>HSC</th><td align=right>100500</td></tr>
 <tr><th>IRVC</th><td align=right>16889</td></tr>
 <tr><th>JEPS</th><td align=right>310463</td></tr>
-
 <tr><th>NY</th><td align=right>56771</td></tr>
 <tr><th>PGM</th><td align=right>24575</td></tr>
 <tr><th>POM</th><td align=right>252665</td></tr>
