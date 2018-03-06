@@ -332,10 +332,114 @@ s/  +/ /g;
 print OUT join("\t",$cultivated, $id, $genus, $species, $rank, $subtaxon, $collector, $other_coll, $recordNumber, $verbatimEventDate, $country, $stateProvince, $county, $TRS, $elevation, $elev_units, $locality, $lat_degrees, $lat_minutes, $lat_seconds, $lat_dir, $long_degrees, $long_minutes, $long_seconds, $long_dir, $datum, $LatLongAdded, $errorRadius, $errorRadiusUnits, $topo_quad, $notes, $other, $AnnoYesNo, $identifiedBy, $dateIdentified), "\n";
 }
 close(OUT);
-
+close(IN);
 
 #die;
 #Stage 2, Normal data loading and flat file creation
+
+#place these here instead of after "while(<IN>){" so that they are usable by both the parsing and the correcting stages
+my $id;
+my $country;
+my $stateProvince;
+my $county;
+my $locality; 
+my $family;
+my $scientificName;
+my $genus;
+my $species;
+my $rank;
+my $subtaxon;
+my $name;
+my $hybrid_annotation;
+my $identifiedBy;
+my $dateIdentified;
+my $recordedby;
+my $recordedBy;
+my $Collector_full_name;
+my $eventDate;
+my $verbatimEventDate;
+my $collector;
+my $collectors;
+my %collectors;
+my %coll_seen;
+my $other_collectors;
+my $other_coll;
+my $Associated_collectors;
+my $verbatimCollectors; 
+my $coll_month; 
+my $coll_day;
+my $coll_year;
+my $recordNumber;
+my $CNUM;
+my $CNUM_prefix;
+my $CNUM_suffix;
+my $verbatimElevation;
+my $elevation;
+my $elev_feet;
+my $elev_meters;
+my $CCH_elevationInMeters;
+my $elevationInMeters;
+my $elevationInFeet;
+my $minimumElevationInMeters;
+my $maximumElevationInMeters;
+my $minimumElevationInFeet;
+my $maximumElevationInFeet;
+my $verbatimLongitude;
+my $verbatimLatitude;
+my $TRS;
+my $Township;
+my $Range;
+my $Section;
+my $Fraction_of_section;
+my $topo_quad;
+my $UTME;
+my $UTMN; 
+my $zone;
+my $habitat;
+my $latitude;
+my $lat_degrees;
+my $lat_minutes;
+my $lat_seconds;
+my $decimalLatitude;
+my $longitude;
+my $decimalLongitude;
+my $long_degrees;
+my $long_minutes;
+my $long_seconds;
+my $datum;
+my $errorRadius;
+my $errorRadiusUnits;
+my $coordinateUncertaintyInMeters;
+my $coordinateUncertaintyUnits;
+my $georeferenceSource;
+my $associatedSpecies;	
+my $associatedTaxa;
+my $cultivated; #add this field to the data table for cultivated processing, place an "N" in all records as default
+my $location;
+my $localityDetails;
+my $commonName;
+my $occurrenceRemarks;
+my $substrate;
+my $plant_description;
+my $phenology;
+my $abundance;
+my $notes;
+#unique to this dataset
+my $lat_dir;
+my $long_dir;
+my $LatLongAddedCheck;
+my $topo_quadScale;
+my $AnnoYesNo;
+my $cult;
+my $AnnoRank;
+my $NONV_count;
+my $NONV_line_store;
+my $elev_units;
+my $LatLongAdded;
+my $other;
+my $informationWithheld;
+
+
 	open(OUT, ">CHSC_out.txt") || die;
 	
 	 
@@ -347,6 +451,11 @@ Record: while(<IN>){
 	chomp;
 
 #fix some data quality and formatting problems that make import of fields of certain records problematic
+
+#fix erroneous tab in locality line:
+#<Accession>37362</Accession>
+#<Locality>	Along Highway 32, 7.5 miles S of Tehama/Butte County line.</Locality>
+
 
 	$line_store=$_;
 	++$count;		
@@ -532,6 +641,7 @@ my $tempName = $genus ." " .  $species . " ".  $rank . " ".  $subtaxon;
 foreach ($tempName){
 	s/NULL//gi;
 	s/[uU]nknown//g; #added to try to remove the word "unknown" for some records
+	s/~//g;
 	s/;//g;
 	s/cf.//g;
 	s/ [xX×] / X /;	#change  " x " or " X " to the multiplication sign
@@ -558,6 +668,10 @@ if (($id =~ m/^(CHSC82545)$/) && (length($TID{$tempName}) == 0)){
 #<Accession>82545</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Fabaceae</CFamily><CGenus>Trifolium</CGenus><CSpecificEpithet>Trifolium</CSpecificEpithet><CRank>Lehm.</CRank>
 	$tempName =~ s/[tT]rifolium [tT]rifolium/Trifolium wormskioldii/; #fix special case
 	&log_change("Scientific name error - Trifolium entered into Family, CFamily=>'Trifolium', CGenus=>'Trifolium' CSpecificEpithet=>'Lehm.', modified to \t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CHSC41927)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Acmispon .[nN]utt.. [bB]rouillet/Acmispon/; #fix special case
+	&log_change("Scientific name error - authorities entered into species, modified to \t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(CHSC38627)$/) && (length($TID{$tempName}) == 0)){ 
 #<Accession>38627</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Portulacaceae</CFamily><CGenus>ciliata</CGenus><CSpecificEpithet>(Ruiz &amp; Pav.) DC.</CSpecificEpithet>
@@ -631,7 +745,7 @@ if (($id =~ m/^(CHSC52119)$/) && (length($TID{$tempName}) == 0)){
 }
 if (($id =~ m/^CHSC(9559|9647|9654|9655|9656)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Salix hookeriana var\. piperi/Salix hookeriana/; #fix special case
-	&log_change("Scientific name error - not a published name, S. piperi is a synonym of S. hookieriana, modified to\t$tempName\t--\t$id\n");
+	&log_change("Scientific name error - not a published name, Salix piperi is a synonym of Salix hookieriana, modified to\t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^CHSC(9617)$/) && (length($TID{$tempName}) == 0)){ 
 #<Accession>9617</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Salicaceae</CFamily><CGenus>Salix</CGenus><CSpecificEpithet>scouleriana</CSpecificEpithet><CRank>var.</CRank><CInfraspecificName>lemmonii</CInfraspecificName>
@@ -643,18 +757,52 @@ if (($id =~ m/^CHSC(9659|9658)$/) && (length($TID{$tempName}) == 0)){
 	$tempName =~ s/Salix hookeriana var\. scouleriana/Salix hookeriana X scouleriana/; #fix special case
 	&log_change("Scientific name error - Salix hookeriana var\. scouleriana not a published name, typo for a hybrid of S. hookieriana, modified to\t$tempName\t--\t$id\n");
 }
-if (($id =~ m/^CHSC(52231)$/) && (length($TID{$tempName}) == 0)){ 
+if (($id =~ m/^CHSC52231$/) && (length($TID{$tempName}) == 0)){ 
 #<Accession>52231</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Lamiaceae</CFamily><CGenus>Monardella</CGenus><CSpecificEpithet>pallida</CSpecificEpithet><CRank>ssp.</CRank><CInfraspecificName>pallida</CInfraspecificName>
 	$tempName =~ s/Monardella pallida ssp. pallida/Monardella odoratissima subsp. pallida/; #fix special case
 	&log_change("Scientific name error - no subtaxa described within Monardella pallida, modified to\t$tempName\t--\t$id\n");
 }
-if (($id =~ m/^(CHSC111114)$/) && (length($TID{$tempName}) == 0)){ 
+if (($id =~ m/^CHSC111114$/) && (length($TID{$tempName}) == 0)){ 
 #<Accession>111114</Accession><Division>Anthophyta (flowering plants)</Division><CFamily>Apiaceae</CFamily><CGenus>Torilis</CGenus><CSpecificEpithet>arvensis</CSpecificEpithet><CRank>ssp.</CRank><CInfraspecificName>oyroyrea</CInfraspecificName>
 	$tempName =~ s/Torilis arvensis ssp\. oyroyrea/Torilis arvensis/; #fix special case
 	&log_change("Scientific name error - Torilis arvensis ssp\. oyroyrea not a published subtaxon name, modified to\t$tempName\t--\t$id\n");
 }
-
-
+if (($id =~ m/^CHSC65587$/) && (length($TID{$tempName}) == 0)){ 
+#NULL	65587	Camassia	palustris	NULL	NULL	B. Castro	L. Gehrung	546	1994-09-14T00:00:00	NULL	NULL	Plumas	T23N R07E S22 center	5700	ft.	Ca 3 air mi S of Bucks Lake, ca 0.2 mi S jcn of USFS Rds 23N69, 23N15, and 23N18.	39	49	56	N	121	11	3	W	NAD 1983	yes	0.25	mi.	Haskinds Valley	In small, wet grassy meadow just off E side of Rd 23N18, with Triteleia hyacinthina, Lotus oblongifolius, and Juncus ensifolius. Surrounded by Red Fir Forest.	NULL	1	Herbarium	NULL
+	$tempName =~ s/Camassia palustris/Parnassia palustris/; #fix special case
+	&log_change("Scientific name error - not a published name, previous det as Parnassia californica, Camassia palustris modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC101850$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Hosackia nevadensis var\. nevadensis/Hosackia nevadensis/; #fix special case
+	&log_change("Scientific name error - not a published name, no subtaxa within Hosackia, the subtaxa for this was made in Lotus only, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC118200$/) && (length($TID{$tempName}) == 0)){ 
+#NULL	118200	Mimulus	taylori	NULL	NULL	Gabe Youngblood	NULL	NULL	2015-03-05T00:00:00	NULL	NULL	Shasta	T35N R03W S21 NW1/4 of SW1/4	1120	ft.	Limestone outcrops east of Dekkas Rock and north of Kamloops on Shasta Lake.UTM 10T 0565843E/4524753N	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NAD 1983	no	NULL	NULL	Minnesota Mountain	Low growing flower in cracks and crevices on limestone face. Calyces with papillose trichomes. Limestone outcrop in montane hardwood-conifer forest. Associated species: Quercus chrysolepis, Aesculus californica, Toxicodendron diversilobum, Philadelphus lewisii, Delphinium nudicaule, Lomatium sp.	Label says: North State Resources, Inc.	0	NULL	NULL
+	$tempName =~ s/Mimulus taylori/Erythranthe taylorii/; #fix special case
+	&log_change("Scientific name error - Mimulus taylori not a published name, this was named in a different genus, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC103111$/) && (length($TID{$tempName}) == 0)){ 
+#NULL	103111	Polystichum	californicum	ssp.	curtum	Lowell Ahart	NULL	15971	2009-06-30T00:00:00	NULL	NULL	Butte	T23N R02E S35 SW1/4	768	ft.	Around large boulders on the east bank of Big Chico Creek, on the west side of the dirt road which is Ten Mile House Road, Upper Bidwell Park, about 3/4 mile (air) west of Highway 32, about 10 miles northeast of Chico	39	48	35	N	121	43	24	W	NULL	no	NULL	NULL	NULL	Riparian in Foothill Woodland. Normal size fronds, on dry soil, around large boulders. Uncommon.	Smith 2010 annotation label says: as determined on a duplicate at JEPS.	1	A. Smith	2010-01-01T00:00:00
+	$tempName =~ s/Polystichum californicum ssp\. curtum/Polystichum imbricans subsp. curtum/; #fix special case
+	&log_change("Scientific name error - not a published name, no subtaxa within Polystichum californicum, the subtaxa for this was made in Polystichum imbricans, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC115268$/) && (length($TID{$tempName}) == 0)){ 
+#NULL	115268	Zeltnera	venusta	ssp.	ventusa	Lowell Ahart	NULL	20200	2015-06-07T00:00:00	NULL	NULL	Butte	T20N R04E S20 NW1/4	1243	ft.	In open pasture field, about 50 yards southeast of the old large parking area on North Table Mountain, about 7 miles (air) north of Oroville. Basalt Grassland.	39	34	59	N	121	32	49	W	NULL	no	NULL	NULL	NULL	Normal size plants, on dry dark soil, side of a small vernal seep (vernal pool). Common. Flowers pink. Basalt Grassland.	NULL	0	NULL	NULL
+	$tempName =~ s/Zeltnera venusta ssp\. ventusa/Zeltnera venusta/; #fix special case
+	&log_change("Scientific name error - not a published name, no subtaxa within Zeltnera venusta, the subtaxa for this was made in Centaurium venustum, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC114618$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Harmonia doris- nilesiae/Harmonia doris-nilesiae/; #fix special case
+	&log_change("Scientific name error - erroneous space in name, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC20649$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Rhamnus i/Rhamnus ilicifolia/; #fix special case
+	&log_change("Scientific name error - incomplete name, modified to\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^CHSC114103$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Encelia .frutescens/Encelia frutescens/; #fix special case
+	&log_change("Scientific name error - erroneous character in name, modified to\t$tempName\t--\t$id\n");
+}
 
 
 #format hybrid names
@@ -771,6 +919,31 @@ $MM2= $DD2 = ""; #set late date to blank since only one date exists
 
 ###############COLLECTORS
 
+
+
+#NULL	106571	Phacelia	linearis	NULL	NULL	we	NULL	NULL	2008-05-03T00:00:00	NULL	NULL	Lassen	NULL	1439	m.	Fort Sage Mtns. OHV Trailhead and Trail to Indian Springs.	40	3	39	N	120	4	23	W	NULL	no	NULL	NULL	NULL	Found with Artemisia tridentata, Purshia tridentata, Prunus andersonii, Bromus tectorum, Juniperus osteosperma x occidentalis, Ephedra viridis.	NULL	0	NULL	NULL
+#NULL	106572	Layia	glandulosa	NULL	NULL	Zachary Garcia	NULL	NULL	2008-05-03T00:00:00	NULL	NULL	Lassen	NULL	1439	m.	Fort Sage Mtns. OHV Trailhead and Trail to Indian Springs.	40	3	39	N	120	4	23	W	NULL	no	NULL	NULL	NULL	Found with Artemisia tridentata, Purshia tridentata, Prunus andersonii, Bromus tectorum, Juniperus osteosperma x occidentalis, Ephedra viridis.	NULL	0	NULL	NULL
+if (($id =~ m/^(CHSC106571)$/) && ($collector =~ m/^w/)){
+	$verbatimCollectors = $collector;
+	$collector = "Zachary Garcia";
+	&log_change("COLLECTOR: Collector name error ($verbatimCollectors), changed to the name from CHSC106572==>$collector\t$id\n");
+}
+#NULL	113816	Ehrharta	calycina	NULL	NULL	5/29/2015	NULL	8146	2011-03-22T00:00:00	NULL	NULL	San Luis Obispo	NULL	48	m.	Along State Hwy. 1 ca. 4.1 miles north of Guadalupe.	35	1	55	N	120	33	40	W	WGS 1984	no	NULL	NULL	NULL	Habitat: Weedy, sandy roadside. Cespitose perennial; inflorescence reddish. Associated taxa: Amsinckia, Hordeum, Silene, Medicago, Erodium, Matricaria, Bromus.	Label says: Oregon State University.	0	NULL	NULL
+if (($id =~ m/^(CHSC113816)$/) && ($collector =~ m/5.29.2015/)){
+	$verbatimCollectors = $collector;
+	$collector = "Richard R. Halse";
+	&log_change("COLLECTOR: Collector name error ($verbatimCollectors), an erroneous date added as collector, specimen collected in 2011, changed to name from a duplicate in CCH==>$collector\t$id\n");
+}
+
+#NULL	117986	Arctostaphylos	visscida	NULL	NULL	organ Meadows	NULL	NULL	2015-04-25T00:00:00	NULL	NULL	Shasta	NULL	854	ft.	On the corner of Spruce Aave. and Shasta St. off Lake Blvd.	40	40	52	N	122	23	57	W	NULL	no	NULL	NULL	NULL	Shrub, 8-10 ft. tall. In Oak Woodland. Associated species: Interior Liv Oak, Toyon.	NULL	0	J.K. Nelson	NULL
+#a one time collection from an unknown collector, a locality has been added to the Collector field 
+if (($id =~ m/^(CHSC117986)$/) && ($collector =~ m/organ Meadows/)){
+	$verbatimCollectors = $collector;
+	$collector = "";
+	&log_change("COLLECTOR: Collector name error ($verbatimCollectors), changed to ==>$collector\t$id\n");
+}
+
+
 	foreach ($collector, $other_coll){
 		s/'$//g;
 		s/, M\. ?D\.//g;
@@ -778,7 +951,7 @@ $MM2= $DD2 = ""; #set late date to blank since only one date exists
 		s/, Jr/ Jr./g;
 		s/, Esq./ Esq./g;
 		s/, Sr\./ Sr./g;
-		s/5.29.2015/Richard R. Halse/; #CHSC113816
+		#s/5.29.2015/Richard R. Halse/; #CHSC113816
 		s/\(label illegible\)/Unknown/;
 		s/^ *//;
 		s/ *$//;
@@ -950,21 +1123,28 @@ foreach($elev_units){
 	s/\.//g;
 }
 
+
+
 	if(($elevation =~ m/^NULL/) && ($elev_units =~ m/^NULL/)){
-		$verbatimElevation=$CCH_elevationInMeters=$elevationInMeters="";
+		$verbatimElevation = $CCH_elevationInMeters = $elevationInMeters = $elevationInFeet = $elev_units = "";
 		&log_change("ELEVATION NULL, $id\n");		#call the &log function to print this log message into the change log...
 	}		
 	elsif(($elevation =~ m/^-?[0-9]+/) && ($elev_units =~ m/^NULL/)){
-		$CCH_elevationInMeters = $elevationInMeters="";
+		$elev_units = $CCH_elevationInMeters = $elevationInMeters = $elevationInFeet = "";
 		$verbatimElevation = $elevation;
 		&log_change("ELEVATION missing units, $id\n");		#call the &log function to print this log message into the change log...
 	}		
 	elsif(($elevation =~ m/^NULL/) && ($elev_units =~ m/.*/)){
-		$verbatimElevation = $CCH_elevationInMeters = $elevationInMeters="";
+		$verbatimElevation = $CCH_elevationInMeters = $elevationInMeters = $elevationInFeet = "";
 		&log_change("ELEVATION field NULL, but Units field contains partial data\t($elev_units)\t$id\n");		#call the &log function to print this log message into the change log...
 	}
 	elsif(($elevation =~ m/^-?[0-9]+/) && ($elev_units =~ m/^[MmFfeEtTRrSs]+$/)){
 		$verbatimElevation = $elevation . $elev_units;
+		$CCH_elevationInMeters = $elevationInMeters = $elevationInFeet = ""; #set base value to null
+	}
+	elsif(($elevation =~ m/^-?0+$/) && ($elev_units =~ m/^(.*| *|NULL)$/)){
+		$verbatimElevation = $elevation . "m";
+		$CCH_elevationInMeters = $elevationInMeters = $elevationInFeet = ""; #set base value to null
 	}
 	elsif(($elevation !~ m/^-?[0-9]+/) && ($elev_units =~ m/.+/)){
 		&log_change("ELEVATION poorly formatted or has only non-numeric data\t($elevation)\t($elev_units)\t$id\n");		#call the &log function to print this log message into the change log...
