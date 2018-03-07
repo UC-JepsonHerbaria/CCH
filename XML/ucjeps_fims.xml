@@ -5,7 +5,6 @@
   <validation>
     <worksheet sheetname="Samples">
       <rule level="error" type="duplicateColumnNames" />
-      <rule column="Coll_Num" level="warning" type="uniqueValue" />
       <rule column="Barcode_Number" level="error" type="uniqueValue" />
       <rule column="RequiredColumns" level="error" type="RequiredColumns">
         <field>Barcode_Number</field>
@@ -11534,8 +11533,19 @@
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(88483)">Ulva fasciata Delile</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(88160)">Vaucheria DC.</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(88481)">Vaucheria gardneri Collins</field>
-        <field uri=""> </field>
-      <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Cladophoratmp)">Cladophora</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Cladophora)">Cladophora</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Codium)">Codium</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Dictyota)">Dictyota</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Dictyotacribrosa)">Dictyota cribrosa</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Gigartina)">Gigartina</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Gigartina1390516959811)">Gigartina</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Gigartina1390516960325)">Gigartina</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Oedogonium)">Oedogonium</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Oophila)">Oophila</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Ulvadactylifera)">Ulva dactylifera</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Ulvafasciata)">Ulva fasciata</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Vaucheria)">Vaucheria</field><field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Vaucheriagardneri)">Vaucheria gardneri</field></list>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Cladophora)">Cladophora</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Codium)">Codium</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Dictyota)">Dictyota</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Dictyotacribrosa)">Dictyota cribrosa</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Gigartina)">Gigartina</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Gigartina1390516959811)">Gigartina</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Gigartina1390516960325)">Gigartina</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Oedogonium)">Oedogonium</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Oophila)">Oophila</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Ulvadactylifera)">Ulva dactylifera</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Ulvafasciata)">Ulva fasciata</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Vaucheria)">Vaucheria</field>
+     <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Vaucheriagardneri)">Vaucheria gardneri</field></list>
     </lists>
   </validation>
   <mapping>
