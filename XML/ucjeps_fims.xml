@@ -452,10 +452,639 @@
         <field>WGS84</field>
       </list>
       <list alias="State_Province" caseInsensitive="false">
+       <field>Unknown</field>
+        <field>'Eua</field>
+        <field>Aamzonas</field>
+        <field>Acre</field>
+        <field>AK</field>
+        <field>AL</field>
+        <field>Alajuela</field>
+        <field>Alajuelo</field>
+        <field>ALB</field>
+        <field>Alberta</field>
+        <field>Alger</field>
+        <field>Alta Verapaz</field>
+        <field>Amazonas</field>
+        <field>Ancash</field>
+        <field>Anhui</field>
+        <field>Antioquia</field>
+        <field>Antofagasta</field>
+        <field>Apurimac</field>
+        <field>AR</field>
+        <field>Aragua</field>
+        <field>Araucania</field>
+        <field>Arequipa</field>
+        <field>Artigas</field>
+        <field>Atacama</field>
+        <field>Atlantida</field>
+        <field>Ayacucho</field>
+        <field>AZ</field>
+        <field>AZ Territory</field>
+        <field>Azuay</field>
+        <field>Bac Phan</field>
+        <field>Bahia</field>
+        <field>Baja California</field>
+        <field>Baja California Sur</field>
+        <field>Baja Verapaz</field>
+        <field>Baleares</field>
+        <field>Baluchistan</field>
+        <field>Banguey Island</field>
+        <field>Barinas</field>
+        <field>BCS</field>
+        <field>Benguet</field>
+        <field>Binh Tri Thien, Tinh</field>
+        <field>Biobio, Regio del</field>
+        <field>Bismarck Archipelago</field>
+        <field>BN</field>
+        <field>Bohol</field>
+        <field>Bolivar</field>
+        <field>Boyaca</field>
+        <field>British Columbia</field>
+        <field>Brunei</field>
+        <field>Buenos Aires</field>
+        <field>Bulacan</field>
         <field>CA</field>
+        <field>Cajamarca</field>
+        <field>Campeche</field>
+        <field>Canar</field>
+        <field>Cape Province</field>
+        <field>Carchi</field>
+        <field>Caroline Islands</field>
+        <field>Cartago</field>
+        <field>Cascajal</field>
+        <field>Cataluna</field>
+        <field>Cauca</field>
+        <field>Cebu</field>
+        <field>Central</field>
+        <field>Chalatenango</field>
+        <field>CHI</field>
+        <field>Chia</field>
+        <field>Chiang Mai, Changwat</field>
+        <field>Chiapas</field>
+        <field>Chihuahua</field>
+        <field>Chimaltenango</field>
+        <field>Chimborazo</field>
+        <field>Chinandega</field>
+        <field>Chiriqui</field>
+        <field>Chontales</field>
+        <field>Chupadero</field>
+        <field>Chuquisaca</field>
+        <field>CO</field>
+        <field>CO Territory</field>
+        <field>Coahuila</field>
+        <field>COCA</field>
+        <field>Cochabamba</field>
+        <field>Cocle</field>
+        <field>COL</field>
+        <field>Colima</field>
+        <field>Comayagua</field>
+        <field>Concepcion</field>
+        <field>COP</field>
+        <field>Coquimbo</field>
+        <field>Cordoba</field>
+        <field>Cortes</field>
+        <field>Costa</field>
+        <field>Cotopaxi</field>
+        <field>CT</field>
+        <field>Cundinamarca</field>
+        <field>Cuzco</field>
+        <field>Darien</field>
+        <field>DE</field>
+        <field>Distrito Federal</field>
+        <field>DUR</field>
+        <field>Durango</field>
+        <field>East Malaysia</field>
+        <field>East Sepik</field>
+        <field>Eastern Division</field>
+        <field>Eastern Divsion</field>
+        <field>El Progreso</field>
+        <field>Esmeraldas</field>
+        <field>Esteli</field>
+        <field>FL</field>
+        <field>Florida</field>
+        <field>Fujian</field>
+        <field>GA</field>
+        <field>Gansu</field>
+        <field>Goias</field>
+        <field>Golestan</field>
+        <field>Granada</field>
+        <field>GRO</field>
+        <field>GUAM</field>
+        <field>Guanacaste</field>
+        <field>Guanajuato</field>
+        <field>Guangdong</field>
+        <field>Guatemala</field>
+        <field>Guayas</field>
+        <field>Guerrero</field>
+        <field>Guizhou</field>
+        <field>Ha Bach, Tinh</field>
+        <field>Hainan</field>
+        <field>Halland</field>
+        <field>Hamadan</field>
+        <field>Heidelberg</field>
+        <field>Heredia</field>
+        <field>HI</field>
+        <field>Hidalgo</field>
+        <field>Honshu</field>
+        <field>Huancabamba</field>
+        <field>Huancavelica</field>
+        <field>Huanuco</field>
+        <field>Hubei</field>
+        <field>Huehuetena</field>
+        <field>Huehuetenango</field>
+        <field>Humacao</field>
+        <field>IA</field>
+        <field>ID</field>
+        <field>IL</field>
+        <field>IN</field>
+        <field>Insular</field>
+        <field>Ipiros</field>
+        <field>Iqnique Province</field>
+        <field>Iringa</field>
+        <field>Isabela</field>
+        <field>Izabel</field>
+        <field>JAL</field>
+        <field>Jalisco</field>
+        <field>Jawa Timur</field>
+        <field>Jiangsu</field>
+        <field>Jujuy</field>
+        <field>Junin</field>
+        <field>Kangean</field>
+        <field>Khorasan Province</field>
+        <field>Kkanh Hoa</field>
+        <field>KS</field>
+        <field>KwaZulu-Natal</field>
+        <field>KY</field>
+        <field>LA</field>
+        <field>La Habana</field>
+        <field>La Libertad</field>
+        <field>La Paz</field>
+        <field>La Vega</field>
+        <field>Lambayeque</field>
+        <field>Las Villas</field>
+        <field>LASAN</field>
+        <field>Leon</field>
+        <field>Lima</field>
+        <field>Limon</field>
+        <field>Loja</field>
+        <field>Loreto</field>
+        <field>Luzon</field>
+        <field>MA</field>
+        <field>Madre de Dios</field>
+        <field>Magdalena</field>
+        <field>Maldonado</field>
+        <field>Manabi</field>
+        <field>Manitoba</field>
+        <field>Mariana Islands</field>
+        <field>Mato Grosso</field>
+        <field>Matto Grosso</field>
+        <field>Mayaguez</field>
+        <field>Mazandaran</field>
+        <field>MD</field>
+        <field>ME</field>
+        <field>Merida</field>
+        <field>Meta</field>
+        <field>Mexico</field>
+        <field>MI</field>
+        <field>MICH</field>
+        <field>Michoacan</field>
+        <field>Minas Gerais</field>
+        <field>Mindanao</field>
+        <field>Misiones</field>
+        <field>MN</field>
+        <field>MO</field>
+        <field>MON</field>
+        <field>Montevideo</field>
+        <field>Morazan</field>
+        <field>Morelos</field>
+        <field>MS</field>
+        <field>MT</field>
+        <field>MX</field>
+        <field>N. Segovia</field>
+        <field>Narino</field>
+        <field>NAY</field>
+        <field>Nayarit</field>
+        <field>NC</field>
+        <field>ND</field>
+        <field>NE</field>
+        <field>Neuvo Leon</field>
+        <field>New Brunswick</field>
+        <field>New South Wales</field>
+        <field>Newfoundland</field>
+        <field>NH</field>
+        <field>NJ</field>
+        <field>NL</field>
+        <field>NM</field>
+        <field>Norte de Santander</field>
+        <field>North Ayrshire</field>
+        <field>Northern Division</field>
+        <field>Northern Territory</field>
+        <field>Northwest Frontier</field>
+        <field>Northwest Territories</field>
+        <field>Nova Scotia</field>
+        <field>Nuevo Leon</field>
+        <field>Nunavut</field>
+        <field>NV</field>
+        <field>NY</field>
+        <field>Oaxaca</field>
+        <field>OH</field>
+        <field>OK</field>
+        <field>Ontario</field>
+        <field>OR</field>
+        <field>Oriente</field>
+        <field>Otuzco</field>
+        <field>PA</field>
+        <field>Palawan</field>
+        <field>Panama</field>
+        <field>Panay</field>
+        <field>Paraguari</field>
+        <field>Parana</field>
+        <field>Paris</field>
+        <field>Pasco</field>
+        <field>Pataz</field>
+        <field>PE</field>
+        <field>Peloponnisos</field>
+        <field>Peten</field>
+        <field>Pichincha</field>
+        <field>Piura</field>
+        <field>PMG</field>
+        <field>Pohnpei</field>
+        <field>Pomeroon-Supernaam</field>
+        <field>Portuguesa</field>
+        <field>Potosi</field>
+        <field>PRE</field>
+        <field>Prince Edward Island</field>
+        <field>PUE</field>
+        <field>Puebla</field>
+        <field>Puerto Rico</field>
+        <field>Puno</field>
+        <field>Puntarenas</field>
+        <field>Quang Ngai</field>
+        <field>Quebec</field>
+        <field>Queensland</field>
+        <field>Quezaltenango</field>
+        <field>Quezon</field>
+        <field>Quiche</field>
+        <field>RI</field>
+        <field>Rio de Janeiro</field>
+        <field>Rizal</field>
+        <field>Sabah</field>
+        <field>Salta</field>
+        <field>Samar</field>
+        <field>San Blas</field>
+        <field>San Jose</field>
+        <field>San Luis</field>
+        <field>San Luis Potosi</field>
+        <field>San Martin</field>
+        <field>San Miguel</field>
+        <field>San Pedro</field>
+        <field>Santa Barbara</field>
+        <field>Santa Catarina</field>
+        <field>Santa Cruz</field>
+        <field>Santander</field>
+        <field>Santiago, Region Met</field>
+        <field>Sao Paulo</field>
+        <field>Sarawak</field>
+        <field>Saskatchewan</field>
+        <field>Savaii Island</field>
+        <field>SC</field>
+        <field>Scotland</field>
+        <field>SD</field>
+        <field>Semnan</field>
+        <field>Seybo</field>
+        <field>Sichuan</field>
+        <field>Sierra</field>
+        <field>SIN</field>
+        <field>Sinaloa</field>
+        <field>Societe, Iles de la</field>
+        <field>Societe, Isles de la</field>
+        <field>SON</field>
+        <field>Sonora</field>
+        <field>Sonsonate</field>
+        <field>South Australia</field>
+        <field>Southern Cook Island</field>
+        <field>St. Andrew</field>
+        <field>St. Croix</field>
+        <field>Stann Creek</field>
+        <field>Sulu</field>
+        <field>Sumatera</field>
+        <field>TAB</field>
+        <field>Tabasco</field>
+        <field>Tachira</field>
+        <field>Tacna</field>
+        <field>TAM</field>
+        <field>Tamaulipas</field>
+        <field>Tarank Province</field>
+        <field>Tarija</field>
+        <field>Tarma</field>
+        <field>Tasmania</field>
+        <field>Tehran</field>
+        <field>Tierra del Fuego</field>
+        <field>Tlaxcala</field>
+        <field>TN</field>
+        <field>Toledo</field>
+        <field>Tongatapu</field>
+        <field>Trelawny</field>
+        <field>Trujillo</field>
+        <field>Tuamotu, Archipel de</field>
+        <field>Tubuai, Iles</field>
+        <field>Tucuman</field>
+        <field>Tutuila Island</field>
+        <field>TX</field>
+        <field>Upolu Island</field>
+        <field>UT</field>
+        <field>VA</field>
+        <field>Valle</field>
+        <field>Valparaiso</field>
+        <field>Vaupes</field>
+        <field>Veracruz</field>
+        <field>Verguas</field>
+        <field>Victoria</field>
+        <field>VT</field>
+        <field>WA</field>
+        <field>WA Territory</field>
+        <field>Wales</field>
+        <field>WAS</field>
+        <field>Western Australia</field>
+        <field>Western Cape</field>
+        <field>WI</field>
+        <field>WN</field>
+        <field>WV</field>
+        <field>WY</field>
+        <field>Xizang</field>
+        <field>Yaracuy</field>
+        <field>Yoro</field>
+        <field>Yucatan</field>
+        <field>Yukon Territory</field>
+        <field>Yunnan</field>
+        <field>Zacatecas</field>
+        <field>Zhejiang</field>
+        <field>Zulia</field>
       </list>
       <list alias="Country" caseInsensitive="false">
+        <field>unknown</field>
+        <field>Afghanistan</field>
+        <field>Åland Islands</field>
+        <field>Albania</field>
+        <field>Algeria</field>
+        <field>American Samoa</field>
+        <field>Andorra</field>
+        <field>Angola</field>
+        <field>Anguilla</field>
+        <field>Antarctica</field>
+        <field>Antigua</field>
+        <field>Antigua and Barbuda</field>
+        <field>Argentina</field>
+        <field>Armenia</field>
+        <field>Aruba</field>
+        <field>Australia</field>
+        <field>Austria</field>
+        <field>Azerbaijan</field>
+        <field>Bahamas</field>
+        <field>Bahrain</field>
+        <field>Bangladesh</field>
+        <field>Barbados</field>
+        <field>Belarus</field>
+        <field>Belgium</field>
+        <field>Belize</field>
+        <field>Benin</field>
+        <field>Bermuda</field>
+        <field>Bhutan</field>
+        <field>Bolivia</field>
+        <field>Bonaire, Sint Eustatius and Saba</field>
+        <field>Borneo</field>
+        <field>Bosnia and Herzegovina</field>
+        <field>Botswana</field>
+        <field>Bouvet Island</field>
+        <field>Brazil</field>
+        <field>British Indian Ocean Territory</field>
+        <field>Brunei</field>
+        <field>Bulgaria</field>
+        <field>Burkina Faso</field>
+        <field>Burundi</field>
+        <field>Cambodia</field>
+        <field>Cameroon</field>
+        <field>Canada</field>
+        <field>Cape Verde</field>
+        <field>Cayman Islands</field>
+        <field>Central African Republic</field>
+        <field>Chad</field>
+        <field>Chile</field>
+        <field>China</field>
+        <field>Christmas Island</field>
+        <field>Cocos (Keeling) Islands</field>
+        <field>Colombia</field>
+        <field>Comoros</field>
+        <field>Congo</field>
+        <field>Cook Islands</field>
+        <field>Costa Rica</field>
+        <field>Côte d’Ivoire</field>
+        <field>Croatia</field>
+        <field>Cuba</field>
+        <field>Curaçao</field>
+        <field>Cyprus</field>
+        <field>Czech Republic</field>
+        <field>D R Congo</field>
+        <field>Denmark</field>
+        <field>Djibouti</field>
+        <field>Dominica</field>
+        <field>Dominican Republic</field>
+        <field>Ecuador</field>
+        <field>Egypt</field>
+        <field>El Salvador</field>
+        <field>Ellas</field>
+        <field>Equatorial Guinea</field>
+        <field>Eritrea</field>
+        <field>Espana</field>
+        <field>Estonia</field>
+        <field>Ethiopia</field>
+        <field>Falkland Islands (Malvinas)</field>
+        <field>Faroe Islands</field>
+        <field>Fiji</field>
+        <field>Finland</field>
+        <field>France</field>
+        <field>French Guiana</field>
+        <field>French Polynesia</field>
+        <field>French Southern Territories</field>
+        <field>Gabon</field>
+        <field>Gambia</field>
+        <field>Georgia</field>
+        <field>Germany</field>
+        <field>Ghana</field>
+        <field>Gibraltar</field>
+        <field>Greenland</field>
+        <field>Grenada</field>
+        <field>Guadeloupe</field>
+        <field>Guam</field>
+        <field>Guatemala</field>
+        <field>Guernsey</field>
+        <field>Guinea</field>
+        <field>Guinea-Bissau</field>
+        <field>Guyana</field>
+        <field>Haiti</field>
+        <field>Heard Island and McDonald Islands</field>
+        <field>Hispaniola</field>
+        <field>Holy See (Vatican City State)</field>
+        <field>Honduras</field>
+        <field>Hong Kong</field>
+        <field>Hungary</field>
+        <field>Iceland</field>
+        <field>India</field>
+        <field>Indonesia</field>
+        <field>Iran</field>
+        <field>Iraq</field>
+        <field>Ireland</field>
+        <field>Isle of Man</field>
+        <field>Israel</field>
+        <field>Italy</field>
+        <field>Jamaica</field>
+        <field>Japan</field>
+        <field>Jersey</field>
+        <field>Jordan</field>
+        <field>Kazakhstan</field>
+        <field>Kenya</field>
+        <field>Kiribati</field>
+        <field>Korea, Democratic People’s Republic of</field>
+        <field>Kuwait</field>
+        <field>Kyrgyzstan</field>
+        <field>Lao People’s Democratic Republic</field>
+        <field>Latvia</field>
+        <field>Lebanon</field>
+        <field>Lesotho</field>
+        <field>Liberia</field>
+        <field>Libya</field>
+        <field>Liechtenstein</field>
+        <field>Lithuania</field>
+        <field>Luxembourg</field>
+        <field>Macao</field>
+        <field>Macedonia, the Former Yugoslav Republic of</field>
+        <field>Madagascar</field>
+        <field>Malawi</field>
+        <field>Malaysia</field>
+        <field>Maldives</field>
+        <field>Mali</field>
+        <field>Malta</field>
+        <field>Marshall Islands</field>
+        <field>Martinique</field>
+        <field>Mauritania</field>
+        <field>Mauritius</field>
+        <field>Mayotte</field>
+        <field>Mexico</field>
+        <field>Micronesia</field>
+        <field>Moldova, Republic of</field>
+        <field>Monaco</field>
+        <field>Mongolia</field>
+        <field>Montenegro</field>
+        <field>Montserrat</field>
+        <field>Morocco</field>
+        <field>Mozambique</field>
+        <field>Myanmar</field>
+        <field>Namibia</field>
+        <field>Nauru</field>
+        <field>Nepal</field>
+        <field>Netherlands Antilles</field>
+        <field>Netherlands</field>
+        <field>New Caledonia</field>
+        <field>New Zealand</field>
+        <field>Nicaragua</field>
+        <field>Niger</field>
+        <field>Nigeria</field>
+        <field>Nihon</field>
+        <field>Niue</field>
+        <field>Norfolk Island</field>
+        <field>Northern Mariana Islands</field>
+        <field>Norway</field>
+        <field>Oman</field>
+        <field>Pakistan</field>
+        <field>Palau</field>
+        <field>Palestinian Territory, Occupied</field>
+        <field>Panama</field>
+        <field>Papua New Guinea</field>
+        <field>Paraguay</field>
+        <field>Peru</field>
+        <field>Philippines</field>
+        <field>Pitcairn</field>
+        <field>Poland</field>
+        <field>Polynesia</field>
+        <field>Polynesie francaise</field>
+        <field>Portugal</field>
+        <field>Prathet Thai</field>
+        <field>Puerto Rico</field>
+        <field>Qatar</field>
+        <field>Republica Dominicana</field>
+        <field>Reunion</field>
+        <field>Romania</field>
+        <field>Russia</field>
+        <field>Rwanda</field>
+        <field>Saint Barthélemy</field>
+        <field>Saint Helena</field>
+        <field>Saint Kitts and Nevis</field>
+        <field>Saint Lucia</field>
+        <field>Saint Martin (French Part)</field>
+        <field>Saint Pierre and Miquelon</field>
+        <field>Saint Vincent and the Grenadines</field>
+        <field>Samoa</field>
+        <field>San Marino</field>
+        <field>Sao Tome and Principe</field>
+        <field>Saudi Arabia</field>
+        <field>Scotland</field>
+        <field>Senegal</field>
+        <field>Serbia</field>
+        <field>Seychelles</field>
+        <field>Sierra Leone</field>
+        <field>Singapore</field>
+        <field>Sint Maarten (Dutch Part)</field>
+        <field>Slovakia</field>
+        <field>Slovenia</field>
+        <field>Somalia</field>
+        <field>Solomon Islands</field>
+        <field>South Africa</field>
+        <field>South Georgia and the South Sandwich Islands</field>
+        <field>South Korea</field>
+        <field>South Sudan</field>
+        <field>Spain</field>
+        <field>Sri Lanka</field>
+        <field>Sudan</field>
+        <field>Suriname</field>
+        <field>Svalbard and Jan Mayen</field>
+        <field>Swaziland</field>
+        <field>Sweden</field>
+        <field>Switzerland</field>
+        <field>Syria</field>
+        <field>Taiwan</field>
+        <field>Tajikistan</field>
+        <field>Tanzania</field>
+        <field>Thailand</field>
+        <field>Timor-Leste</field>
+        <field>Togo</field>
+        <field>Tokelau</field>
+        <field>Tonga</field>
+        <field>Trinidad and Tobago</field>
+        <field>Tunisia</field>
+        <field>Turkey</field>
+        <field>Turkmenistan</field>
+        <field>Turks and Caicos Islands</field>
+        <field>Tuvalu</field>
+        <field>Uganda</field>
+        <field>Ukraine</field>
+        <field>United Arab Emirates</field>
+        <field>United Kingdom</field>
+        <field>United States Minor Outlying Islands</field>
+        <field>Uruguay</field>
         <field>USA</field>
+        <field>Uzbekistan</field>
+        <field>Vanuatu</field>
+        <field>Venezuela</field>
+        <field>Viet Nam</field>
+        <field>Virgin Islands, British</field>
+        <field>Virgin Islands</field>
+        <field>Wallis and Futuna</field>
+        <field>Western Sahara</field>
+        <field>Western Samoa</field>
+        <field>Yemen</field>
+        <field>Zambia</field>
+        <field>Zhonghua</field>
+        <field>Zimbabwe</field>
       </list>
       <list alias="ID_Qualifier" caseInsensitive="false">
         <field>unknown</field>
@@ -477,64 +1106,2072 @@
         <field>?</field>
       </list>
       <list alias="County" caseInsensitive="false">
+       <field>Unknown</field>
+        <field>Abbeville</field>
+        <field>Aberdeenshire (UK)</field>
+        <field>Acadia</field>
+        <field>Acaponeta</field>
+        <field>Accomack</field>
+        <field>Ada</field>
+        <field>Adair</field>
+        <field>Adams</field>
+        <field>Addison</field>
+        <field>Agusan del Norte</field>
+        <field>Ahuacatlan</field>
+        <field>Aiken</field>
+        <field>Aitkin</field>
+        <field>Alachua</field>
+        <field>Alamance</field>
         <field>Alameda</field>
+        <field>Alamosa</field>
+        <field>Albany</field>
+        <field>Albemarle</field>
+        <field>Alcona</field>
+        <field>Alcorn</field>
+        <field>Aleutians East</field>
+        <field>Aleutians West</field>
+        <field>Alexander</field>
+        <field>Alexandria</field>
+        <field>Alfalfa</field>
+        <field>Alger</field>
+        <field>Allamakee</field>
+        <field>Allegan</field>
+        <field>Allegany</field>
+        <field>Alleghany</field>
+        <field>Allegheny</field>
+        <field>Allen</field>
+        <field>Allendale</field>
+        <field>Alpena</field>
         <field>Alpine</field>
         <field>Amador</field>
+        <field>Amazonas</field>
+        <field>Amelia</field>
+        <field>Amherst</field>
+        <field>Amite</field>
+        <field>Anchorage</field>
+        <field>Anderson</field>
+        <field>Andrew</field>
+        <field>Andrews</field>
+        <field>Androscoggin</field>
+        <field>Angelina</field>
+        <field>Anglesey</field>
+        <field>Anglesey (UK)</field>
+        <field>Angus (Forfarshire) (UK)</field>
+        <field>Anne Arundel</field>
+        <field>Anoka</field>
+        <field>Anson</field>
+        <field>Antelope</field>
+        <field>Antonina</field>
+        <field>Antrim</field>
+        <field>Antrim (UK)</field>
+        <field>Apache</field>
+        <field>Appanoose</field>
+        <field>Appling</field>
+        <field>Appomattox</field>
+        <field>Aransas</field>
+        <field>Arapahoe</field>
+        <field>Archer</field>
+        <field>Archuleta</field>
+        <field>Arenac</field>
+        <field>Argyll (Argyllshire) (UK)</field>
+        <field>Arkansas</field>
+        <field>Arlington</field>
+        <field>Armagh (UK)</field>
+        <field>Armstrong</field>
+        <field>Aroostook</field>
+        <field>Arran, Island of</field>
+        <field>Arthur</field>
+        <field>Ascension</field>
+        <field>Ashe</field>
+        <field>Ashland</field>
+        <field>Ashley</field>
+        <field>Ashtabula</field>
+        <field>Asotin</field>
+        <field>Assumption</field>
+        <field>Atascosa</field>
+        <field>Atchison</field>
+        <field>Athens</field>
+        <field>Atkinson</field>
+        <field>Atlantic</field>
+        <field>Atoka</field>
+        <field>Attala</field>
+        <field>Audrain</field>
+        <field>Audubon</field>
+        <field>Auglaize</field>
+        <field>Augusta</field>
+        <field>Aurora</field>
+        <field>Austin</field>
+        <field>Autauga</field>
+        <field>Avery</field>
+        <field>Avoyelles</field>
+        <field>Ayopaya</field>
+        <field>Ayrshire (UK)</field>
+        <field>Ba</field>
+        <field>Baca</field>
+        <field>Bacon</field>
+        <field>Bagua</field>
+        <field>Bailey</field>
+        <field>Baker</field>
+        <field>Baldwin</field>
+        <field>Ballard</field>
+        <field>Baltimore</field>
+        <field>Bamberg</field>
+        <field>Bandera</field>
+        <field>Banffshire (UK)</field>
+        <field>Banks</field>
+        <field>Banner</field>
+        <field>Bannock</field>
+        <field>Baraga</field>
+        <field>Barber</field>
+        <field>Barbour</field>
+        <field>Barnes</field>
+        <field>Barnstable</field>
+        <field>Barnwell</field>
+        <field>Barreiras</field>
+        <field>Barren</field>
+        <field>Barron</field>
+        <field>Barrow</field>
+        <field>Barry</field>
+        <field>Bartholomew</field>
+        <field>Barton</field>
+        <field>Bartow</field>
+        <field>Bastrop</field>
+        <field>Bates</field>
+        <field>Bath</field>
+        <field>Baxter</field>
+        <field>Bay</field>
+        <field>Bayfield</field>
+        <field>Baylor</field>
+        <field>Beadle</field>
+        <field>Bear Lake</field>
+        <field>Beaufort</field>
+        <field>Beauregard</field>
+        <field>Beaver</field>
+        <field>Beaverhead</field>
+        <field>Becker</field>
+        <field>Beckham</field>
+        <field>Bedford</field>
+        <field>Bedfordshire (UK)</field>
+        <field>Bee</field>
+        <field>Belknap</field>
+        <field>Bell</field>
+        <field>Belmont</field>
+        <field>Beltrami</field>
+        <field>Ben Hill</field>
+        <field>Benewah</field>
+        <field>Bennett</field>
+        <field>Bennington</field>
+        <field>Benson</field>
+        <field>Bent</field>
+        <field>Benton</field>
+        <field>Benzie</field>
+        <field>Bergen</field>
+        <field>Berkeley</field>
+        <field>Berks</field>
+        <field>Berkshire</field>
+        <field>Berkshire (UK)</field>
+        <field>Bernalillo</field>
+        <field>Berrien</field>
+        <field>Bertie</field>
+        <field>Berwickshire (UK)</field>
+        <field>Bethel</field>
+        <field>Bexar</field>
+        <field>Bibb</field>
+        <field>Bienville</field>
+        <field>Big Horn</field>
+        <field>Big Stone</field>
+        <field>Billings</field>
+        <field>Bingham</field>
+        <field>Black Hawk</field>
+        <field>Blackford</field>
+        <field>Bladen</field>
+        <field>Blaine</field>
+        <field>Blair</field>
+        <field>Blanco</field>
+        <field>Bland</field>
+        <field>Bleckley</field>
+        <field>Bledsoe</field>
+        <field>Blount</field>
+        <field>Blue Earth</field>
+        <field>Boise</field>
+        <field>Bolivar</field>
+        <field>Bollinger</field>
+        <field>Bon Homme</field>
+        <field>Bonaventure</field>
+        <field>Bond</field>
+        <field>Bongara</field>
+        <field>Bonner</field>
+        <field>Bonneville</field>
+        <field>Boone</field>
+        <field>Borden</field>
+        <field>Bosque</field>
+        <field>Bossier</field>
+        <field>Botetourt</field>
+        <field>Bothwell Municipality</field>
+        <field>Bottineau</field>
+        <field>Boulder</field>
+        <field>Boundary</field>
+        <field>Bourbon</field>
+        <field>Bowie</field>
+        <field>Bowman</field>
+        <field>Box Butte</field>
+        <field>Box Elder</field>
+        <field>Boyd</field>
+        <field>Boyle</field>
+        <field>Bracken</field>
+        <field>Bradford</field>
+        <field>Bradley</field>
+        <field>Branch</field>
+        <field>Brantley</field>
+        <field>Braxton</field>
+        <field>Brazoria</field>
+        <field>Brazos</field>
+        <field>Breathitt</field>
+        <field>Breckinridge</field>
+        <field>Brecknockshire (Breconshire) (UK)</field>
+        <field>Bremer</field>
+        <field>Brevard</field>
+        <field>Brewster</field>
+        <field>Briscoe</field>
+        <field>Bristol</field>
+        <field>Bristol Bay</field>
+        <field>Broadwater</field>
+        <field>Bronx</field>
+        <field>Brooke</field>
+        <field>Brookings</field>
+        <field>Brooks</field>
+        <field>Broome</field>
+        <field>Broomfield</field>
+        <field>Broward</field>
+        <field>Brown</field>
+        <field>Brule</field>
+        <field>Brunswick</field>
+        <field>Bryan</field>
+        <field>Buchanan</field>
+        <field>Buckingham</field>
+        <field>Buckinghamshire (UK)</field>
+        <field>Bucks</field>
+        <field>Buena Vista</field>
+        <field>Buffalo</field>
+        <field>Bullitt</field>
+        <field>Bulloch</field>
+        <field>Bullock</field>
+        <field>Buncombe</field>
+        <field>Bureau</field>
+        <field>Burke</field>
+        <field>Burleigh</field>
+        <field>Burleson</field>
+        <field>Burlington</field>
+        <field>Burnet</field>
+        <field>Burnett</field>
+        <field>Burnie Municipality</field>
+        <field>Burt</field>
+        <field>Buteshire (UK)</field>
+        <field>Butler</field>
         <field>Butte</field>
+        <field>Butts</field>
+        <field>Cabarrus</field>
+        <field>Cabell</field>
+        <field>Cache</field>
+        <field>Caddo</field>
+        <field>Caernarfonshire (Carnarvonshire) (UK)</field>
+        <field>Caithness (UK)</field>
+        <field>Cajamarca</field>
         <field>Calaveras</field>
+        <field>Calcasieu</field>
+        <field>Caldwell</field>
+        <field>Caledonia</field>
+        <field>Calhoun</field>
+        <field>Callahan</field>
+        <field>Callaway</field>
+        <field>Calloway</field>
+        <field>Calumet</field>
+        <field>Calvert</field>
+        <field>Camas</field>
+        <field>Cambria</field>
+        <field>Cambridgeshire (UK)</field>
+        <field>Camden</field>
+        <field>Cameron</field>
+        <field>Camp</field>
+        <field>Campbell</field>
+        <field>Canadian</field>
+        <field>Candelaria</field>
+        <field>Candler</field>
+        <field>Cannon</field>
+        <field>Canyon</field>
+        <field>Cape Girardeau</field>
+        <field>Cape May</field>
+        <field>Capiz</field>
+        <field>Carangola</field>
+        <field>Carbon</field>
+        <field>Cardiganshire (UK)</field>
+        <field>Caribou</field>
+        <field>Carlisle</field>
+        <field>Carlton</field>
+        <field>Carmarthenshire (UK)</field>
+        <field>Caroline</field>
+        <field>Carroll</field>
+        <field>Carson</field>
+        <field>Carson City</field>
+        <field>Carter</field>
+        <field>Carteret</field>
+        <field>Carver</field>
+        <field>Cascade</field>
+        <field>Casey</field>
+        <field>Cass</field>
+        <field>Cassia</field>
+        <field>Castro</field>
+        <field>Castrovirreina</field>
+        <field>Caswell</field>
+        <field>Catahoula</field>
+        <field>Catawba</field>
+        <field>Catoosa</field>
+        <field>Catron</field>
+        <field>Cattaraugus</field>
+        <field>Cautin</field>
+        <field>Cavalier</field>
+        <field>Cayuga</field>
+        <field>Cecil</field>
+        <field>Cedar</field>
+        <field>Celendin</field>
+        <field>Centre</field>
+        <field>Cerro Gordo</field>
+        <field>Chachapoyas</field>
+        <field>Chaffee</field>
+        <field>Chambers</field>
+        <field>Champaign</field>
+        <field>Chariton</field>
+        <field>Charles</field>
+        <field>Charles City</field>
+        <field>Charles Mix</field>
+        <field>Charleston</field>
+        <field>Charlevoix</field>
+        <field>Charlotte</field>
+        <field>Charlottesville</field>
+        <field>Charlton</field>
+        <field>Chase</field>
+        <field>Chatham</field>
+        <field>Chattahoochee</field>
+        <field>Chattooga</field>
+        <field>Chautauqua</field>
+        <field>Chaves</field>
+        <field>Cheatham</field>
+        <field>Cheboygan</field>
+        <field>Chelan</field>
+        <field>Chemung</field>
+        <field>Chenango</field>
+        <field>Cherokee</field>
+        <field>Cherry</field>
+        <field>Chesapeake</field>
+        <field>Cheshire</field>
+        <field>Cheshire (UK)</field>
+        <field>Chester</field>
+        <field>Chesterfield</field>
+        <field>Cheyenne</field>
+        <field>Chiang Mai, Changwat</field>
+        <field>Chickasaw</field>
+        <field>Chicligasta</field>
+        <field>Chicot</field>
+        <field>Childress</field>
+        <field>Chilton</field>
+        <field>Chippewa</field>
+        <field>Chisago</field>
+        <field>Chittenden</field>
+        <field>Choctaw</field>
+        <field>Chouteau</field>
+        <field>Chowan</field>
+        <field>Christian</field>
+        <field>Churchill</field>
+        <field>Cibola</field>
+        <field>Cimarron</field>
+        <field>Citrus</field>
+        <field>Clackamas</field>
+        <field>Clackmannanshire (UK)</field>
+        <field>Claiborne</field>
+        <field>Clallam</field>
+        <field>Clare</field>
+        <field>Clarendon</field>
+        <field>Clarion</field>
+        <field>Clark</field>
+        <field>Clarke</field>
+        <field>Clatsop</field>
+        <field>Clay</field>
+        <field>Clayton</field>
+        <field>Clear Creek</field>
+        <field>Clearfield</field>
+        <field>Clearwater</field>
+        <field>Cleburne</field>
+        <field>Clermont</field>
+        <field>Cleveland</field>
+        <field>Clinch</field>
+        <field>Clinton</field>
+        <field>Cloud</field>
+        <field>Coahoma</field>
+        <field>Coal</field>
+        <field>Cobb</field>
+        <field>Cochise</field>
+        <field>Cochran</field>
+        <field>Cocke</field>
+        <field>Coconino</field>
+        <field>Codington</field>
+        <field>Coffee</field>
+        <field>Coffey</field>
+        <field>Coke</field>
+        <field>Colbert</field>
+        <field>Cole</field>
+        <field>Coleman</field>
+        <field>Coles</field>
+        <field>Colfax</field>
+        <field>Colleton</field>
+        <field>Collier</field>
+        <field>Collin</field>
+        <field>Collingsworth</field>
+        <field>Colonial Heights</field>
+        <field>Colorado</field>
+        <field>Colquitt</field>
+        <field>Columbia</field>
+        <field>Columbiana</field>
+        <field>Columbus</field>
         <field>Colusa</field>
+        <field>Comal</field>
+        <field>Comanche</field>
+        <field>Comondú</field>
+        <field>Compostela</field>
+        <field>Concho</field>
+        <field>Concordia</field>
+        <field>Conecuh</field>
+        <field>Conejos</field>
         <field>Contra Costa</field>
+        <field>Converse</field>
+        <field>Conway</field>
+        <field>Cook</field>
+        <field>Cooke</field>
+        <field>Cooper</field>
+        <field>Coos</field>
+        <field>Coosa</field>
+        <field>Copiah</field>
+        <field>Cornwall</field>
+        <field>Cornwall (UK)</field>
+        <field>Corson</field>
+        <field>Cortland</field>
+        <field>Corumba</field>
+        <field>Coryell</field>
+        <field>Coshocton</field>
+        <field>Costilla</field>
+        <field>Cottle</field>
+        <field>Cotton</field>
+        <field>Cottonwood</field>
+        <field>Covington</field>
+        <field>Coweta</field>
+        <field>Cowley</field>
+        <field>Cowlitz</field>
+        <field>Craig</field>
+        <field>Craighead</field>
+        <field>Crane</field>
+        <field>Craven</field>
+        <field>Crawford</field>
+        <field>Creek</field>
+        <field>Crenshaw</field>
+        <field>Crisp</field>
+        <field>Crittenden</field>
+        <field>Crockett</field>
+        <field>Cromartyshire (UK)</field>
+        <field>Crook</field>
+        <field>Crosby</field>
+        <field>Cross</field>
+        <field>Crow Wing</field>
+        <field>Crowley</field>
+        <field>Culberson</field>
+        <field>Cullman</field>
+        <field>Culpeper</field>
+        <field>Cumberland</field>
+        <field>Cumberland (UK)</field>
+        <field>Cuming</field>
+        <field>Currituck</field>
+        <field>Curry</field>
+        <field>Custer</field>
+        <field>Cuyahoga</field>
+        <field>Dade</field>
+        <field>Daggett</field>
+        <field>Dakota</field>
+        <field>Dale</field>
+        <field>Dallam</field>
+        <field>Dallas</field>
+        <field>Dane</field>
+        <field>Daniels</field>
+        <field>Danville</field>
+        <field>Dare</field>
+        <field>Darke</field>
+        <field>Darlington</field>
+        <field>Dauphin</field>
+        <field>Davidson</field>
+        <field>Davie</field>
+        <field>Daviess</field>
+        <field>Davis</field>
+        <field>Davison</field>
+        <field>Dawes</field>
+        <field>Dawson</field>
+        <field>Day</field>
+        <field>De Baca</field>
+        <field>De Kalb</field>
+        <field>De Soto</field>
+        <field>De Witt</field>
+        <field>Deaf Smith</field>
+        <field>Dearborn</field>
+        <field>Decatur</field>
+        <field>Deer Lodge</field>
+        <field>Defiance</field>
+        <field>DeKalb</field>
         <field>Del Norte</field>
+        <field>Delaware</field>
+        <field>Deloraine Municipality</field>
+        <field>Delta</field>
+        <field>Denali</field>
+        <field>Denbighshire (UK)</field>
+        <field>Dent</field>
+        <field>Denton</field>
+        <field>Denver</field>
+        <field>Derbyshire (UK)</field>
+        <field>Des Moines</field>
+        <field>Deschutes</field>
+        <field>Desha</field>
+        <field>DeSoto</field>
+        <field>Deuel</field>
+        <field>Devon (UK)</field>
+        <field>Dewey</field>
+        <field>DeWitt</field>
+        <field>Diamantina</field>
+        <field>Dickens</field>
+        <field>Dickenson</field>
+        <field>Dickey</field>
+        <field>Dickinson</field>
+        <field>Dickson</field>
+        <field>Dillingham</field>
+        <field>Dillon</field>
+        <field>Dimmit</field>
+        <field>Dinwiddie</field>
+        <field>District of Columbia</field>
+        <field>Divide</field>
+        <field>Dixie</field>
+        <field>Dixon</field>
+        <field>Doddridge</field>
+        <field>Dodge</field>
+        <field>Dolores</field>
+        <field>Dona Ana</field>
+        <field>Doniphan</field>
+        <field>Donley</field>
+        <field>Dooly</field>
+        <field>Door</field>
+        <field>Dorchester</field>
+        <field>Dorset (UK)</field>
+        <field>Dougherty</field>
+        <field>Douglas</field>
+        <field>Down (UK)</field>
+        <field>Doña Ana</field>
+        <field>Drew</field>
+        <field>Du Page</field>
+        <field>Dubois</field>
+        <field>Dubuque</field>
+        <field>Duchesne</field>
+        <field>Dukes</field>
+        <field>Dumbartonshire (UK)</field>
+        <field>Dumfriesshire (UK)</field>
+        <field>Dundy</field>
+        <field>Dunklin</field>
+        <field>Dunn</field>
+        <field>DuPage</field>
+        <field>Duplin</field>
+        <field>Durham</field>
+        <field>Durham (UK)</field>
+        <field>Dutchess</field>
+        <field>Duval</field>
+        <field>Dyer</field>
+        <field>Eagle</field>
+        <field>Early</field>
+        <field>East Baton Rouge</field>
+        <field>East Carroll</field>
+        <field>East Feliciana</field>
+        <field>East Lothian (UK)</field>
+        <field>Eastland</field>
+        <field>Eaton</field>
+        <field>Eau Claire</field>
+        <field>Echols</field>
+        <field>Ector</field>
+        <field>Eddy</field>
+        <field>Edgar</field>
+        <field>Edgecombe</field>
+        <field>Edgefield</field>
+        <field>Edmonson</field>
+        <field>Edmunds</field>
+        <field>Edwards</field>
+        <field>Effingham</field>
         <field>El Dorado</field>
+        <field>El Paso</field>
+        <field>Elbert</field>
+        <field>Elk</field>
+        <field>Elkhart</field>
+        <field>Elko</field>
+        <field>Elliott</field>
+        <field>Ellis</field>
+        <field>Ellsworth</field>
+        <field>Elmore</field>
+        <field>Emanuel</field>
+        <field>Emery</field>
+        <field>Emmet</field>
+        <field>Emmons</field>
+        <field>Emporia</field>
+        <field>Ensenada</field>
+        <field>Erath</field>
+        <field>Erie</field>
+        <field>Escambia</field>
+        <field>Esmeralda</field>
+        <field>Esmeraldas</field>
+        <field>Esperance Municipality</field>
+        <field>Essex</field>
+        <field>Essex (MA)</field>
+        <field>Essex (UK)</field>
+        <field>Estill</field>
+        <field>Etowah</field>
+        <field>Eureka</field>
+        <field>Evangeline</field>
+        <field>Evans</field>
+        <field>Fairbanks North Star</field>
+        <field>Fairfax</field>
+        <field>Fairfield</field>
+        <field>Fall River</field>
+        <field>Fallon</field>
+        <field>Falls</field>
+        <field>Falls Church</field>
+        <field>Fannin</field>
+        <field>Faribault</field>
+        <field>Faulk</field>
+        <field>Faulkner</field>
+        <field>Fauquier</field>
+        <field>Fayette</field>
+        <field>Fentress</field>
+        <field>Fergus</field>
+        <field>Fermanagh (UK)</field>
+        <field>Ferry</field>
+        <field>Fife (UK)</field>
+        <field>Fillmore</field>
+        <field>Fingal Municipality</field>
+        <field>Finney</field>
+        <field>Fisher</field>
+        <field>Flagler</field>
+        <field>Flathead</field>
+        <field>Fleming</field>
+        <field>Flintshire (UK)</field>
+        <field>Florence</field>
+        <field>Florida</field>
+        <field>Floyd</field>
+        <field>Fluvanna</field>
+        <field>Foard</field>
+        <field>Fond Du Lac</field>
+        <field>Fond du Lac</field>
+        <field>Ford</field>
+        <field>Forest</field>
+        <field>Forrest</field>
+        <field>Forsyth</field>
+        <field>Fort Bend</field>
+        <field>Foster</field>
+        <field>Fountain</field>
+        <field>Franklin</field>
+        <field>Frederick</field>
+        <field>Fredericksburg</field>
+        <field>Freeborn</field>
+        <field>Freestone</field>
+        <field>Fremont</field>
         <field>Fresno</field>
+        <field>Frio</field>
+        <field>Frontier</field>
+        <field>Fulton</field>
+        <field>Furnas</field>
+        <field>Gadsden</field>
+        <field>Gage</field>
+        <field>Gaines</field>
+        <field>Galapagos</field>
+        <field>Galax</field>
+        <field>Gallatin</field>
+        <field>Gallia</field>
+        <field>Galveston</field>
+        <field>Galway</field>
+        <field>Garden</field>
+        <field>Garfield</field>
+        <field>Garland</field>
+        <field>Garrard</field>
+        <field>Garrett</field>
+        <field>Garvin</field>
+        <field>Garza</field>
+        <field>Gasconade</field>
+        <field>Gaston</field>
+        <field>Gates</field>
+        <field>Geary</field>
+        <field>Geauga</field>
+        <field>Gem</field>
+        <field>Genesee</field>
+        <field>Geneva</field>
+        <field>Gentry</field>
+        <field>George</field>
+        <field>Georgetown</field>
+        <field>Gibson</field>
+        <field>Gila</field>
+        <field>Gilchrist</field>
+        <field>Giles</field>
+        <field>Gillespie</field>
+        <field>Gilliam</field>
+        <field>Gilmer</field>
+        <field>Gilpin</field>
+        <field>Glacier</field>
+        <field>Glades</field>
+        <field>Gladwin</field>
+        <field>Glamorgan (UK)</field>
+        <field>Glamorgan Municipality</field>
+        <field>Glascock</field>
+        <field>Glasscock</field>
         <field>Glenn</field>
+        <field>Glenorchy Municipality</field>
+        <field>Gloucester</field>
+        <field>Gloucestershire (UK)</field>
+        <field>Glynn</field>
+        <field>Gogebic</field>
+        <field>Golden Valley</field>
+        <field>Goliad</field>
+        <field>Gonzales</field>
+        <field>Goochland</field>
+        <field>Goodhue</field>
+        <field>Gooding</field>
+        <field>Gordon</field>
+        <field>Gormanston Municipality</field>
+        <field>Goshen</field>
+        <field>Gosper</field>
+        <field>Gouveia</field>
+        <field>Gove</field>
+        <field>Grady</field>
+        <field>Grafton</field>
+        <field>Graham</field>
+        <field>Grainger</field>
+        <field>Grand</field>
+        <field>Grand Forks</field>
+        <field>Grand Isle</field>
+        <field>Grand Traverse</field>
+        <field>Granite</field>
+        <field>Grant</field>
+        <field>Granville</field>
+        <field>Gratiot</field>
+        <field>Graves</field>
+        <field>Gray</field>
+        <field>Grays Harbor</field>
+        <field>Grayson</field>
+        <field>Greeley</field>
+        <field>Green</field>
+        <field>Green Lake</field>
+        <field>Greenbrier</field>
+        <field>Greene</field>
+        <field>Greenlee</field>
+        <field>Greensville</field>
+        <field>Greenup</field>
+        <field>Greenville</field>
+        <field>Greenwood</field>
+        <field>Greer</field>
+        <field>Gregg</field>
+        <field>Gregory</field>
+        <field>Grenada</field>
+        <field>Griggs</field>
+        <field>Grimes</field>
+        <field>Grundy</field>
+        <field>Guadalupe</field>
+        <field>Guaraquecaba</field>
+        <field>Guaratuba</field>
+        <field>Guernsey</field>
+        <field>Guilford</field>
+        <field>Gulf</field>
+        <field>Gunnison</field>
+        <field>Guthrie</field>
+        <field>Gwinnett</field>
+        <field>Haakon</field>
+        <field>Habersham</field>
+        <field>Haines</field>
+        <field>Hale</field>
+        <field>Halifax</field>
+        <field>Hall</field>
+        <field>Hamblen</field>
+        <field>Hamilton</field>
+        <field>Hamilton Municipality</field>
+        <field>Hamlin</field>
+        <field>Hampden</field>
+        <field>Hampshire</field>
+        <field>Hampshire (UK)</field>
+        <field>Hampton</field>
+        <field>Hancock</field>
+        <field>Hand</field>
+        <field>Hanover</field>
+        <field>Hansford</field>
+        <field>Hanson</field>
+        <field>Haralson</field>
+        <field>Hardee</field>
+        <field>Hardeman</field>
+        <field>Hardin</field>
+        <field>Harding</field>
+        <field>Hardy</field>
+        <field>Harford</field>
+        <field>Harlan</field>
+        <field>Harmon</field>
+        <field>Harnett</field>
+        <field>Harney</field>
+        <field>Harper</field>
+        <field>Harris</field>
+        <field>Harrison</field>
+        <field>Harrisonburg</field>
+        <field>Hart</field>
+        <field>Hartford</field>
+        <field>Hartley</field>
+        <field>Harvey</field>
+        <field>Haskell</field>
+        <field>Hawaii</field>
+        <field>Hawkins</field>
+        <field>Hayes</field>
+        <field>Hays</field>
+        <field>Haywood</field>
+        <field>Heard</field>
+        <field>Hemphill</field>
+        <field>Hempstead</field>
+        <field>Henderson</field>
+        <field>Hendricks</field>
+        <field>Hendry</field>
+        <field>Hennepin</field>
+        <field>Henrico</field>
+        <field>Henry</field>
+        <field>Herefordshire (UK)</field>
+        <field>Herkimer</field>
+        <field>Hernando</field>
+        <field>Hertford</field>
+        <field>Hertfordshire (UK)</field>
+        <field>Hettinger</field>
+        <field>Hickman</field>
+        <field>Hickory</field>
+        <field>Hidalgo</field>
+        <field>Highland</field>
+        <field>Highlands</field>
+        <field>Hill</field>
+        <field>Hillsborough</field>
+        <field>Hillsdale</field>
+        <field>Hinds</field>
+        <field>Hinsdale</field>
+        <field>Hitchcock</field>
+        <field>Hobart Municipality</field>
+        <field>Hocking</field>
+        <field>Hockley</field>
+        <field>Hodgeman</field>
+        <field>Hoke</field>
+        <field>Holmes</field>
+        <field>Holt</field>
+        <field>Honolulu</field>
+        <field>Hood</field>
+        <field>Hood River</field>
+        <field>Hooker</field>
+        <field>Hoonah–Angoon</field>
+        <field>Hopewell</field>
+        <field>Hopkins</field>
+        <field>Horry</field>
+        <field>Hot Spring</field>
+        <field>Hot Springs</field>
+        <field>Houghton</field>
+        <field>Houston</field>
+        <field>Howard</field>
+        <field>Howell</field>
+        <field>Huancabamba</field>
+        <field>Huanuco</field>
+        <field>Hubbard</field>
+        <field>Hudson</field>
+        <field>Hudspeth</field>
+        <field>Huerfano</field>
+        <field>Hughes</field>
         <field>Humboldt</field>
+        <field>Humphreys</field>
+        <field>Hunt</field>
+        <field>Hunterdon</field>
+        <field>Huntingdon</field>
+        <field>Huntingdonshire (UK)</field>
+        <field>Huntington</field>
+        <field>Huron</field>
+        <field>Hutchinson</field>
+        <field>Hyde</field>
+        <field>Iberia</field>
+        <field>Iberville</field>
+        <field>Ida</field>
+        <field>Idaho</field>
         <field>Imperial</field>
+        <field>Independence</field>
+        <field>Indian River</field>
+        <field>Indiana</field>
+        <field>Ingham</field>
+        <field>Inverness-shire (UK)</field>
         <field>Inyo</field>
+        <field>Ionia</field>
+        <field>Iosco</field>
+        <field>Iowa</field>
+        <field>Iredell</field>
+        <field>Irion</field>
+        <field>Iron</field>
+        <field>Iroquois</field>
+        <field>Irwin</field>
+        <field>Isabella</field>
+        <field>Isanti</field>
+        <field>Island</field>
+        <field>Isle of Wight</field>
+        <field>Issaquena</field>
+        <field>Itasca</field>
+        <field>Itawamba</field>
+        <field>Ixtlan</field>
+        <field>Izard</field>
+        <field>Jack</field>
+        <field>Jackson</field>
+        <field>Jaguariaiya</field>
+        <field>Jalisco</field>
+        <field>James City</field>
+        <field>Jasper</field>
+        <field>Jay</field>
+        <field>Jeff Davis</field>
+        <field>Jefferson</field>
+        <field>Jefferson Davis</field>
+        <field>Jenkins</field>
+        <field>Jennings</field>
+        <field>Jerauld</field>
+        <field>Jerome</field>
+        <field>Jersey</field>
+        <field>Jessamine</field>
+        <field>Jewell</field>
+        <field>Jim Hogg</field>
+        <field>Jim Wells</field>
+        <field>Jo Daviess</field>
+        <field>Johnson</field>
+        <field>Johnston</field>
+        <field>Jolo Group</field>
+        <field>Jones</field>
+        <field>Josephine</field>
+        <field>Juab</field>
+        <field>Judith Basin</field>
+        <field>Juneau</field>
+        <field>Juniata</field>
+        <field>Juquila</field>
+        <field>Kalamazoo</field>
+        <field>Kalawao</field>
+        <field>Kalkaska</field>
+        <field>Kanabec</field>
+        <field>Kanawha</field>
+        <field>Kandavu</field>
+        <field>Kandiyohi</field>
+        <field>Kane</field>
+        <field>Kankakee</field>
+        <field>Karnes</field>
+        <field>Kauai</field>
+        <field>Kaufman</field>
+        <field>Kay</field>
+        <field>Kearney</field>
+        <field>Kearny</field>
+        <field>Keith</field>
+        <field>Kemper</field>
+        <field>Kenai Peninsula</field>
+        <field>Kendall</field>
+        <field>Kenedy</field>
+        <field>Kennebec</field>
+        <field>Kenosha</field>
+        <field>Kent</field>
+        <field>Kent (UK)</field>
+        <field>Kentish Municipality</field>
+        <field>Kenton</field>
+        <field>Keokuk</field>
+        <field>Kepulauan</field>
+        <field>Kepulauan Kangean Islands</field>
         <field>Kern</field>
+        <field>Kerr</field>
+        <field>Kershaw</field>
+        <field>Ketchikan Gateway</field>
+        <field>Kewaunee</field>
+        <field>Keweenaw</field>
+        <field>Keya Paha</field>
+        <field>Kidder</field>
+        <field>Kimball</field>
+        <field>Kimble</field>
+        <field>Kincardineshire (UK)</field>
+        <field>King</field>
+        <field>King and Queen</field>
+        <field>King George</field>
+        <field>King William</field>
+        <field>Kingborough Municipality</field>
+        <field>Kingfisher</field>
+        <field>Kingman</field>
         <field>Kings</field>
+        <field>Kingsbury</field>
+        <field>Kinney</field>
+        <field>Kinross-shire (UK)</field>
+        <field>Kiowa</field>
+        <field>Kirkcudbrightshire (UK)</field>
+        <field>Kit Carson</field>
+        <field>Kitsap</field>
+        <field>Kittitas</field>
+        <field>Kittson</field>
+        <field>Klamath</field>
+        <field>Kleberg</field>
+        <field>Klickitat</field>
+        <field>Knott</field>
+        <field>Knox</field>
+        <field>Kodiak Island</field>
+        <field>Koochiching</field>
+        <field>Kootenai</field>
+        <field>Korinthos</field>
+        <field>Koro</field>
+        <field>Kosciusko</field>
+        <field>Kossuth</field>
+        <field>La Crosse</field>
+        <field>La Paz</field>
+        <field>La Plata</field>
+        <field>La Salle</field>
+        <field>Labette</field>
+        <field>Lac qui Parle</field>
+        <field>Lackawanna</field>
+        <field>Laclede</field>
+        <field>Lafayette</field>
+        <field>Lafourche</field>
+        <field>LaGrange</field>
         <field>Lake</field>
+        <field>Lake and Peninsula</field>
+        <field>Lake of the Woods</field>
+        <field>Lamar</field>
+        <field>Lamas</field>
+        <field>Lamb</field>
+        <field>Lamoille</field>
+        <field>LaMoure</field>
+        <field>Lampasas</field>
+        <field>Lanarkshire (UK)</field>
+        <field>Lancashire (UK)</field>
+        <field>Lancaster</field>
+        <field>Lander</field>
+        <field>Lane</field>
+        <field>Langlade</field>
+        <field>Lanier</field>
+        <field>Lapeer</field>
+        <field>LaPorte</field>
+        <field>Laramie</field>
+        <field>Larecaja</field>
+        <field>Larimer</field>
+        <field>LaRue</field>
+        <field>Las Animas</field>
+        <field>LaSalle</field>
         <field>Lassen</field>
+        <field>Latah</field>
+        <field>Latimer</field>
+        <field>Lauderdale</field>
+        <field>Launceston Municipality</field>
+        <field>Laurel</field>
+        <field>Laurens</field>
+        <field>Lavaca</field>
+        <field>Lawrence</field>
+        <field>Le Flore</field>
+        <field>Le Sueur</field>
+        <field>Lea</field>
+        <field>Leake</field>
+        <field>Leavenworth</field>
+        <field>Lebanon</field>
+        <field>Lee</field>
+        <field>Leelanau</field>
+        <field>Leflore</field>
+        <field>Lehigh</field>
+        <field>Leicestershire (UK)</field>
+        <field>Lemhi</field>
+        <field>Lenawee</field>
+        <field>Lenoir</field>
+        <field>Leon</field>
+        <field>Leslie</field>
+        <field>Letcher</field>
+        <field>Levy</field>
+        <field>Lewis</field>
+        <field>Lewis and Clark</field>
+        <field>Lexington</field>
+        <field>Liberty</field>
+        <field>Licking</field>
+        <field>Lilydale Municipality</field>
+        <field>Limestone</field>
+        <field>Lincoln</field>
+        <field>Lincolnshire (UK)</field>
+        <field>Linn</field>
+        <field>Lipscomb</field>
+        <field>Litchfield</field>
+        <field>Little River</field>
+        <field>Live Oak</field>
+        <field>Livingston</field>
+        <field>Llano</field>
+        <field>Logan</field>
+        <field>Loja</field>
+        <field>Londonderry (UK)</field>
+        <field>Long</field>
+        <field>Longford Municipality</field>
+        <field>Lonoke</field>
+        <field>Lorain</field>
+        <field>Loreto</field>
+        <field>Los Alamos</field>
         <field>Los Angeles</field>
+        <field>Los Cabos</field>
+        <field>Loudon</field>
+        <field>Loudoun</field>
+        <field>Louisa</field>
+        <field>Loup</field>
+        <field>Love</field>
+        <field>Loving</field>
+        <field>Lowndes</field>
+        <field>Lubbock</field>
+        <field>Lucas</field>
+        <field>Luce</field>
+        <field>Lumpkin</field>
+        <field>Luna</field>
+        <field>Lunenburg</field>
+        <field>Luzerne</field>
+        <field>Lycoming</field>
+        <field>Lyman</field>
+        <field>Lynchburg</field>
+        <field>Lynn</field>
+        <field>Lyon</field>
+        <field>Mackinac</field>
+        <field>Macomb</field>
+        <field>Macon</field>
+        <field>Macoupin</field>
         <field>Madera</field>
+        <field>Madison</field>
+        <field>Magoffin</field>
+        <field>Mahaska</field>
+        <field>Mahnomen</field>
+        <field>Mahoning</field>
+        <field>Major</field>
+        <field>Malheur</field>
+        <field>Manabi</field>
+        <field>Manassas</field>
+        <field>Manassas Park</field>
+        <field>Manatee</field>
+        <field>Manistee</field>
+        <field>Manitowoc</field>
+        <field>Marathon</field>
+        <field>Marengo</field>
+        <field>Maricopa</field>
+        <field>Maries</field>
         <field>Marin</field>
+        <field>Marinette</field>
+        <field>Marion</field>
         <field>Mariposa</field>
+        <field>Marlboro</field>
+        <field>Marquette</field>
+        <field>Marshall</field>
+        <field>Martin</field>
+        <field>Martinsville</field>
+        <field>Mason</field>
+        <field>Massac</field>
+        <field>Matagorda</field>
+        <field>Matanuska-Susitna</field>
+        <field>Mathews</field>
+        <field>Maui</field>
+        <field>Maury</field>
+        <field>Maverick</field>
+        <field>Mayes</field>
+        <field>McClain</field>
+        <field>McCone</field>
+        <field>McCook</field>
+        <field>McCormick</field>
+        <field>McCracken</field>
+        <field>McCreary</field>
+        <field>McCulloch</field>
+        <field>McCurtain</field>
+        <field>McDonald</field>
+        <field>McDonough</field>
+        <field>McDowell</field>
+        <field>McDuffie</field>
+        <field>McHenry</field>
+        <field>McIntosh</field>
+        <field>McKean</field>
+        <field>McKenzie</field>
+        <field>McKinley</field>
+        <field>McLean</field>
+        <field>McLennan</field>
+        <field>McLeod</field>
+        <field>McMinn</field>
+        <field>McMullen</field>
+        <field>McNairy</field>
+        <field>McPherson</field>
+        <field>Meade</field>
+        <field>Meagher</field>
+        <field>Mecklenburg</field>
+        <field>Mecosta</field>
+        <field>Medina</field>
+        <field>Meeker</field>
+        <field>Meigs</field>
+        <field>Mellette</field>
+        <field>Menard</field>
         <field>Mendocino</field>
+        <field>Menifee</field>
+        <field>Menominee</field>
         <field>Merced</field>
+        <field>Mercer</field>
+        <field>Merionethshire (UK)</field>
+        <field>Meriwether</field>
+        <field>Merrick</field>
+        <field>Merrimack</field>
+        <field>Mesa</field>
+        <field>Metcalfe</field>
+        <field>Mexicali</field>
+        <field>Miahuatlan</field>
+        <field>Miami</field>
+        <field>Miami-Dade</field>
+        <field>Middlesex</field>
+        <field>Middlesex (UK)</field>
+        <field>Midland</field>
+        <field>Midlothian (UK)</field>
+        <field>Mifflin</field>
+        <field>Milam</field>
+        <field>Millard</field>
+        <field>Mille Lacs</field>
+        <field>Miller</field>
+        <field>Mills</field>
+        <field>Milwaukee</field>
+        <field>Miner</field>
+        <field>Mineral</field>
+        <field>Mingo</field>
+        <field>Minidoka</field>
+        <field>Minnehaha</field>
+        <field>Missaukee</field>
+        <field>Mississippi</field>
+        <field>Missoula</field>
+        <field>Mitchell</field>
+        <field>Mizque</field>
+        <field>Mobile</field>
         <field>Modoc</field>
+        <field>Moffat</field>
+        <field>Mohave</field>
+        <field>Moniteau</field>
+        <field>Monmouth</field>
+        <field>Monmouthshire (UK)</field>
         <field>Mono</field>
+        <field>Monona</field>
+        <field>Monongalia</field>
+        <field>Monroe</field>
+        <field>Montague</field>
+        <field>Montcalm</field>
         <field>Monterey</field>
+        <field>Montezuma</field>
+        <field>Montgomery</field>
+        <field>Montgomeryshire (UK)</field>
+        <field>Montmorency</field>
+        <field>Montour</field>
+        <field>Montrose</field>
+        <field>Moody</field>
+        <field>Moore</field>
+        <field>Mora</field>
+        <field>Morayshire (UK)</field>
+        <field>Morehouse</field>
+        <field>Morgan</field>
+        <field>Morrill</field>
+        <field>Morris</field>
+        <field>Morrison</field>
+        <field>Morro do Chapeu</field>
+        <field>Morrow</field>
+        <field>Morton</field>
+        <field>Motley</field>
+        <field>Moultrie</field>
+        <field>Mountrail</field>
+        <field>Mower</field>
+        <field>Muhlenberg</field>
+        <field>Mulegé</field>
+        <field>Multnomah</field>
+        <field>Murray</field>
+        <field>Muscatine</field>
+        <field>Muscogee</field>
+        <field>Muskegon</field>
+        <field>Muskingum</field>
+        <field>Muskogee</field>
+        <field>Musselshell</field>
+        <field>Nacogdoches</field>
+        <field>Nairnshire (UK)</field>
+        <field>Nakhon Ratchasima, Changwat</field>
+        <field>Nance</field>
+        <field>Nantucket</field>
+        <field>Nantucket (MA)</field>
         <field>Napa</field>
+        <field>Nash</field>
+        <field>Nassau</field>
+        <field>Natchitoches</field>
+        <field>Natrona</field>
+        <field>Navajo</field>
+        <field>Navarro</field>
+        <field>Nelson</field>
+        <field>Nemaha</field>
+        <field>Neosho</field>
+        <field>Neshoba</field>
+        <field>Ness</field>
         <field>Nevada</field>
+        <field>New Castle</field>
+        <field>New Hanover</field>
+        <field>New Haven</field>
+        <field>New Kent</field>
+        <field>New London</field>
+        <field>New Madrid</field>
+        <field>New Norfolk Municipality</field>
+        <field>New York</field>
+        <field>Newaygo</field>
+        <field>Newberry</field>
+        <field>Newport</field>
+        <field>Newport News</field>
+        <field>Newton</field>
+        <field>Nez Perc</field>
+        <field>Nez Perce</field>
+        <field>Niagara</field>
+        <field>Nicholas</field>
+        <field>Nicholson</field>
+        <field>Nicollet</field>
+        <field>Niobrara</field>
+        <field>Noble</field>
+        <field>Nobles</field>
+        <field>Nodaway</field>
+        <field>Nolan</field>
+        <field>Nome</field>
+        <field>Norfolk</field>
+        <field>Norfolk (UK)</field>
+        <field>Norman</field>
+        <field>North Slope</field>
+        <field>Northampton</field>
+        <field>Northamptonshire (UK)</field>
+        <field>Northumberland</field>
+        <field>Northumberland (UK)</field>
+        <field>Northwest Arctic</field>
+        <field>Norton</field>
+        <field>Nottinghamshire (UK)</field>
+        <field>Nottoway</field>
+        <field>Nowata</field>
+        <field>Noxubee</field>
+        <field>Nuckolls</field>
+        <field>Nueces</field>
+        <field>Nueva Vizcaya</field>
+        <field>Nye</field>
+        <field>O'Brien</field>
+        <field>Oakland</field>
+        <field>Oatlands Municipality</field>
+        <field>Obion</field>
+        <field>Ocean</field>
+        <field>Oceana</field>
+        <field>Ochiltree</field>
+        <field>Oconee</field>
+        <field>Oconto</field>
+        <field>Ogemaw</field>
+        <field>Ogle</field>
+        <field>Oglethorpe</field>
+        <field>Ohio</field>
+        <field>Okaloosa</field>
+        <field>Okanogan</field>
+        <field>Okeechobee</field>
+        <field>Okfuskee</field>
+        <field>Oklahoma</field>
+        <field>Okmulgee</field>
+        <field>Oktibbeha</field>
+        <field>Oldham</field>
+        <field>Oliver</field>
+        <field>Olmsted</field>
+        <field>Oneida</field>
+        <field>Onondaga</field>
+        <field>Onslow</field>
+        <field>Ontario</field>
+        <field>Ontonagon</field>
         <field>Orange</field>
+        <field>Orangeburg</field>
+        <field>Oregon</field>
+        <field>Orkney (UK)</field>
+        <field>Orleans</field>
+        <field>Osage</field>
+        <field>Osborne</field>
+        <field>Osceola</field>
+        <field>Oscoda</field>
+        <field>Oswego</field>
+        <field>Otero</field>
+        <field>Otoe</field>
+        <field>Otsego</field>
+        <field>Ottawa</field>
+        <field>Otter Tail</field>
+        <field>Ouachita</field>
+        <field>Ouray</field>
+        <field>Outagamie</field>
+        <field>Overton</field>
+        <field>Owen</field>
+        <field>Owsley</field>
+        <field>Owyhee</field>
+        <field>Oxford</field>
+        <field>Oxfordshire (UK)</field>
+        <field>Ozark</field>
+        <field>Ozaukee</field>
+        <field>Pacific</field>
+        <field>Page</field>
+        <field>Palm Beach</field>
+        <field>Palmeira</field>
+        <field>Palo Alto</field>
+        <field>Palo Pinto</field>
+        <field>Pamlico</field>
+        <field>Pampanga</field>
+        <field>Pangasinan</field>
+        <field>Panola</field>
+        <field>Paranagua</field>
+        <field>Park</field>
+        <field>Parke</field>
+        <field>Parker</field>
+        <field>Parmer</field>
+        <field>Pasco</field>
+        <field>Pasquotank</field>
+        <field>Passaic</field>
+        <field>Patrick</field>
+        <field>Paulding</field>
+        <field>Pawnee</field>
+        <field>Payette</field>
+        <field>Payne</field>
+        <field>Peach</field>
+        <field>Pearl River</field>
+        <field>Pecos</field>
+        <field>Peeblesshire (UK)</field>
+        <field>Pembina</field>
+        <field>Pembrokeshire (UK)</field>
+        <field>Pemiscot</field>
+        <field>Pend Oreille</field>
+        <field>Pender</field>
+        <field>Pendleton</field>
+        <field>Penguin Municipality</field>
+        <field>Pennington</field>
+        <field>Penobscot</field>
+        <field>Peoria</field>
+        <field>Pepin</field>
+        <field>Perkins</field>
+        <field>Perquimans</field>
+        <field>Perry</field>
+        <field>Pershing</field>
+        <field>Person</field>
+        <field>Perthshire (UK)</field>
+        <field>Petersburg</field>
+        <field>Petroleum</field>
+        <field>Pettis</field>
+        <field>Phelps</field>
+        <field>Philadelphia</field>
+        <field>Phillips</field>
+        <field>Piatt</field>
+        <field>Pickaway</field>
+        <field>Pickens</field>
+        <field>Pickett</field>
+        <field>Pierce</field>
+        <field>Pike</field>
+        <field>Pima</field>
+        <field>Pinal</field>
+        <field>Pine</field>
+        <field>Pinellas</field>
+        <field>Pipestone</field>
+        <field>Piscataquis</field>
+        <field>Pitkin</field>
+        <field>Pitt</field>
+        <field>Pittsburg</field>
+        <field>Pittsylvania</field>
+        <field>Piura</field>
+        <field>Piute</field>
         <field>Placer</field>
+        <field>Plaquemines</field>
+        <field>Platte</field>
+        <field>Pleasants</field>
         <field>Plumas</field>
+        <field>Plymouth</field>
+        <field>Pocahontas</field>
+        <field>Pochutla</field>
+        <field>Poinsett</field>
+        <field>Pointe Coupee</field>
+        <field>Polk</field>
+        <field>Pondera</field>
+        <field>Pontotoc</field>
+        <field>Pope</field>
+        <field>Poquoson</field>
+        <field>Portage</field>
+        <field>Porter</field>
+        <field>Portland Municipality</field>
+        <field>Portsmouth</field>
+        <field>Posey</field>
+        <field>Pottawatomie</field>
+        <field>Pottawattamie</field>
+        <field>Potter</field>
+        <field>Powder River</field>
+        <field>Powell</field>
+        <field>Power</field>
+        <field>Poweshiek</field>
+        <field>Powhatan</field>
+        <field>Prairie</field>
+        <field>Pratt</field>
+        <field>Preble</field>
+        <field>Prentiss</field>
+        <field>Presidio</field>
+        <field>Presque Isle</field>
+        <field>Preston</field>
+        <field>Price</field>
+        <field>Prince Edward</field>
+        <field>Prince George</field>
+        <field>Prince George's</field>
+        <field>Prince of Wales-Hyder</field>
+        <field>Prince William</field>
+        <field>Providence</field>
+        <field>Prowers</field>
+        <field>Pueblo</field>
+        <field>Pujili</field>
+        <field>Pulaski</field>
+        <field>Pushmataha</field>
+        <field>Putnam</field>
+        <field>Quay</field>
+        <field>Queen Anne's</field>
+        <field>Queen Elizabeth Islands</field>
+        <field>Queens</field>
+        <field>Quezon</field>
+        <field>Quitman</field>
+        <field>Quito</field>
+        <field>Rabun</field>
+        <field>Racine</field>
+        <field>Radford</field>
+        <field>Radnorshire (UK)</field>
+        <field>Raiatea</field>
+        <field>Rains</field>
+        <field>Raleigh</field>
+        <field>Ralls</field>
+        <field>Ramsey</field>
+        <field>Randall</field>
+        <field>Randolph</field>
+        <field>Rankin</field>
+        <field>Ransom</field>
+        <field>Rapides</field>
+        <field>Rappahannock</field>
+        <field>Rarotonga</field>
+        <field>Ravalli</field>
+        <field>Rawlins</field>
+        <field>Ray</field>
+        <field>Reagan</field>
+        <field>Real</field>
+        <field>Red Lake</field>
+        <field>Red River</field>
+        <field>Red Willow</field>
+        <field>Redwood</field>
+        <field>Reeves</field>
+        <field>Refugio</field>
+        <field>Renfrewshire (UK)</field>
+        <field>Reno</field>
+        <field>Rensselaer</field>
+        <field>Renville</field>
+        <field>Republic</field>
+        <field>Rewa</field>
+        <field>Reynolds</field>
+        <field>Rhea</field>
+        <field>Rice</field>
+        <field>Rich</field>
+        <field>Richardson</field>
+        <field>Richland</field>
+        <field>Richmond</field>
+        <field>Riley</field>
+        <field>Ringarooma Municipality</field>
+        <field>Ringgold</field>
+        <field>Rio Arriba</field>
+        <field>Rio Blanco</field>
+        <field>Rio Branco</field>
+        <field>Rio Grande</field>
+        <field>Rio Verde</field>
+        <field>Ripley</field>
+        <field>Ritchie</field>
         <field>Riverside</field>
+        <field>Rizal</field>
+        <field>Roane</field>
+        <field>Roanoke</field>
+        <field>Roberts</field>
+        <field>Robertson</field>
+        <field>Robeson</field>
+        <field>Rock</field>
+        <field>Rock Island</field>
+        <field>Rockbridge</field>
+        <field>Rockcastle</field>
+        <field>Rockdale</field>
+        <field>Rockingham</field>
+        <field>Rockland</field>
+        <field>Rockwall</field>
+        <field>Roger Mills</field>
+        <field>Rogers</field>
+        <field>Rolette</field>
+        <field>Rooks</field>
+        <field>Roosevelt</field>
+        <field>Rosarito, Playas de</field>
+        <field>Roscommon</field>
+        <field>Roseau</field>
+        <field>Rosebud</field>
+        <field>Ross</field>
+        <field>Ross Municipality</field>
+        <field>Ross-shire (UK)</field>
+        <field>Routt</field>
+        <field>Rowan</field>
+        <field>Roxburghshire (UK)</field>
+        <field>Runnels</field>
+        <field>Rush</field>
+        <field>Rusk</field>
+        <field>Russell</field>
+        <field>Russell Islands</field>
+        <field>Rutherford</field>
+        <field>Rutland</field>
+        <field>Rutland (UK)</field>
+        <field>Sabah</field>
+        <field>Sabine</field>
+        <field>Sac</field>
         <field>Sacramento</field>
+        <field>Sagadahoc</field>
+        <field>Saginaw</field>
+        <field>Saguache</field>
+        <field>Salem</field>
+        <field>Saline</field>
+        <field>Salt Lake</field>
+        <field>Saluda</field>
+        <field>Sampson</field>
+        <field>San Augustine</field>
         <field>San Benito</field>
         <field>San Bernardino</field>
+        <field>San Blas</field>
         <field>San Diego</field>
         <field>San Francisco</field>
+        <field>San Ignacio</field>
+        <field>San Jacinto</field>
         <field>San Joaquin</field>
+        <field>San Juan</field>
         <field>San Luis Obispo</field>
         <field>San Mateo</field>
+        <field>San Miguel</field>
+        <field>San Patricio</field>
+        <field>San Pedro Lagunillas</field>
+        <field>San Pedro Lagunitas</field>
+        <field>San Saba</field>
+        <field>Sanborn</field>
+        <field>Sanders</field>
+        <field>Sandoval</field>
+        <field>Sandusky</field>
+        <field>Sangamon</field>
+        <field>Sanilac</field>
+        <field>Sanpete</field>
         <field>Santa Barbara</field>
         <field>Santa Clara</field>
         <field>Santa Cruz</field>
+        <field>Santa Fe</field>
+        <field>Santa Maria del Oro</field>
+        <field>Santa Rosa</field>
+        <field>Santa Victoria</field>
+        <field>Sarasota</field>
+        <field>Saratoga</field>
+        <field>Sarawak</field>
+        <field>Sargent</field>
+        <field>Sarpy</field>
+        <field>Sauk</field>
+        <field>Saunders</field>
+        <field>Sawyer</field>
+        <field>Schenectady</field>
+        <field>Schleicher</field>
+        <field>Schley</field>
+        <field>Schoharie</field>
+        <field>Schoolcraft</field>
+        <field>Schuyler</field>
+        <field>Schuylkill</field>
+        <field>Scioto</field>
+        <field>Scotland</field>
+        <field>Scott</field>
+        <field>Scotts Bluff</field>
+        <field>Scottsdale Municipality</field>
+        <field>Screven</field>
+        <field>Scurry</field>
+        <field>Searcy</field>
+        <field>Sebastian</field>
+        <field>Sedgwick</field>
+        <field>Selkirkshire (UK)</field>
+        <field>Seminole</field>
+        <field>Seneca</field>
+        <field>Senyavin Islands</field>
+        <field>Sequatchie</field>
+        <field>Sequoyah</field>
+        <field>Sevier</field>
+        <field>Seward</field>
+        <field>Shackelford</field>
+        <field>Shannon</field>
+        <field>Sharkey</field>
+        <field>Sharp</field>
         <field>Shasta</field>
+        <field>Shawano</field>
+        <field>Shawnee</field>
+        <field>Sheboygan</field>
+        <field>Sheffield Municipality</field>
+        <field>Shelby</field>
+        <field>Shenandoah</field>
+        <field>Sherburne</field>
+        <field>Sheridan</field>
+        <field>Sherman</field>
+        <field>Shetland (UK)</field>
+        <field>Shiawassee</field>
+        <field>Shoshone</field>
+        <field>Shropshire (UK)</field>
+        <field>Sibley</field>
         <field>Sierra</field>
+        <field>Silver Bow</field>
+        <field>Simpson</field>
+        <field>Sioux</field>
         <field>Siskiyou</field>
+        <field>Sitka</field>
+        <field>Skagit</field>
+        <field>Skagway</field>
+        <field>Skamania</field>
+        <field>Slope</field>
+        <field>Smith</field>
+        <field>Smyth</field>
+        <field>Snohomish</field>
+        <field>Snyder</field>
+        <field>Socorro</field>
+        <field>Sola de Vega</field>
         <field>Solano</field>
+        <field>Somerset</field>
+        <field>Somerset (UK)</field>
+        <field>Somervell</field>
         <field>Sonoma</field>
+        <field>Sorell Municipality</field>
+        <field>Southampton</field>
+        <field>Southeast Fairbanks</field>
+        <field>Spalding</field>
+        <field>Spartanburg</field>
+        <field>Spencer</field>
+        <field>Spink</field>
+        <field>Spokane</field>
+        <field>Spotsylvania</field>
+        <field>Spring Bay Municipality</field>
+        <field>St. Bernard</field>
+        <field>St. Charles</field>
+        <field>St. Clair</field>
+        <field>St. Croix</field>
+        <field>St. Francis</field>
+        <field>St. Francois</field>
+        <field>St. Helena</field>
+        <field>St. James</field>
+        <field>St. John the Baptist</field>
+        <field>St. Johns</field>
+        <field>St. Joseph</field>
+        <field>St. Landry</field>
+        <field>St. Lawrence</field>
+        <field>St. Leonards Municipality</field>
+        <field>St. Louis</field>
+        <field>St. Lucie</field>
+        <field>St. Martin</field>
+        <field>St. Mary</field>
+        <field>St. Mary's</field>
+        <field>St. Tammany</field>
+        <field>Stafford</field>
+        <field>Staffordshire (UK)</field>
         <field>Stanislaus</field>
+        <field>Stanley</field>
+        <field>Stanly</field>
+        <field>Stanton</field>
+        <field>Stark</field>
+        <field>Starke</field>
+        <field>Starr</field>
+        <field>Staunton</field>
+        <field>Ste. Genevieve</field>
+        <field>Stearns</field>
+        <field>Steele</field>
+        <field>Stephens</field>
+        <field>Stephenson</field>
+        <field>Sterling</field>
+        <field>Steuben</field>
+        <field>Stevens</field>
+        <field>Stewart</field>
+        <field>Stillwater</field>
+        <field>Stirlingshire (UK)</field>
+        <field>Stoddard</field>
+        <field>Stokes</field>
+        <field>Stone</field>
+        <field>Stonewall</field>
+        <field>Storey</field>
+        <field>Story</field>
+        <field>Strafford</field>
+        <field>Stutsman</field>
+        <field>Sublette</field>
+        <field>Sud Yungas</field>
+        <field>Suffolk</field>
+        <field>Suffolk (UK)</field>
+        <field>Sullivan</field>
+        <field>Sully</field>
+        <field>Summers</field>
+        <field>Summit</field>
+        <field>Sumner</field>
+        <field>Sumter</field>
+        <field>Sunflower</field>
+        <field>Surrey (UK)</field>
+        <field>Surry</field>
+        <field>Susquehanna</field>
+        <field>Sussex</field>
+        <field>Sussex (UK)</field>
+        <field>Sutherland (UK)</field>
         <field>Sutter</field>
+        <field>Sutton</field>
+        <field>Suwannee</field>
+        <field>Swain</field>
+        <field>Sweet Grass</field>
+        <field>Sweetwater</field>
+        <field>Swift</field>
+        <field>Swisher</field>
+        <field>Switzerland</field>
+        <field>Tahiti</field>
+        <field>Talbot</field>
+        <field>Taliaferro</field>
+        <field>Talladega</field>
+        <field>Tallahatchie</field>
+        <field>Tallapoosa</field>
+        <field>Taltal</field>
+        <field>Tama</field>
+        <field>Taney</field>
+        <field>Tangipahoa</field>
+        <field>Taos</field>
+        <field>Tarrant</field>
+        <field>Tasman Municipality</field>
+        <field>Tate</field>
+        <field>Tattnall</field>
+        <field>Taylor</field>
+        <field>Tazewell</field>
+        <field>Tecate</field>
         <field>Tehama</field>
+        <field>Telfair</field>
+        <field>Teller</field>
+        <field>Tensas</field>
+        <field>Tepic</field>
+        <field>Terrebonne</field>
+        <field>Terrell</field>
+        <field>Terry</field>
+        <field>Teton</field>
+        <field>Texas</field>
+        <field>Thayer</field>
+        <field>Thomas</field>
+        <field>Throckmorton</field>
+        <field>Thurston</field>
+        <field>Tift</field>
+        <field>Tijuana</field>
+        <field>Tillamook</field>
+        <field>Tillman</field>
+        <field>Tioga</field>
+        <field>Tippah</field>
+        <field>Tippecanoe</field>
+        <field>Tipton</field>
+        <field>Tishomingo</field>
+        <field>Titus</field>
+        <field>Todd</field>
+        <field>Tolland</field>
+        <field>Tom Green</field>
+        <field>Tompkins</field>
+        <field>Tompkins (NY)</field>
+        <field>Tooele</field>
+        <field>Toole</field>
+        <field>Toombs</field>
+        <field>Torrance</field>
+        <field>Towner</field>
+        <field>Towns</field>
+        <field>Traill</field>
+        <field>Transylvania</field>
+        <field>Traverse</field>
+        <field>Travis</field>
+        <field>Treasure</field>
+        <field>Trego</field>
+        <field>Trempealeau</field>
+        <field>Treutlen</field>
+        <field>Trigg</field>
+        <field>Trimble</field>
         <field>Trinity</field>
+        <field>Tripp</field>
+        <field>Troup</field>
+        <field>Trousdale</field>
+        <field>Trumbull</field>
+        <field>Tucker</field>
         <field>Tulare</field>
+        <field>Tulsa</field>
+        <field>Tunica</field>
         <field>Tuolumne</field>
+        <field>Turner</field>
+        <field>Tuscaloosa</field>
+        <field>Tuscarawas</field>
+        <field>Tuscola</field>
+        <field>Twiggs</field>
+        <field>Twin Falls</field>
+        <field>Tyler</field>
+        <field>Tyrone (UK)</field>
+        <field>Tyrrell</field>
+        <field>Uinta</field>
+        <field>Uintah</field>
+        <field>Ulster</field>
+        <field>Ulverstone Municipality</field>
+        <field>Umatilla</field>
+        <field>Unicoi</field>
+        <field>Union</field>
+        <field>Unknown</field>
+        <field>Upshur</field>
+        <field>Upson</field>
+        <field>Upton</field>
+        <field>Urubamba</field>
+        <field>Utah</field>
+        <field>Uvalde</field>
+        <field>Val Verde</field>
+        <field>Valdez–Cordova</field>
+        <field>Valencia</field>
+        <field>Valley</field>
+        <field>Van Buren</field>
+        <field>Van Wert</field>
+        <field>Van Zandt</field>
+        <field>Vance</field>
+        <field>Vanderburgh</field>
+        <field>Vanua Levu</field>
+        <field>Venango</field>
         <field>Ventura</field>
+        <field>Vermilion</field>
+        <field>Vermillion</field>
+        <field>Vernon</field>
+        <field>Victoria</field>
+        <field>Vigo</field>
+        <field>Vilas</field>
+        <field>Vinton</field>
+        <field>Virginia Beach</field>
+        <field>Viti Levu</field>
+        <field>Volusia</field>
+        <field>Wabash</field>
+        <field>Wabasha</field>
+        <field>Wabaunsee</field>
+        <field>Wade Hampton</field>
+        <field>Wadena</field>
+        <field>Wagoner</field>
+        <field>Wahkiakum</field>
+        <field>Wake</field>
+        <field>Wakulla</field>
+        <field>Waldo</field>
+        <field>Walker</field>
+        <field>Walla Walla</field>
+        <field>Wallace</field>
+        <field>Waller</field>
+        <field>Wallowa</field>
+        <field>Walsh</field>
+        <field>Walthall</field>
+        <field>Walton</field>
+        <field>Walworth</field>
+        <field>Wapello</field>
+        <field>Waratah Municipality</field>
+        <field>Ward</field>
+        <field>Ware</field>
+        <field>Warren</field>
+        <field>Warrick</field>
+        <field>Warwickshire (UK)</field>
+        <field>Wasatch</field>
+        <field>Wasco</field>
+        <field>Waseca</field>
+        <field>Washakie</field>
+        <field>Washburn</field>
+        <field>Washington</field>
+        <field>Washita</field>
+        <field>Washoe</field>
+        <field>Washtenaw</field>
+        <field>Watauga</field>
+        <field>Watonwan</field>
+        <field>Waukesha</field>
+        <field>Waupaca</field>
+        <field>Waushara</field>
+        <field>Wayne</field>
+        <field>Waynesboro</field>
+        <field>Weakley</field>
+        <field>Webb</field>
+        <field>Weber</field>
+        <field>Webster</field>
+        <field>Weld</field>
+        <field>Wells</field>
+        <field>West Baton Rouge</field>
+        <field>West Carroll</field>
+        <field>West Feliciana</field>
+        <field>West Lothian (Linlithgowshire) (UK)</field>
+        <field>Westchester</field>
+        <field>Westmoreland</field>
+        <field>Westmorland (UK)</field>
+        <field>Weston</field>
+        <field>Wetzel</field>
+        <field>Wexford</field>
+        <field>Wharton</field>
+        <field>Whatcom</field>
+        <field>Wheatland</field>
+        <field>Wheeler</field>
+        <field>White</field>
+        <field>White Pine</field>
+        <field>Whiteside</field>
+        <field>Whitfield</field>
+        <field>Whitley</field>
+        <field>Whitman</field>
+        <field>Wibaux</field>
+        <field>Wichita</field>
+        <field>Wicomico</field>
+        <field>Wigtownshire (UK)</field>
+        <field>Wilbarger</field>
+        <field>Wilcox</field>
+        <field>Wilkes</field>
+        <field>Wilkin</field>
+        <field>Wilkinson</field>
+        <field>Will</field>
+        <field>Will (IL)</field>
+        <field>Willacy</field>
+        <field>Williams</field>
+        <field>Williamsburg</field>
+        <field>Williamson</field>
+        <field>Wilson</field>
+        <field>Wiltshire (UK)</field>
+        <field>Winchester</field>
+        <field>Windham</field>
+        <field>Windsor</field>
+        <field>Winkler</field>
+        <field>Winn</field>
+        <field>Winnebago</field>
+        <field>Winneshiek</field>
+        <field>Winona</field>
+        <field>Winston</field>
+        <field>Wirt</field>
+        <field>Wise</field>
+        <field>Wolfe</field>
+        <field>Wood</field>
+        <field>Woodbury</field>
+        <field>Woodford</field>
+        <field>Woodruff</field>
+        <field>Woods</field>
+        <field>Woodson</field>
+        <field>Woodward</field>
+        <field>Worcester</field>
+        <field>Worcestershire (UK)</field>
+        <field>Worth</field>
+        <field>Wrangell</field>
+        <field>Wright</field>
+        <field>Wyandot</field>
+        <field>Wyandotte</field>
+        <field>Wyoming</field>
+        <field>Wythe</field>
+        <field>Yadkin</field>
+        <field>Yakima</field>
+        <field>Yakutat</field>
+        <field>Yalobusha</field>
+        <field>Yamhill</field>
+        <field>Yancey</field>
+        <field>Yankton</field>
+        <field>Yates</field>
+        <field>Yavapai</field>
+        <field>Yazoo</field>
+        <field>Yell</field>
+        <field>Yellow Medicine</field>
+        <field>Yellowstone</field>
+        <field>Yoakum</field>
         <field>Yolo</field>
+        <field>York</field>
+        <field>Yorkshire (UK)</field>
+        <field>Young</field>
         <field>Yuba</field>
+        <field>Yukon–Koyukuk</field>
+        <field>Yuma</field>
+        <field>Zambales</field>
+        <field>Zapata</field>
+        <field>Zavala</field>
+        <field>Zeehan Municipality</field>
+        <field>Zhongdian</field>
+        <field>Ziebach</field>
       </list>
       <list alias="ScientificName" caseInsensitive="false">
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(23082)">Diplacus calycinus Eastw.</field>
