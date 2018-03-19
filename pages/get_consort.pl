@@ -1,4 +1,10 @@
 #!/usr/bin/perl
+open(IN,"../Documents/VTM_log") || die;
+while(<IN>){
+chomp;
+($time,$id,$rest)=split(/\t/);
+$done{$id}++;
+}
 $detail="new_detail_chignik.pl";
 $start_time=time;
 $begin_time=times();
@@ -39,20 +45,9 @@ $include_weed="";
 $sugg_loc="";
 use CGI;
 $query = new CGI;                        # create new CGI object
-if($ENV{'REMOTE_ADDR'} && $ENV{'REMOTE_ADDR'}=~ /(216\.52\.28\.197|207\.46\.55\.27|207\.46\.55\.30|207\.46\.55\.28|207\.46\.55\.31|207\.46\.55\.29|207\.46\.92\.19|207\.46\.92\.17|207\.46\.92\.16|207\.46\.92\.18|216\.52\.28\.200)/){
-print $query->header unless $header_printed++;                    # create the HTTP header
-#print "<0>";
-print<<EOP;
-<h2>The Consortium interface is undergoing repairs. Sorry for the
-inconvenience.</h2>
-<a href="http://ucjeps.berkeley.edu/consortium/about.html">Contact us if
-you're seeing this notice</a>
-EOP
 
-}
-else{
 #Output file to store data for Berkeley Mapper
-	$Search_page="/consortium/";
+	$Search_page="/consortium.html";
 $tab_file_name="CHC_" . substr($start_time,6,4) . $$ . ".txt";
 $map_file_path="/Library/WebServer/Documents/mapper/";
 $map_file_out = "$tab_file_name";
@@ -63,7 +58,7 @@ $data_path  ="/Library/WebServer/ucjeps_data/";
 $comment_hash	="${data_path}suggs_tally";
 #$CDL_name_list_file	="${data_path}CDL_name_list.txt";
 $CDL_nomsyn_file	="${data_path}CDL_nomsyn";
-$CDL_DBM_file	="${data_path}CDL_DBM";
+$CDL_DBM_file	="${data_path}CDL_DBM_V";
 $CDL_taxon_id_file	="${data_path}CDL_TID_TO_NAME";
 $CDL_coll_number_file	="${data_path}CDL_coll_number";
 $CDL_date_simple_file	="${data_path}CDL_date_simple";
@@ -144,7 +139,7 @@ EOH
 #multiplication sign for hybridity
 $times=CGI::Util::unescape("%D7") || "flabba";
 use BerkeleyDB;
-tie(%suggs, "BerkeleyDB::Hash", -Filename=>"$comment_hash", -Flags=>DB_RDONLY)|| die "$!";
+#tie(%suggs, "BerkeleyDB::Hash", -Filename=>"$comment_hash", -Flags=>DB_RDONLY)|| die "$!";
 #tie(%suggs, "BerkeleyDB::Hash", -Filename=>"$comment_hash", -Flags=>DB_RDONLY)|| die "$!";
 
 #tie(%image_location, "BerkeleyDB::Hash", -Filename=>"$image_file", -Flags=>DB_RDONLY)|| die "$!";
@@ -389,8 +384,8 @@ if($check_all){
 $check_all="checked" if $check_all == 1;
 }
 
-$max_return=$query->param('max_rec') || "2000";
-$max_return=2000 unless $max_return=~/^100001$/;
+$max_return=$query->param('max_rec') || "20000";
+$max_return=20000 unless $max_return=~/^100001$/;
 $max_return=9000 if $make_tax_list;
 
 $search_hints=&search_hints;
@@ -438,7 +433,7 @@ if($lookfor){
 	else{
 		$lookfor=~s/ [xX] / $times /;
 		$lookfor=~s/ $times([a-z])/ $times $1/;
-   		tie(%nomsyns, "BerkeleyDB::Hash", -Filename=>"/Library/WebServer/ucjeps_data/CDL_nomsyn", -Flags=>DB_RDONLY)|| die "5 $!";
+   		tie(%nomsyns, "BerkeleyDB::Hash", -Filename=>"/Library/WebServer/ucjeps_data/CDL_nomsyn", -Flags=>DB_RDONLY);
    		#tie(%nomsyns, "BerkeleyDB::Hash", -Filename=>"$CDL_nomsyn_file", -Flags=>DB_RDONLY)|| die "$!";
     ($ns_lookfor=$lookfor)=~s/ (var\.|subsp\.|ssp\.|f\.|forma)//;
     #if($nomsyns{lc($ns_lookfor)}){
@@ -819,7 +814,15 @@ isn't implemented yet.
 EOP
 }
 $returns= scalar(@result);
-&print_table_header($returns);
+$red_returns=0;
+foreach(@result){
+if(m/">(.*?)<\/a>/){
+if($done{$1}){
+++$red_returns;
+}
+}
+}
+&print_table_header($returns, $red_returns);
 $end_time=times();
 if(@checked){
 print $query->header( -type => 'text/plain' );
@@ -870,6 +873,11 @@ if($sort_direction eq "reverse"){
 			else{
 				$bgc="#dddddd" ;
 			}
+if(m/chignik.pl\?([^"]+)/){
+if($done{$1}){
+$bgc="#ff0000";
+}
+}
 	s/â€œ/"/g;
 	s/Ë&ouml;/&deg;/g;
 	s/<tr/<tr bgcolor=$bgc/;
@@ -896,15 +904,6 @@ $consortium_footer
 $elapsed
 </body></html>
 EOP
-}
-#open (SEARCHES, ">>${data_path}CCH_searches.txt");
-#$this_search= "$ENV{REQUEST_METHOD} $start_time ${current_request}&SO=$sort_field\n";
-#$this_search=~s/&amp;/&/g;
-#$this_search=~s/[_A-Za-z]+=&//g;
-#print SEARCHES "$ENV{REQUEST_METHOD} $start_time ${current_request}&SO=$sort_field\n";
-#print SEARCHES $this_search,@dups;
-#close(SEARCHES);
-
 }
 
 
@@ -941,6 +940,7 @@ sub inverse_julian_day {
 
 sub print_table_header {
 	$number_of_records=shift;
+	$scotts_records=shift;
 	$Search_page="http://ucjeps.berkeley.edu/consortium/";
 	$plural="";
 	if($county){
@@ -1015,21 +1015,26 @@ $interchange_link ="$interchange_link<br><a href=\"http://ucjeps.berkeley.edu/cg
 	else{
 		if(@map_results){
 			grep(s/\|/_/g,@map_results);
-			$record_number=scalar(@map_results) . " record";
+			$record_number=scalar(@map_results) + $scotts_records  . " record";
 			$record_number .="s" if $#map_results > 0;
 			#grep(s/\t/|/g,@map_results);
 			$mappable=<<EOP;
-<br><a href="http://berkeleymapper.berkeley.edu/run.php?ViewResults=tab&tabfile=$map_file_URL&configfile=http%3A%2F%2Fucjeps.berkeley.edu%2Fucjeps.xml&sourcename=Consortium+of+California+Herbaria+result+set&maptype=Terrain">Map the results using BerkeleyMapper ($record_number with coordinates [those with a <font color=\"#00FF00\">light green</font> checkbox])</a>
+<br><a href="http://berkeleymapper.berkeley.edu/run.php?ViewResults=tab&tabfile=$map_file_URL&configfile=http%3A%2F%2Fucjeps.berkeley.edu%2Fucjeps_GR.xml&sourcename=Consortium+of+California+Herbaria+result+set&maptype=Terrain">Map the results using BerkeleyMapper ($record_number with coordinates [those with a <font color=\"#00FF00\">light green</font> checkbox]) (Scott's $scotts_records records won't show up on the map!)</a>
 EOP
 			open(MAPFILE, ">$map_file_path$map_file_out") || die;
 			#open(MAPFILE, ">$map_file_path$map_file_out") || die;
 			print MAPFILE join("\n",@map_results);
 			close(MAPFILE);
 		}
+elsif($scotts_records){
+			$mappable=<<EOP;
+<br>($scotts_records with coordinates (all done by Scott) <font color=\"#00FF00\">light green</font> checkbox])</a>
+EOP
+}
 		else{
 			$mappable="<br>No results can be mapped";
 		}
-if($number_of_records =~/2000/){
+if($number_of_records =~/20000/){
 $default_max_warning= qq{. (<font color="red">That's the default maximum</font>. Contact rlmoe\@berkeley.edu for help with bigger searches.)};
 }
 else{
@@ -1080,6 +1085,7 @@ Click on accession number to display detailed record; click on column header to 
 <th><a href="${current_request}&amp;SO=8$SD[8]">County</a></th>
 <th><a href="${current_request}&amp;SO=20$SD[20]">Locality</a></th>
 <th><a href="${current_request}&amp;SO=9$SD[9]">Elevation in meters</a></th>
+<th><a href="${current_request}&amp;SO=16$SD[16]">ER</a></th>
 <th><a href="${current_request}&amp;SO=25$SD[25]">Feedback</a></th>
 </tr>
 EOC
@@ -1093,10 +1099,10 @@ $common_html_head
 
 $chc_header
 <br />
-<table width="100%" callpadding="10" class="bodyText">
+<!-- <table width="100%" callpadding="10" class="bodyText">
 <tr><td>&nbsp;</td><td><a href="/consortium/about.html">The Consortium of California Herbaria</a> is a gateway to information from California vascular plant specimens that are housed in herbaria throughout the state.</td></tr>
 <tr><td>&nbsp;</td><td>Please cite data retrieved from this page: Data provided by the participants of the Consortium of California Herbaria (ucjeps.berkeley.edu/consortium/; $today).
-</td></tr></table>
+</td></tr></table> -->
 <table width="100%" cellpadding="20" class="bodyText"><tr><td>
 <span class="pageName">Accession Results</span>
 <span class="pageSubheading"> &mdash; $number_of_records record$plural retrieved$default_max_warning</span>
@@ -1325,7 +1331,9 @@ sub get_date_acc {
 	my $year = shift;
 	my $month = shift;
 	my $day = shift;
-	if($before_after || (($year=~/^[12][890]\d\d$/) && not ($month || $day))){
+##################################################
+	if($before_after=~/^[12]/ || (($year=~/^[12][890]\d\d$/) && not ($month || $day))){
+#################################################
 	#if(($after || $before ) && $year){
            my @date_recno ;
            tie @date_recno, 'BerkeleyDB::Recno', -Filename   => "$CDL_date_recno_file", -Flags      => DB_RDONLY or die "Cannot open $filename: $! $BerkeleyDB::Error\n" ;
@@ -1368,9 +1376,16 @@ warn "1 $ejd   $ljd\n";
 
 
 		}
+###########################
+unless ($before_after==3){
     		tie %date_range, "BerkeleyDB::Hash", -Filename => "$CDL_date_range_file", -Flags=>DB_RDONLY or die "Cannot open file CDL_date_range: $! $BerkeleyDB::Error\n" ;
+}
+###########################
     		#tie %date_range, "BerkeleyDB::Hash", -Filename => "$CDL_date_range_file", -Flags=>DB_RDONLY or die "Cannot open file CDL_date_range: $! $BerkeleyDB::Error\n" ;
 
+#########################
+unless ($before_after==3){
+##########################
 		foreach $key (sort(keys(%date_range))){
 			if($key=~m/^(\d+)-(\d+)/){
 				$begin=$1; $end=$2;
@@ -1381,6 +1396,7 @@ warn "1 $ejd   $ljd\n";
 				}
 			}
 		}
+}
 	
     		tie %date, "BerkeleyDB::Hash", -Filename => "$CDL_date_simple_file", Flags=>DB_RDONLY or die "Cannot open file CDL_date_simple: $! $BerkeleyDB::Error\n" ;
     		#tie %date, "BerkeleyDB::Hash", -Filename => "$CDL_date_simple_file", Flags=>DB_RDONLY or die "Cannot open file CDL_date_simple: $! $BerkeleyDB::Error\n" ;
@@ -1389,6 +1405,9 @@ warn "1 $ejd   $ljd\n";
 		}
 	
 		if($lookfor_date){
+#########################
+unless ($before_after==3){
+##########################
 			foreach (sort(keys(%date_range))){
 				$key=$_;
 				($begin,$end)=m/^(\d+)-(\d+)/;
@@ -1397,6 +1416,7 @@ warn "1 $ejd   $ljd\n";
 					grep($date_acc{$_}++, split(/\t/,$date_range{$key}));
 				}
 			}
+}
 		}
 	}
 	
@@ -1469,7 +1489,7 @@ die;
 	$complete_locs=$locs;
 		$quoted=$1;
 		$quoted=quotemeta($quoted);
-  		tie %CDL, "BerkeleyDB::Hash", -Filename=>"${data_path}CDL_DBM", -Flags=>DB_RDONLY or die "Cannot open file CDL_DBM: $! $BerkeleyDB::Error\n" ;
+  		tie %CDL, "BerkeleyDB::Hash", -Filename=>"${data_path}CDL_DBM_V", -Flags=>DB_RDONLY or die "Cannot open file CDL_DBM: $! $BerkeleyDB::Error\n" ;
 }
 else{
 }
@@ -1548,6 +1568,7 @@ sub push_result {
 my $checked="";
 	my $accession_id=shift;
 @caller=caller;
+return 0 if $accession_id =~/UCSB/;
 	return 0 unless $CDL{$accession_id};
 	if($season){
 	return 0 unless $date_acc{$accession_id};
@@ -1641,6 +1662,9 @@ $sort_string="$G_T_F{$sort_string} $sort_string";
 		#$sort_string=~s/(.*) (.*)/$2 $1/;
 		#$sort_string=~s/^ *//;
 	}
+	elsif($sort_field==16){
+		$sort_string=$CDL_fields[16];
+	}
 	elsif($sort_field==10){
 		$sort_string=$accession_id;
 	}
@@ -1657,6 +1681,14 @@ $sort_string="$G_T_F{$sort_string} $sort_string";
 	elsif($sort_field==25){
 		$sort_string=&get_comment_date($suggs{$accession_id});
 	}
+###########################################
+	#elsif($sort_field==5){
+		#my ($year,$month,$day)=inverse_julian_day($CDL_fields[5]);
+		#$month=~s/^(\d)$/0$1/;
+		#$day=~s/^(\d)$/0$1/;
+		#$sort_string="$month, $day, $year";
+	#}
+###########################################
 	else{
 		$sort_string=$CDL_fields[$sort_field];
 	}
@@ -1732,13 +1764,16 @@ if($accession_id=~m/^(CAS|CDA|CHSC|DS|HSC|IRVC|JEPS|PGM|POM|RSA|SBBG|SD|SDSU|SJS
 <td>$CDL_fields[8]</td>
 <td>$CDL_fields[10]</td>
 <td>$elev</td>
-<td valign="top"><a href="/cgi-bin/get_consort.pl?sugg=$accession_id">Comment</a> $seen_sugg</td>
+<td>$CDL_fields[16] $CDL_fields[17]</td>
+<td valign="top"><!-- <a href="/cgi-bin/get_consort.pl?sugg=$accession_id">Comment</a> --> $seen_sugg</td>
 </tr>
 EOP
 );
 	if($CDL_fields[11] && $CDL_fields[12]){
 		($institution=$accession_id)=~s/\d.*//;
+unless($done{$accession_id}){
 		push(@map_results, join("\t", $institution, $accession_id, $TID_TO_NAME{$CDL_fields[0]}, @CDL_fields[1 .. $#CDL_fields], "NAD 27"));
+}
 	}
 	else{
 	#print "no $accession_id";
@@ -1845,13 +1880,13 @@ return (
 sub load_header{
 return <<EOH;
 <table width="100%" class="banner" border="0" cellpadding="0" cellspacing="0">
-  <tr><td width="100" align="center"><img src="/consortium/images/CCH_logo_02_80.png" width="80" height="82"></td>
+  <tr><td width="100" align="center"><!-- <img src="/consortium/images/CCH_logo_02_80.png" width="80" height="82"> --> </td>
   <td>
 <table class="banner" width="100%" border="0">
   <tr>
-    <td align="center">Consortium of California Herbaria</td>
+    <td align="center">VTM Coordinate Improvement <!-- Consortium of California Herbaria --></td>
   </tr>
-  <tr>
+  <!-- <tr>
     <td class="bannerHerbs" align="center">
           <font  face="Times New Roman, Times, serif" color="#FEFEFE"><b>
         <a href="http://www.calacademy.org/research/botany/" target="_blank" class="bannerHerbs">
@@ -1892,7 +1927,7 @@ YM</a>
         </b></font>
 
         </td>
-  </tr>
+  </tr> -->
 </table>
 </td></tr><tr><td colspan="2">
 
@@ -1901,15 +1936,15 @@ YM</a>
   <tr>
     <td width="1" >&nbsp;</td>
     <td height="21" width="640" align="center">
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	  <!-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <a href="http://ucjeps.berkeley.edu/consortium/participants.html" class="horizMenuActive">
 	    Participants</a>
 	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <a href="http://ucjeps.berkeley.edu/consortium/news.html" class="horizMenuActive">News</a>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="http://ucjeps.berkeley.edu/consortium/" class="horizMenuActive">Search</a>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="http://ucjeps.berkeley.edu/consortium/about.html" class="horizMenuActive ">About</a>
+	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -->
+      <a href="http://herbaria4.herb.berkeley.edu/consortium.html" class="horizMenuActive">Search</a>
+	  <!-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <a href="http://ucjeps.berkeley.edu/consortium/about.html" class="horizMenuActive ">About</a> -->
     </td>
 	<td></td>
   </tr>
