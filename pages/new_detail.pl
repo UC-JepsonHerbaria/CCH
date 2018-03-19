@@ -370,7 +370,6 @@ EOC
 if( $aid =~/^(JEPS102066|UC249775)$/){
 $image_link=qq{<a href="/images/${1}_001.jpg"> <img src="/common/images/ico_camera.gif" alt="Image available" border="0"></a>};
 }
-#### remove > 200 do restore image display
 elsif($image_location{$aid}){
 $image_link=qq{<a href="/cgi-bin/display_smasch_img.pl?smasch_accno=$aid"> <img src="/common/images/ico_camera.gif" alt="Image available" border="0"></a>};
 #Hide E. truncatum
