@@ -46,7 +46,7 @@ use CGI;
 $query = new CGI;                        # create new CGI object
 if($ENV{'REMOTE_ADDR'} && $ENV{'REMOTE_ADDR'}=~ /(216\.52\.28\.197|207\.46\.55\.27|207\.46\.55\.30|207\.46\.55\.28|207\.46\.55\.31|207\.46\.55\.29|207\.46\.92\.19|207\.46\.92\.17|207\.46\.92\.16|207\.46\.92\.18|216\.52\.28\.200)/){
 print $query->header unless $header_printed++;                    # create the HTTP header
-#print "<0>";
+
 print<<EOP;
 <h2>The Consortium interface is undergoing repairs. Sorry for the
 inconvenience.</h2>
@@ -63,16 +63,12 @@ $YF_tab_file_name="CHC_" . substr($start_time,6,4) . $$ . ".txt";
 $map_file_path="/BerkeleyMapper/";
 $map_file_out="$map_file_path$tab_file_name";
 $map_file_URL="http://ucjeps.berkeley.edu$map_file_out";
-#$map_file_path="/usr/local/web/ucjeps_web/";
-#$map_file_out = "tmp/ms_tmp/$tab_file_name";
 $YF_map_file_out="$map_file_path$YF_tab_file_name";
-#$map_file_URL= "http://ucjeps.berkeley.edu/$map_file_out";
 $YF_map_file_URL="http://ucjeps.berkeley.edu$YF_map_file_out";
 
 #data files
 $data_path	="/usr/local/web/ucjeps_data/ucjeps_data/";
 $comment_hash	="${data_path}suggs_tally";
-#$CDL_name_list_file	="${data_path}CDL_name_list.txt";
 $CDL_nomsyn_file	="${data_path}CDL_nomsyn";
 $CDL_DBM_file	="${data_path}CDL_DBM";
 $CDL_taxon_id_file	="${data_path}CDL_TID_TO_NAME";
@@ -187,29 +183,15 @@ use BerkeleyDB;
 tie(%suggs, "BerkeleyDB::Hash", -Filename=>"$comment_hash", -Flags=>DB_RDONLY)|| die "$!";
 
 tie(%image_location, "BerkeleyDB::Hash", -Filename=>"$image_file", -Flags=>DB_RDONLY)|| die "$!";
-#print $query->header;                    # create the HTTP header
-#if ($query->param('sugg')){
-#print <<EOP;
-#$common_html_head
-#<h2>Comments have been disabled until the switch to a new machine has been accomplished: Jan 14 2009</h2>
-#EOP
-#die;
-#}
+
 @result=();
 @QLOG=();
 @map_results=();
 
-###I have no idea what "voucher restrict" refers to. It doesn't apear in the search page
-if($query->param('VV')){
- $v_restrict=$query->param('VV');
- print "VR=$v_restrict";
- tie(%VOUCHER, "BerkeleyDB::Hash", -Filename=>"${data_path}CDL_voucher", -Flags=>DB_RDONLY)|| die "$!";
-}
 
 ###CNPS list file, which should be updated and/or integrated with the eFlora's CNPS taxon indication
 if($query->param('CNPS_listed')){
 	$include_CNPS=1;
-	#open(IN,"${data_path}cnps_taxon_ids.txt") || die;
 	open(IN,"${data_path}cnps_taxon_ids.txt") || die $!;
 	while(<IN>){
 		chomp;
@@ -225,7 +207,6 @@ else{
 if($query->param('weed')){
 	$include_weed=1;
 	open(IN,"${data_path}CDL_weed_tid") || die $!;
-	#open(IN,"${data_path}CDL_weed_tid") || die;
 	while(<IN>){
 		chomp;
 		$weed_tid{$_}++;
@@ -247,24 +228,15 @@ else{
 $last_comments=$query->param('last_comments') if $query->param('last_comments');
 $make_tax_list=$query->param('make_tax_list') if $query->param('make_tax_list');
 
-###specimens which images only, which we currently do not use because I guess our CCH image database isn't great
-#if($query->param('img_only')){
-	#tie(%image_location, "BerkeleyDB::Hash", -Filename=>"$image_file", -Flags=>DB_RDONLY)|| die "$!";
-	#$img_only=1;
-#}
-#else{
-	#$img_only=0;
-#}
-
 ###This is the "Geographic Region" box. I think I'm going to hide it from the search page for now, and see if anyone misses it
 ###and then maybe lose it
 ###except some of this code supports the "search by bounding box", which is linked somewhere else
 if($mapper_loc=$query->param('sugg_loc')){
 	print $query->header unless $header_printed++;                    # create the HTTP header
-	#print "<1>";
+
 	$sugg_loc=$mapper_loc;
 	open(IN,"${data_path}CDL_region_list.txt") || die $!;
-	#open(IN,"${data_path}CDL_region_list.txt") || die;
+
 	{
 		local($/)="";
 		while(<IN>){
@@ -448,6 +420,7 @@ $ejdate	=$query->param('ejdate') if $query->param('ejdate');
 $before_after	=$query->param('before_after') if $query->param('before_after');
 $before	=$query->param('before') if $query->param('before');
 $check_all	=$query->param('check_all') if $query->param('check_all');
+
 #Array containing accession_ids of all checked lines in form
 @checked	=$query->param('checked_AID') if $query->param('checked_AID');
 $sugg	=$query->param('sugg') if $query->param('sugg');
@@ -487,19 +460,13 @@ $current_request=$query->param('current_request');
 else{
 $current_request= qq{/cgi-bin/get_consort.pl?county=$county&source=$req_source&taxon_name=$lookfor&collector=$collector&aid=$aid&year=$year&month=$month&day=$day&loc=$quote_loc&coll_num=$coll_num&max_rec=$max_return&make_tax_list=$make_tax_list&before_after=$before_after&last_comments=$last_comments&VV=$v_restrict&non_native=$include_nn&geo_only=$geo_only&geo_no=$geo_no&CNPS_listed=$include_CNPS&weed=$include_weed&sugg_loc=$sugg_loc$q_coords&tns=$tns&lo_e=$lo_e&hi_e=$hi_e&YF=$YF&VTM=$include_vtm&baja=$include_baja};
 }
-#open (SEARCHES, ">>${data_path}CCH_searches.txt");
-#$this_search= "$ENV{REQUEST_METHOD} $start_time ${current_request}&SO=$sort_field\n";
-#$this_search=~s/[_A-Za-z]+=&//g;
-##print SEARCHES "$ENV{REQUEST_METHOD} $start_time ${current_request}&SO=$sort_field\n";
-#print SEARCHES $this_search;
-#close(SEARCHES);
 
 if($query->param(adj_num)){
 $current_request.="&adj_num=1";
 }
 $current_request=~s/&/&amp;/g;
 if($month && not( $year || $day)){
-	#print "<h2> 1 month</H2>";
+
 	%date_acc=&get_season_acc($month);
 	$season=1;
 }
@@ -545,7 +512,6 @@ if(@county){
 
 if($loc){
 	if($loc=~s/^"([^ ]+ [^"]+)"$/\L$1/){
-		#%loc_acc=&get_look_loc_acc("$loc");
 		$loc= qq{"$loc"};
 		%loc_acc=&get_loc_acc($loc);
 	}
@@ -572,7 +538,7 @@ if(@checked){
 }
 elsif(($year || $month) && $loc && $county && $collector){
 	foreach(keys(%loc_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return) && ($date_acc{$_} && $county_acc{$_} && $coll_acc{$_})){
+
 		if((scalar(@result) < $max_return) && ($date_acc{$_} && $county_acc{$_} && $coll_acc{$_}) && &num_wanted($_) && &source_wanted($_) ){
 			&push_result($_);
 		}
@@ -580,7 +546,7 @@ elsif(($year || $month) && $loc && $county && $collector){
 }
 elsif(($year || $month) && $loc && $county){
 	foreach(keys(%loc_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return) && ($date_acc{$_} && $county_acc{$_})){
+
 		if((scalar(@result) < $max_return) && ($date_acc{$_} && $county_acc{$_}) && &source_wanted($_) && &num_wanted($_)){
 			&push_result($_);
 		}
@@ -595,7 +561,7 @@ elsif(($year || $month) && $collector && $county){
 }
 elsif(($year || $month) && $loc && $collector){
 	foreach(keys(%loc_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return) && ($date_acc{$_} && $coll_acc{$_})){
+
 		if((scalar(@result) < $max_return) && ($date_acc{$_} && $coll_acc{$_}) && &num_wanted($_) && &source_wanted($_)  ){
 			&push_result($_);
 		}
@@ -610,7 +576,7 @@ elsif($collector && $loc && $county){
 }
 elsif(($year || $month) && $loc){
 	foreach(keys(%loc_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return) && $date_acc{$_}){
+
 		if((scalar(@result) < $max_return) && $date_acc{$_} && &num_wanted($_) && &source_wanted($_) ){
 			&push_result($_);
 		}
@@ -618,7 +584,7 @@ elsif(($year || $month) && $loc){
 }
 elsif(($year || $month) && $collector){
 	foreach(keys(%date_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return) && $coll_acc{$_}){
+
 		if((scalar(@result) < $max_return) && $coll_acc{$_} && &num_wanted($_) && &source_wanted($_)  ){
 			&push_result($_);
 		}
@@ -626,7 +592,7 @@ elsif(($year || $month) && $collector){
 }
 elsif(($year || $month) && $loc){
 	foreach(keys(%loc_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return) && $date_acc{$_}){
+
 		if((scalar(@result) < $max_return) && $date_acc{$_} && &num_wanted($_) && &source_wanted($_) ){
 			&push_result($_);
 		}
@@ -634,7 +600,7 @@ elsif(($year || $month) && $loc){
 }
 elsif(($year || $month) && $county){
 	foreach(keys(%date_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return) && $county_acc{$_}){
+
 		if((scalar(@result) < $max_return) && $county_acc{$_} && &num_wanted($_) && &source_wanted($_) ){
 			&push_result($_);
 		}
@@ -642,7 +608,7 @@ elsif(($year || $month) && $county){
 }
 elsif($collector && $county){
 	foreach(keys(%coll_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return) && $county_acc{$_}){
+
 		if((scalar(@result) < $max_return) && $county_acc{$_} && &num_wanted($_) && &source_wanted($_)  ){
 			&push_result($_);
 		}
@@ -650,7 +616,7 @@ elsif($collector && $county){
 }
 elsif($loc && $county){
 	foreach(keys(%loc_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return) && $county_acc{$_}){
+
 		if((scalar(@result) < $max_return) && $county_acc{$_} && &num_wanted($_) && &source_wanted($_) ){
 			&push_result($_);
 		}
@@ -658,7 +624,7 @@ elsif($loc && $county){
 }
 elsif($loc && $collector){
 	foreach(keys(%loc_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return) && $coll_acc{$_}){
+
 		if((scalar(@result) < $max_return) && $coll_acc{$_} && &num_wanted($_) && &source_wanted($_)  ){
 			&push_result($_);
 		}
@@ -666,7 +632,7 @@ elsif($loc && $collector){
 }
 elsif($year){
 	foreach(keys(%date_acc)){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return)){
+
 		if((scalar(@result) < $max_return) && &num_wanted($_) && &source_wanted($_) ){
 			&push_result($_);
 		}
@@ -675,7 +641,6 @@ elsif($year){
 elsif($ejdate){
 	foreach(keys(%date_acc)){
 		if((scalar(@result) < $max_return) && &num_wanted($_) && &source_wanted($_) ){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return)){
 			&push_result($_);
 		}
 	}
@@ -685,7 +650,6 @@ elsif($county){
 	if( $lookfor){
 		next unless  $name_acc{$_};
 	}
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return)){
 		if((scalar(@result) < $max_return) && &num_wanted($_) && &source_wanted($_) ){
 			&push_result($_);
 		}
@@ -694,7 +658,6 @@ elsif($county){
 elsif($collector){
 	foreach(keys(%coll_acc)){
 		if((scalar(@result) < $max_return) && &num_wanted($_) && &source_wanted($_) ){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return)){
 			&push_result($_);
 		}
 	}
@@ -702,7 +665,6 @@ elsif($collector){
 elsif($loc){
 	foreach(keys(%loc_acc)){
 		if((scalar(@result) < $max_return) && &num_wanted($_) && &source_wanted($_) ){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return)){
 			&push_result($_);
 		}
 	}
@@ -710,7 +672,6 @@ elsif($loc){
 elsif($lookfor){
 	foreach(keys(%name_acc)){
 		if((scalar(@result) < $max_return) && &num_wanted($_) && &source_wanted($_)  ){
-		#if(&num_wanted($_) && &source_wanted($_) && (scalar(@result) < $max_return)){
 			&push_result($_);
 		}
 	}
@@ -718,21 +679,10 @@ elsif($lookfor){
 elsif($coll_num){
 	foreach(keys(%coll_num_acc)){
 		if( (scalar(@result) < $max_return) && &source_wanted($_) ){
-		#if(&source_wanted($_) && (scalar(@result) < $max_return)){
 			&push_result($_);
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
 
 elsif($query->param('dup')){
 	@dup=$query->param('dup');
@@ -754,7 +704,6 @@ elsif($query->param('last_comments')){
 	$now=time();
 	use Time::Local;
 	tie(%suggs, "BerkeleyDB::Hash", -Filename=>"${data_path}suggs_tally")|| die "$!";
-	#tie(%suggs, "BerkeleyDB::Hash", -Filename=>"${data_path}suggs_tally")|| die "$!";
 
 %mo=(
 "Jan"=>0,
@@ -884,6 +833,7 @@ $citation = "Data provided by the participants of the Consortium of California H
 
 if(@checked){
 	print $query->header( -type => 'text/plain' );
+
 ###If the riverside box ("R") is checked, print the header with these extra fields
 	if($riverside){
 		print join("\t", (
@@ -1022,6 +972,7 @@ if(@checked){
 tie(%CDL_notes, "BerkeleyDB::Hash", -Filename=>"/usr/local/web/ucjeps_data/ucjeps_data/CDL_notes", -Flags=>DB_RDONLY);
 $notes=$CDL_notes{$_};
 untie(%CDL_notes);
+
 #annotations
  			tie(%ANNO_HIST, "BerkeleyDB::Hash", -Filename=>"/usr/local/web/ucjeps_data/ucjeps_data/CDL_annohist", -Flags=>DB_RDONLY)|| die "$!";
 			@anno=split(/\n/,$ANNO_HIST{$_});
@@ -1080,7 +1031,7 @@ if($sort_direction eq "reverse"){
 	s/√´</&euml;/g;
 	s/¬±:/&plusmn;/g;
 	s/√©:/&eacute;/g;
-s/\xc3\xa9/&eacute;/g;
+	s/\xc3\xa9/&eacute;/g;
 	s/‚Äô/'/g;
 	s/√±o/&ntilde;/g;
 	s/√É¬í/"/g;
@@ -1114,7 +1065,6 @@ open (SEARCHES, ">>${data_path}CCH_searches.txt");
 $this_search= "$ENV{REQUEST_METHOD} $start_time ${current_request}&SO=$sort_field\n";
 $this_search=~s/&amp;/&/g;
 $this_search=~s/[_A-Za-z]+=&//g;
-#print SEARCHES "$ENV{REQUEST_METHOD} $start_time ${current_request}&SO=$sort_field\n";
 print SEARCHES $this_search,@dups;
 close(SEARCHES);
 
@@ -1128,8 +1078,6 @@ sub inverse_julian_day {
         my($jd) = @_;
         my($jdate_tmp);
         my($m,$d,$y);
-
-        #carp("warning: julian date $jd pre-dates British use of Gregorian calendar\n") if ($jd < $brit_jd);
 
         $jdate_tmp = $jd - 1721119;
         $y = (4 * $jdate_tmp - 1)/146097;
@@ -1235,9 +1183,6 @@ $interchange_link="<a href=\"/cgi-bin/get_cpn.pl?$sci_name\">More information: J
 			grep(s/\|/_/g,@map_results);
 			$record_number=scalar(@map_results) . " record";
 			$record_number .="s" if $#map_results > 0;
-			#grep(s/\t/|/g,@map_results);
-			###fips_map is retired
-			#$fips_string=join("", keys(%fips_string));
 
 ###The "red or black points" options are no longer available as a default in BerkeleyMapper
 ###and the get_smasch_county.pl map is antiquated
@@ -1276,17 +1221,14 @@ EOP
 <br>
 <a href="http://berkeleymapper.berkeley.edu/index.html?ViewResults=tab&tabfile=$YF_map_file_URL&configfile=http%3A%2F%2Fucjeps.berkeley.edu%2FYF.xml&sourcename=Consortium+of+California+Herbaria+result+set&maptype=Terrain&pointDisplay=pointMarkersBlack">BerkeleyMapper with layers and yellow flags</a> 
 EOP
-#				open(MAPFILE, ">$map_file_path$YF_map_file_out") || die;
 open(MAPFILE, ">/data/tmp/$YF_map_file_out") || print "cant open map file /data/tmp$map_file_out $!";
 				print MAPFILE join("\n",@map_results);
 				close(MAPFILE);
 			}
 			else{
-				#open(MAPFILE, ">$map_file_path$map_file_out") || die;
 open(MAPFILE, ">/data/tmp/$map_file_out") || print "cant open map file /data/tmp$map_file_out $!";
 				print MAPFILE join("\n",@map_results);
 				close(MAPFILE);
-				#open(MAPFILE, ">$map_file_path$map_file_out") || die;
 			}
 		}
 		
@@ -1370,7 +1312,6 @@ EOC
 }
 
 print $query->header unless $header_printed++;                    # create the HTTP header
-#print "<2>";
 $today=localtime(); #$today used to be printed at the end of the citation, but I decided it is not useful
 print <<EOP;
 $common_html_head
@@ -1387,7 +1328,6 @@ tie (%G_T_F, "BerkeleyDB::Hash", -Filename =>"/usr/local/web/ucjeps_data/ucjeps_
 	print "<P><b>List of unique names</b> <table>";
 	foreach(sort(keys(%taxonomic_list))){
 ($fam_for_g=$_)=~s/ .*//;
-#	print "<br>$_ ($taxonomic_list{$_})";
 	print <<EOP;
 <tr><td><a href="/cgi-bin/get_cpn.pl?$_">$_</a></td><td>$G_T_F{$fam_for_g}</td></tr>
 EOP
@@ -1435,7 +1375,6 @@ EOP
 		grep(s/>/&gt;/g,@CDL_fields);
 		grep(s/</&lt;/g,@CDL_fields);
 print $query->header unless $header_printed++;                    # create the HTTP header
-#print "<3>";
 		print <<EOP;
 $common_html_head
 $chc_header
@@ -1454,7 +1393,7 @@ $chc_header
 <td>$TID_TO_NAME{$CDL_fields[0]}</td>
 <td><textarea name="sugg_coll" cols=20 rows=3>$CDL_fields[1]</textarea></td>
 <td><input type=text name="sugg_date" value="$CDL_fields[7]"></td>
-<td>$CDL_fields[2]$CDL_fields[3]$CDL_fields[4]</td>
+<td>$CDL_fields[2] $CDL_fields[3] $CDL_fields[4]</td>
 <td>
 <select name="sugg_county">
  <option value = "$CDL_fields[8]">$CDL_fields[8]</option>
@@ -1509,14 +1448,8 @@ We welcome comments and corrections of the specimen data. Action on the comments
 EOP
 	}
 else{
-#@names = $query->param;
-#print elsewhere  "<h2>You tried to get</h2>";
-#foreach $param_name (@names){
-#print "$param_name: ", $query->param($param_name), "<br>";
-#}
-#$searched_for=~s/; *$//;
+
 print $query->header unless $header_printed++;                    # create the HTTP header
-#print "<4>";
 if($searched_for=~s/<script.*//g){
 $searched_for="your search seemed strange";
 }
@@ -1550,7 +1483,6 @@ $lookfor=~s/&times;/X /;
 $lookfor=~s/  +/ /g;
 	use Search::Dict;
 	open(NAMES,"${data_path}CDL_name_list.txt") || die $!;
-	#open(NAMES,"${data_path}CDL_name_list.txt") || die;
 	$lookfor=lc($lookfor);
 	look(\*NAMES, $lookfor);
 	while(<NAMES>){
@@ -1601,10 +1533,8 @@ $collector="Doux" if $collector eq "LaDoux";
 sub get_county_acc {
 	my @county = @_;
 	tie %county, "BerkeleyDB::Hash", -Filename => "$CDL_county_file",-Flags=>DB_RDONLY or die "Cannot open file CDL_county: $! $BerkeleyDB::Error\n" ;
-	#tie %county, "BerkeleyDB::Hash", -Filename => "$CDL_county_file",-Flags=>DB_RDONLY or die "Cannot open file CDL_county: $! $BerkeleyDB::Error\n" ;
 	foreach $county (@county){
 	$county=uc($county);
-	#grep($county_acc{$_}++, split(/\t/,$county{"$county"}));
 
 foreach(split(/\t/,$county{"$county"})){
     if($lo_e){
@@ -1626,13 +1556,11 @@ sub get_date_acc {
 	my $month = shift;
 	my $day = shift;
 	#subroutine was modified to accommodate the "exact date" button
-	#if($before_after || (($year=~/^[12][890]\d\d$/) && not ($month || $day))){
 	if($before_after=~/^[12]/ || (($year=~/^[12][890]\d\d$/) && not ($month || $day))){
 
-	#if(($after || $before ) && $year){
+
            my @date_recno ;
            tie @date_recno, 'BerkeleyDB::Recno', -Filename   => "$CDL_date_recno_file", -Flags      => DB_RDONLY or die "Cannot open $filename: $! $BerkeleyDB::Error\n" ;
-           #tie @date_recno, 'BerkeleyDB::Recno', -Filename   => "$CDL_date_recno_file", -Flags      => DB_RDONLY or die "Cannot open $filename: $! $BerkeleyDB::Error\n" ;
 		if($before_after ==2){
 			grep($date_acc{$_}++, split(/\t/, join("\t", @date_recno[$year .. $#date_recno]))); #this used to be $year+1,  but if you searched any dates with month or day in a year, you only returned next year, e.g. 1 Jan 2010 only returned 2011+ dates, which is not correct and gets comments by users that search is broken
 		}
@@ -1676,8 +1604,6 @@ warn "1 $ejd   $ljd\n";
 unless ($before_after==3){
     		tie %date_range, "BerkeleyDB::Hash", -Filename => "$CDL_date_range_file", -Flags=>DB_RDONLY or die "Cannot open file CDL_date_range: $! $BerkeleyDB::Error\n" ;
 }
-    		#tie %date_range, "BerkeleyDB::Hash", -Filename => "$CDL_date_range_file", -Flags=>DB_RDONLY or die "Cannot open file CDL_date_range: $! $BerkeleyDB::Error\n" ;
-
 unless ($before_after==3){
 		foreach $key (sort(keys(%date_range))){
 			if($key=~m/^(\d+)-(\d+)/){
@@ -1691,8 +1617,7 @@ unless ($before_after==3){
 		}
 }
     		tie %date, "BerkeleyDB::Hash", -Filename => "$CDL_date_simple_file", Flags=>DB_RDONLY or die "Cannot open file CDL_date_simple: $! $BerkeleyDB::Error\n" ;
-    		#tie %date, "BerkeleyDB::Hash", -Filename => "$CDL_date_simple_file", Flags=>DB_RDONLY or die "Cannot open file CDL_date_simple: $! $BerkeleyDB::Error\n" ;
-		foreach $d ($ejd .. $ljd){
+ 		foreach $d ($ejd .. $ljd){
 			grep($date_acc{$_}++, split(/\t/,$date{$d}));
 		}
 	
@@ -1722,7 +1647,6 @@ use integer;
     my($secs);
 
     use Carp;
-#    confess() unless defined $day;
 
     $tmp = $day - 32075
       + 1461 * ( $year + 4800 - ( 14 - $month ) / 12 )/4
@@ -1738,7 +1662,6 @@ sub get_look_loc_acc {
 	use Search::Dict;
 	open(LOCS,"${data_path}CDL_look_loc.txt") || do{
 	print qq{<H2>Sorry. I can't open the geographic binary names file.</H2><h4>Contact Jason Alexander about this problem</h4>};
-	#die;
 	die;
 	};
 	$locs=shift;
@@ -1767,11 +1690,10 @@ sub get_look_loc_acc {
 	return %wanted;
 }
 sub get_loc_acc {
-#warn "FLABBA";
+
 	use Search::Dict;
 	open(LOCS,"${data_path}CDL_location_words.txt") || do{
 	print qq{<H2>Sorry. I can't open the geographic names file.</H2><h4>Contact Jason Alexander about this problem</h4>};
-	#die;
 die;
 	};
 	$locs=shift;
@@ -1852,7 +1774,6 @@ sub source_wanted {
 sub push_result {
 my $checked="";
 	my $accession_id=shift;
-#@caller=caller;
 	return 0 unless $CDL{$accession_id};
 	if($season){
 	return 0 unless $date_acc{$accession_id};
@@ -1866,10 +1787,7 @@ my $checked="";
 	if($geo_only){
 	return 0 unless $CDL_GEO{$accession_id};
 	}
-#I dont think this is doing anything becuase voucher restrict is not defined anywhere what it is
-	if($v_restrict){
-	return 0 unless $VOUCHER{$_} =~/\b$v_restrict\t/;
-	}
+
 	if( $lookfor){
 		return 0 unless  $name_acc{$accession_id};
 	}
@@ -1920,20 +1838,43 @@ if($elev=~s/(\d) *[Ff].*/$1/){
 	unless($elev=~s!(\d+) *(to|-) *(\d+)!int($1/3.28) . "-" .int($3/3.28)!e){
 		$elev=int($elev/3.281);
 	}
-#$elev=~s/([0-9])(to|-).*/$1/;
+
 	$elev=~s/ ?\(.*//;
 	$elev=~s/^(about|above|near|above|below) //;
-#$elev=int($elev/3.28);
+
 }
 $elev=~s/ -.*//;
 $elev=~s/ ?[mM].*//;
 
-
+	if ((length($CDL_fields[2]) >=1) && (length($CDL_fields[3]) >=1) && (length($CDL_fields[4]) == 0)){
+		$collno_string="$CDL_fields[2] $CDL_fields[3]";
+	}
+	elsif ((length($CDL_fields[2]) >=1) && (length($CDL_fields[3]) >=1) && (length($CDL_fields[4]) >= 1)){
+		$collno_string="$CDL_fields[2] $CDL_fields[3] $CDL_fields[4]";
+	}
+	elsif ((length($CDL_fields[2]) == 0) && (length($CDL_fields[3]) >=1) && (length($CDL_fields[4]) >= 1)){
+		$collno_string="$CDL_fields[3] $CDL_fields[4]";
+	}
+	elsif ((length($CDL_fields[2]) >=1) && (length($CDL_fields[3]) == 0) && (length($CDL_fields[4]) == 0)){
+		$collno_string="$CDL_fields[2]";
+	}	
+	elsif ((length($CDL_fields[2]) == 0) && (length($CDL_fields[3]) >=1) && (length($CDL_fields[4]) == 0)){
+		$collno_string="$CDL_fields[3]";
+	}	
+	elsif ((length($CDL_fields[2]) >=1) && (length($CDL_fields[3]) == 0) && (length($CDL_fields[4]) >=1)){
+		$collno_string="$CDL_fields[2] $CDL_fields[4]";
+	}
+	elsif ((length($CDL_fields[2]) == 0) && (length($CDL_fields[3]) == 0) && (length($CDL_fields[4]) >=1)){
+		$collno_string="$CDL_fields[4]";
+	}
+	else {
+		$collno_string="";
+	}
 
 
 	grep(s/>/&gt;/g,@CDL_fields);
 	grep(s/</&lt;/g,@CDL_fields);
-		$CDL_fields[2].="-" if ($CDL_fields[2]=~/\d$/ && $CDL_fields[3]);
+
 	$date=$CDL_fields[7];
 	$CDL_fields[10]=~s/^[ \|]+//;
 	$CDL_fields[10]=~s/[ -]*$//;
@@ -1950,16 +1891,6 @@ $sort_string="$G_T_F{$sort_string} $sort_string";
 }
 	elsif($sort_field==1){
 		$sort_string=&get_coll_last_name($CDL_fields[$sort_field]);
-		#($sort_string=$CDL_fields[$sort_field])=~s/ ?\(?(with|and|&) .*//;
-		#$sort_string=~s/, .*//;
-#Harold and Virginia Bailey
-                        #$sort_string=~s/^[A-Z][a-z]+ and ?[A-Z][a-z-]+ ([A-Z][a-z-]+$)/$1/ ||
-                        #$sort_string=~s/^[A-Z]\. ?[A-Z]\. and [A-Z]\. ?[A-Z]\. (.*)/$1/ ||
-                        #$sort_string=~s/^[A-Z]\. and [A-Z]\. (.*)/$1/ ||
-		#($sort_string=$CDL_fields[$sort_field])=~s/ ?\(?(with|and|&) .*//;
-		#$sort_string=~s/, .*//;
-		#$sort_string=~s/(.*) (.*)/$2 $1/;
-		#$sort_string=~s/^ *//;
 	}
 	elsif($sort_field==10){
 		$sort_string=$accession_id;
@@ -1976,7 +1907,6 @@ $sort_string="$G_T_F{$sort_string} $sort_string";
 	}
 	elsif($sort_field==21){
 		if($CDL_fields[-1]=~/^[01]/){
-			#$sort_string= $CDL_fields[-1];
 			$sort_string= "-1";
 		}
 		else{
@@ -1995,15 +1925,12 @@ $sort_string="$G_T_F{$sort_string} $sort_string";
 if($accession_id=~/SDSU/){
 	$image_link= $image_location{$accession_id };
 	$image_link=~s/\.jpg.*/.html"/;
-	#$image_link=qq{<a href="http://www.sci.sdsu.edu/herb/SDSU18623.html" <br /><img src="/common/images/ico_camera.gif" alt="Image available" border="0"></a>};
 	$image_link=qq{$image_link <br /><img src="/common/images/ico_camera.gif" alt="Image available" border="0"></a>};
 }
 elsif($accession_id=~/SD\d/){
-#if($ENV{'REMOTE_ADDR'}=~ /^(128.32.154.67)/){
 	$image_link= "$image_location{$accession_id}";
-#$image_link=~s!=.*=!<br /><img src="/common/images/ico_camera.gif" alt="Image available" border="0">!;
 $image_link=~s!$accession_id!<img src="/common/images/ico_camera.gif" alt="Image available" border="0">!;
-#}
+
 }
 elsif($accession_id=~/UCR\d/){
 	$image_link= "$image_location{$accession_id}";
@@ -2012,14 +1939,13 @@ elsif($accession_id=~/UCR\d/){
 
 else{	
 ####hide image links to UC/JEPS while we move over to CSpace
-#$image_link=qq{<a href="/cgi-bin/display_smasch_img.pl?smasch_accno=$accession_id"><br /><img src="/common/images/ico_camera.gif" alt="Image available" border="0"></a>};
 #Hide E. truncatum
 		$image_link="" if $accession_id eq "UC692153";
-$image_link="" if $accession_id eq "JEPS26640";
-$image_link="" if $accession_id eq "JEPS27371";
-$image_link="" if $accession_id eq "UC1212010";
-	$image_link= "$image_location{$accession_id}";
-	$image_link=~s!$accession_id!<img src="/common/images/ico_camera.gif" alt="Image available" border="0">!;
+		$image_link="" if $accession_id eq "JEPS26640";
+		$image_link="" if $accession_id eq "JEPS27371";
+		$image_link="" if $accession_id eq "UC1212010";
+		$image_link= "$image_location{$accession_id}";
+		$image_link=~s!$accession_id!<img src="/common/images/ico_camera.gif" alt="Image available" border="0">!;
 
 }
 	}
@@ -2035,7 +1961,6 @@ else{
 		$sugg_suffix="rsa" if $sugg_suffix eq "pom";
 		$sugg_suffix="ucb" if $sugg_suffix eq "uc";
 		$sugg_suffix="ucb" if $sugg_suffix eq "jeps";
-#<a href="/suggs_${sugg_suffix}.html#$suggs{$accession_id}"><br>Read comments</a>
 ($sugg_date= $suggs{$accession_id})=~s/\d\d:\d\d:\d\d//;
 $sugg_date=~s/^[A-Z]...//;
 		$seen_sugg=<<EOP;
@@ -2076,9 +2001,33 @@ if($make_tax_list){
 
 $checked=$check_all unless $checked;
 
+($ejdate,$ljdate,$date)=@CDL_fields[5,6,7];
+if($ejdate==$ljdate){
+		($year,$month,$day)=inverse_julian_day($ejdate);
+$formattedDate = "$year-$month-$day";
+}
+elsif($ljdate - $ejdate > 31){
+		($year,$month,$day)=inverse_julian_day($ejdate);
+$day=0;
+$formattedDate = "$year-$month";
+}
+elsif($ljdate - $ejdate > 365){
+		($year,$month,$day)=inverse_julian_day($ejdate);
+$day=0;
+$month=0;
+$formattedDate = "$year";
+}
+else{
+$formattedDate = $date;
+};
+
+if($formattedDate =~ m/-4712-/){
+		$formattedDate = ""; #fix problem dates that are not parsing in inverse julian date properly
+}
+
+
 #with the old code here, the QLOG was skipping CLARK and YM-YOSE specimens because the old code did not match the accession format.  Also it will skip specimens from RSA with DUP at the end, as it allowed only 1 letter after the digits.
 if($accession_id=~m/^(CAS-BOT-BC|CDA|CHSC|CSUSB|SACT|HSC|HREC|BFRS|IRVC|JEPS|PGM|POM|RSA|SBBG|SD|SDSU|SJSU|UC|UCD|UCR|UCSB|UCSC|NY|GH|AMES|A|ECON|YM-YOSE|SCFS|OBI|GMDRC|JOTR|VVC|SFV|LA|CLARK-A|SEINET|BLMAR|JROH|PASA|CATA|MACF)\d+-?[0-9]*[A-Z-]*$/){
-#if($accession_id=~m/^(CAS|CDA|CHSC|CSUSB|SACT|DS|HSC|IRVC|JEPS|PGM|POM|RSA|SBBG|SD|SDSU|SJSU|UC|UCD|UCR|UCSB|UCSC|NY|GH|AMES|A|ECON|YOSE-YM|SCFS|OBI|GMDRC|JOTR|VVC|SFV|LA|CLARK-A|SEINET|BLMAR|JROH|PASA|CATA|MACF)\d+[A-Z-]?$/){
 	push(@QLOG,$accession_id);
 }
 if($CDL_fields[-1]=="1" && $YF){
@@ -2094,8 +2043,8 @@ $geo_warning
 <td><a href="/cgi-bin/$detail?$accession_id&YF=$YF">$accession_id</a>&nbsp;$image_link</td>
 <td>$tax_name</td>
 <td>$CDL_fields[1]</td>
-<td>$date</td>
-<td>$CDL_fields[2]$CDL_fields[3]$CDL_fields[4]</td>
+<td>$formattedDate</td>
+<td>$collno_string</td>
 <td>$CDL_fields[8]</td>
 <td>$CDL_fields[10]</td>
 <td>$elev</td>
@@ -2103,9 +2052,14 @@ $geo_warning
 </tr>
 EOP
 );
+
+#old line with problem coll num fields that shoved everything into a single line without breaks
+#12345 would be the same as 123 45 if 45 was in the suffix CNUM field 4, this is causes a discrepancy with the data display and data output (which has all 3 fields separate).
+#<td>$CDL_fields[2]$CDL_fields[3]$CDL_fields[4]</td>
+#this was placed below the data field above
+
 	if($CDL_fields[11] && $CDL_fields[12]){
 		($institution=$accession_id)=~s/\d.*//;
-		#push(@map_results, join("\t", $institution, $accession_id, $TID_TO_NAME{$CDL_fields[0]}, @CDL_fields[1 .. $#CDL_fields], "NAD 27"));
 if($YF){
 if($CDL_fields[-1]==1){
 $institution="YF";
@@ -2130,11 +2084,35 @@ sub get_date{
 	$month=("",Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec)[$month];
 	return "$month $day $year";
 }
+sub inverse_julian_day
+{
+use integer;
+        my($jd) = @_;
+        my($jdate_tmp);
+        my($m,$d,$y);
 
+        $jdate_tmp = $jd - 1721119;
+        $y = (4 * $jdate_tmp - 1)/146097;
+        $jdate_tmp = 4 * $jdate_tmp - 1 - 146097 * $y;
+        $d = $jdate_tmp/4;
+        $jdate_tmp = (4 * $d + 3)/1461;
+        $d = 4 * $d + 3 - 1461 * $jdate_tmp;
+        $d = ($d + 4)/4;
+        $m = (5 * $d - 3)/153;
+        $d = 5 * $d - 3 - 153 * $m;
+        $d = ($d + 5) / 5;
+        $y = 100 * $y + $jdate_tmp;
+        if($m < 10) {
+                $m += 3;
+        } else {
+                $m -= 9;
+                ++$y;
+        }
+        return ($y, $m, $d);
+}
 sub get_coll_num_acc {
 	my $number= shift;
 	tie %CN, "BerkeleyDB::Hash", -Filename => "$CDL_coll_number_file",-Flags=>DB_RDONLY or die "Cannot open file CDL_coll_number: $! $BerkeleyDB::Error\n" ;
-	#tie %CN, "BerkeleyDB::Hash", -Filename => "$CDL_coll_number_file",-Flags=>DB_RDONLY or die "Cannot open file CDL_coll_number: $! $BerkeleyDB::Error\n" ;
 $coll_list=$query->param(adj_num);
 if($coll_list){
 foreach $one_number ($number-5 .. $number+5){
@@ -2338,30 +2316,12 @@ sub get_fam_acc {
          or print "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
           my $vec = $FV{$lookfor};
           my @ints;
-           #Find null-byte density then select best algorithm
-           #if ($vec =~ tr/\0// / length $vec > 0.95) {
-               #use integer;
-               #my $i;
-               # This method is faster with mostly null-bytes
-               #while($vec =~ /[^\0]/g ) {
-                   #$i = -9 + 8 * pos $vec;
-                   #push @ints, $i if vec($vec, ++$i, 1);
-                   #push @ints, $i if vec($vec, ++$i, 1);
-                   #push @ints, $i if vec($vec, ++$i, 1);
-                   #push @ints, $i if vec($vec, ++$i, 1);
-                   #push @ints, $i if vec($vec, ++$i, 1);
-                   #push @ints, $i if vec($vec, ++$i, 1);
-                   #push @ints, $i if vec($vec, ++$i, 1);
-                   #push @ints, $i if vec($vec, ++$i, 1);
-               #}
-           #} else {
-               # This method is a fast general algorithm
+
                use integer;
                my $bits = unpack "b*", $vec;
                push @ints, 0 if $bits =~ s/^(\d)// && $1;
                push @ints, pos $bits while($bits =~ /1/g);
-           #}
-           #print join (" ",@ints);
+
            grep($found_names{$h[$_ -1]}++,@ints);
 if($season){
 foreach(keys(%found_names)){
