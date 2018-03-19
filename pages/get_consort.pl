@@ -99,7 +99,7 @@ else{
 }
 
 ###I think tns refers to taxonomic synonyms
- $tns=$query->param('tns');
+$tns=$query->param('tns');
 $tns=lc($tns);
 
 ###high elevation and low elevation parameters, which can come from the search page
@@ -511,22 +511,12 @@ if($lookfor){
         	%name_acc=&get_fam_acc($lookfor);
 	}
 	else{
-		#$lookfor=~s/ [xX] / $times /;
 		$lookfor=~s/ X / x /;
-		$lookfor=~s/ X/ x /;
-		#$lookfor=~s/ $times([a-z])/ $times $1/;
    		tie(%nomsyns, "BerkeleyDB::Hash", -Filename=>"$CDL_nomsyn_file", -Flags=>DB_RDONLY)|| die "$!";
     		($ns_lookfor=$lookfor)=~s/ (var\.|nothosubsp\.|subsp\.|ssp\.|f\.|forma)//;
-    		#if($nomsyns{lc($ns_lookfor)}){
-        		#@nomsyns=split(/\t/,$nomsyns{lc($ns_lookfor)});
-
-		#July 30 2009
-		#if($nomsyns{lc($lookfor)} || $tns){
-			#@nomsyns=split(/\t/,$nomsyns{lc($lookfor)});
-
-		if($nomsyns{lc($ns_lookfor)} || $tns){
-			@nomsyns=split(/\t/,$nomsyns{lc($ns_lookfor)});
-			push(@nomsyns,$tns) if $tns;
+    		if($nomsyns{lc($ns_lookfor)}){
+        		@nomsyns=split(/\t/,$nomsyns{lc($ns_lookfor)});
+				push(@nomsyns);
 		        foreach(@nomsyns){
         			%acc_buffer=&get_name_acc($_);
 				while(($ns_key,$ns_value)=each(%acc_buffer)){
@@ -1555,8 +1545,9 @@ sub get_name_acc {
 %found_names=();
 	my $lookfor=shift;
 	$lookfor=~s/(var\.|nothosubsp\.|subsp\.|ssp\.|f\.|forma) //;
-$lookfor=~s/◊/X/;
-$lookfor=~s/&times;/X/;
+$lookfor=~s/◊/X /;
+$lookfor=~s/&times;/X /;
+$lookfor=~s/  +/ /g;
 	use Search::Dict;
 	open(NAMES,"${data_path}CDL_name_list.txt") || die $!;
 	#open(NAMES,"${data_path}CDL_name_list.txt") || die;
@@ -1566,10 +1557,11 @@ $lookfor=~s/&times;/X/;
 		if(m/^$lookfor/){
 			chomp;
 			s/^.* ([A-Z])/$1/;
-			s/	*$//;
+			s/	+$//;
 			@acc=split(/\t/);
 			foreach(@acc){
 				$found_names{$_}++ if $_;
+				$found_names{$_}++ unless (m/^$_$/);
 			}
 		}
 		else{
@@ -1634,7 +1626,7 @@ sub get_date_acc {
 	my $month = shift;
 	my $day = shift;
 	#subroutine was modified to accommodate the "exact date" button
-#	if($before_after || (($year=~/^[12][890]\d\d$/) && not ($month || $day))){
+	#if($before_after || (($year=~/^[12][890]\d\d$/) && not ($month || $day))){
 	if($before_after=~/^[12]/ || (($year=~/^[12][890]\d\d$/) && not ($month || $day))){
 
 	#if(($after || $before ) && $year){
@@ -1642,10 +1634,10 @@ sub get_date_acc {
            tie @date_recno, 'BerkeleyDB::Recno', -Filename   => "$CDL_date_recno_file", -Flags      => DB_RDONLY or die "Cannot open $filename: $! $BerkeleyDB::Error\n" ;
            #tie @date_recno, 'BerkeleyDB::Recno', -Filename   => "$CDL_date_recno_file", -Flags      => DB_RDONLY or die "Cannot open $filename: $! $BerkeleyDB::Error\n" ;
 		if($before_after ==2){
-			grep($date_acc{$_}++, split(/\t/, join("\t", @date_recno[$year+1 .. $#date_recno])));
+			grep($date_acc{$_}++, split(/\t/, join("\t", @date_recno[$year .. $#date_recno]))); #this used to be $year+1,  but if you searched any dates with month or day in a year, you only returned next year, e.g. 1 Jan 2010 only returned 2011+ dates, which is not correct and gets comments by users that search is broken
 		}
 		elsif($before_after ==1){
-			grep($date_acc{$_}++, split(/\t/,join("\t",@date_recno[1800 .. $year])));
+			grep($date_acc{$_}++, split(/\t/,join("\t",@date_recno[1800 .. $year-1])));#this used to be $year
 		}
 		else{
 			grep($date_acc{$_}++, split(/\t/,$date_recno[$year]));
@@ -1850,9 +1842,6 @@ delete($wanted{$_});
 sub source_wanted {
 	my $accession_id=shift;
 	($inst=$accession_id)=~s/\d.*//;
-if($inst=~/^(AMES|GH|ECON|A)$/){
-$inst="HUH";
-}
 
 	if(grep(/^$inst$/,@source) || $inst eq $source || $source eq "All" || $source eq ""){
 		return 1;
@@ -1877,6 +1866,7 @@ my $checked="";
 	if($geo_only){
 	return 0 unless $CDL_GEO{$accession_id};
 	}
+#I dont think this is doing anything becuase voucher restrict is not defined anywhere what it is
 	if($v_restrict){
 	return 0 unless $VOUCHER{$_} =~/\b$v_restrict\t/;
 	}
@@ -2000,6 +1990,7 @@ $sort_string="$G_T_F{$sort_string} $sort_string";
 		$sort_string=$CDL_fields[$sort_field];
 	}
 ###########remove > 200 to restore image links
+#this code needs to be check against for the new Image links file, I have no idea how the links were generated in SMASH_IMAGES
 	if($image_location{$accession_id}){
 if($accession_id=~/SDSU/){
 	$image_link= $image_location{$accession_id };
@@ -2027,6 +2018,9 @@ else{
 $image_link="" if $accession_id eq "JEPS26640";
 $image_link="" if $accession_id eq "JEPS27371";
 $image_link="" if $accession_id eq "UC1212010";
+	$image_link= "$image_location{$accession_id}";
+	$image_link=~s!$accession_id!<img src="/common/images/ico_camera.gif" alt="Image available" border="0">!;
+
 }
 	}
 	elsif($CP{$accession_id}){
@@ -2081,7 +2075,10 @@ if($make_tax_list){
     }
 
 $checked=$check_all unless $checked;
-if($accession_id=~m/^(CAS|CDA|CHSC|CSUSB|SACT|DS|HSC|IRVC|JEPS|PGM|POM|RSA|SBBG|SD|SDSU|SJSU|UC|UCD|UCR|UCSB|UCSC|NY|GH|AMES|A|ECON|YOSE-YM|SCFS|OBI|GMDRC|JOTR|VVC|SFV|LA|CLARK-A|SEINET|BLMAR|JROH|PASA|CATA|MACF)\d+[A-Z-]?$/){
+
+#with the old code here, the QLOG was skipping CLARK and YM-YOSE specimens because the old code did not match the accession format.  Also it will skip specimens from RSA with DUP at the end, as it allowed only 1 letter after the digits.
+if($accession_id=~m/^(CAS-BOT-BC|CDA|CHSC|CSUSB|SACT|HSC|HREC|BFRS|IRVC|JEPS|PGM|POM|RSA|SBBG|SD|SDSU|SJSU|UC|UCD|UCR|UCSB|UCSC|NY|GH|AMES|A|ECON|YM-YOSE|SCFS|OBI|GMDRC|JOTR|VVC|SFV|LA|CLARK-A|SEINET|BLMAR|JROH|PASA|CATA|MACF)\d+-?[0-9]*[A-Z-]*$/){
+#if($accession_id=~m/^(CAS|CDA|CHSC|CSUSB|SACT|DS|HSC|IRVC|JEPS|PGM|POM|RSA|SBBG|SD|SDSU|SJSU|UC|UCD|UCR|UCSB|UCSC|NY|GH|AMES|A|ECON|YOSE-YM|SCFS|OBI|GMDRC|JOTR|VVC|SFV|LA|CLARK-A|SEINET|BLMAR|JROH|PASA|CATA|MACF)\d+[A-Z-]?$/){
 	push(@QLOG,$accession_id);
 }
 if($CDL_fields[-1]=="1" && $YF){
