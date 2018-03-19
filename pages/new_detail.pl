@@ -760,7 +760,7 @@ elsif($CDL_fields[1]=~/^(W\.|Willis) ?(L\.|Linn) ?(J\.|Jepson)/){
 	}
 }
 elsif($CDL_fields[1]=~/(Brewer|Bolander|State Survey)/){
-			$jeps_collno=qq{<a href="http://herbaria4.herb.berkeley.edu/cgi-bin/brewer.pl?$CDL_fields[3]">$CDL_fields[3] <img src="/ob.gif"></a>};
+			$jeps_collno=qq{<a href="http://ucjeps.berkeley.edu/cgi-bin/brewer.pl?$CDL_fields[3]">$CDL_fields[3] <img src="/ob.gif"></a>};
 }
 elsif($CDL_fields[1]=~/^C\. ?A\. Purpus/){
 $CDL_fields[1]=qq{<a href="http://ucjeps.berkeley.edu/Purpus/">$CDL_fields[1]</a>};
