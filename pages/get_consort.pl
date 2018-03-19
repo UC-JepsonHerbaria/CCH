@@ -81,7 +81,6 @@ $CDL_date_simple_file	="${data_path}CDL_date_simple";
 $CDL_date_range_file	="${data_path}CDL_date_range";
 $CDL_county_file	="${data_path}CDL_county";
 $image_file	="${data_path}SMASCH_IMAGES";
-#$image_file	="${data_path}CDL_image_links"; #new file name when finally created, to replace SMASCH_IMAGES
 $CDL_date_recno_file	= "${data_path}CDL_date_recno";
 $CDL_bad_coords	= "${data_path}all_bad_coords.cch";
 
@@ -517,7 +516,7 @@ if($lookfor){
 		$lookfor=~s/ X/ x /;
 		#$lookfor=~s/ $times([a-z])/ $times $1/;
    		tie(%nomsyns, "BerkeleyDB::Hash", -Filename=>"$CDL_nomsyn_file", -Flags=>DB_RDONLY)|| die "$!";
-    		($ns_lookfor=$lookfor)=~s/ (var\.|subsp\.|ssp\.|f\.|forma)//;
+    		($ns_lookfor=$lookfor)=~s/ (var\.|nothosubsp\.|subsp\.|ssp\.|f\.|forma)//;
     		#if($nomsyns{lc($ns_lookfor)}){
         		#@nomsyns=split(/\t/,$nomsyns{lc($ns_lookfor)});
 
@@ -1555,8 +1554,8 @@ EOP
 sub get_name_acc {
 %found_names=();
 	my $lookfor=shift;
-	$lookfor=~s/(var\.|subsp\.|ssp\.|f\.|forma) //;
-#$lookfor=~s/&times;/◊/;
+	$lookfor=~s/(var\.|nothosubsp\.|subsp\.|ssp\.|f\.|forma) //;
+$lookfor=~s/◊/X/;
 $lookfor=~s/&times;/X/;
 	use Search::Dict;
 	open(NAMES,"${data_path}CDL_name_list.txt") || die $!;
@@ -1851,9 +1850,9 @@ delete($wanted{$_});
 sub source_wanted {
 	my $accession_id=shift;
 	($inst=$accession_id)=~s/\d.*//;
-#if($inst=~/^(AMES|GH|ECON|A)$/){
-#$inst="HUH";
-#}
+if($inst=~/^(AMES|GH|ECON|A)$/){
+$inst="HUH";
+}
 
 	if(grep(/^$inst$/,@source) || $inst eq $source || $source eq "All" || $source eq ""){
 		return 1;
@@ -2001,7 +2000,6 @@ $sort_string="$G_T_F{$sort_string} $sort_string";
 		$sort_string=$CDL_fields[$sort_field];
 	}
 ###########remove > 200 to restore image links
-#this code needs to be rewritten for the new Image links file, I have no idea how the links were generated in SMASH_IMAGES
 	if($image_location{$accession_id}){
 if($accession_id=~/SDSU/){
 	$image_link= $image_location{$accession_id };
@@ -2082,9 +2080,8 @@ if($make_tax_list){
     if($taxonomic_list{$tax_name}++){return 0;}
     }
 
-$checked=$check_all unless $checked;  
-#with the old code here, the QLOG was skipping CLARK and YM-YOSE specimens because the old code did not match the accession format.  Also it will skip specimens from RSA with DUP at the end, as it allowed only 1 letter after the digits.
-if($accession_id=~m/^(CAS-BOT-BC|CDA|CHSC|CSUSB|SACT|HSC|HREC|BFRS|IRVC|JEPS|PGM|POM|RSA|SBBG|SD|SDSU|SJSU|UC|UCD|UCR|UCSB|UCSC|NY|GH|AMES|A|ECON|YM-YOSE|SCFS|OBI|GMDRC|JOTR|VVC|SFV|LA|CLARK-A|SEINET|BLMAR|JROH|PASA|CATA|MACF)\d+-?[0-9]*[A-Z-]*$/){
+$checked=$check_all unless $checked;
+if($accession_id=~m/^(CAS|CDA|CHSC|CSUSB|SACT|DS|HSC|IRVC|JEPS|PGM|POM|RSA|SBBG|SD|SDSU|SJSU|UC|UCD|UCR|UCSB|UCSC|NY|GH|AMES|A|ECON|YOSE-YM|SCFS|OBI|GMDRC|JOTR|VVC|SFV|LA|CLARK-A|SEINET|BLMAR|JROH|PASA|CATA|MACF)\d+[A-Z-]?$/){
 	push(@QLOG,$accession_id);
 }
 if($CDL_fields[-1]=="1" && $YF){
