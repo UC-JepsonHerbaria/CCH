@@ -1262,7 +1262,7 @@ else{
 <a href="http://berkeleymapper.berkeley.edu/index.html?ViewResults=tab&tabfile=$map_file_URL&configfile=http%3A%2F%2Fucjeps.berkeley.edu%2Fucjeps.xml&sourcename=Consortium+of+California+Herbaria+result+set&maptype=Terrain&pointDisplay=pointMarkersBlack">BerkeleyMapper with county and bioregion layers</a> <br>
 <a href="http://berkeleymapper.berkeley.edu/index.html?ViewResults=tab&tabfile=$map_file_URL&configfile=http%3A%2F%2Fucjeps.berkeley.edu%2Fucjeps_nolayers.xml&sourcename=Consortium+of+California+Herbaria+result&pointDisplay=pointMarkersBlack">BerkeleyMapper without layers.</a> <br>
 <a href="/cgi-bin/x_to_k.pl?tabfile=$map_file_URL"> KML export</a> <br>
-(Note: only records with coordinates are mappable) 
+(Note: only records with coordinates are mappable)
 </td>
 EOP
 }
@@ -1293,7 +1293,7 @@ open(MAPFILE, ">/data/tmp/$map_file_out") || print "cant open map file /data/tmp
 		}
 
 if($number_of_records =~/2000/){
-$default_max_warning= qq{<br>(<font color="red">That's the default maximum</font>. Contact Jason Alexander for larger data requests.)};
+$default_max_warning= qq{<br>(<font color="red">That's the default maximum</font>. Contact smarkos\@berkeley.edu for larger data requests.)};
 }
 else{
 $default_max_warning= "";
@@ -1406,8 +1406,7 @@ $CF_search
 &middot;
 <a href="${current_request}&amp;georef_only=1">Select records with coordinates</a><br>
 <input type="submit" value="Retrieve selected records as tab-separated list"> <br>
-<input type="checkbox" name="DL" value="UCR">Include annotations and voucher information <br>
-(Note: contact Jason Alexander, <a href="mailto:jason_alexander&#64;berkeley.edu">jason_alexander&#64;berkeley.edu</a>, for large data requests.)
+<input type="checkbox" name="DL" value="UCR">Include annotations and voucher information
 </td></tr>
 </td></tr></table>
 
@@ -1731,7 +1730,7 @@ use integer;
 sub get_look_loc_acc {
 	use Search::Dict;
 	open(LOCS,"${data_path}CDL_look_loc.txt") || do{
-	print qq{<H2>Sorry. I can't open the geographic binary names file.</H2><h4>Contact Jason Alexander about this problem</h4>};
+	print qq{<H2>Sorry. I can't open the geographic binary names file.</H2><h4><a href="mailto:jason_alexader@berkeley.edu">Maybe we should tell someone</a></h4>};
 	#die;
 	die;
 	};
@@ -1764,7 +1763,7 @@ sub get_loc_acc {
 #warn "FLABBA";
 	use Search::Dict;
 	open(LOCS,"${data_path}CDL_location_words.txt") || do{
-	print qq{<H2>Sorry. I can't open the geographic names file.</H2><h4>Contact Jason Alexander about this problem</h4>};
+	print qq{<H2>Sorry. I can't open the geographic names file.</H2><h4><a href="mailto:jason_alexader@berkeley.edu">Maybe we should tell someone</a></h4>};
 	#die;
 die;
 	};
