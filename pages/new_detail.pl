@@ -93,17 +93,28 @@ tie(%image_location, "BerkeleyDB::Hash", -Filename=>"/usr/local/web/ucjeps_data/
 ($ejdate,$ljdate,$date)=@CDL_fields[5,6,7];
 if($ejdate==$ljdate){
 		($year,$month,$day)=inverse_julian_day($ejdate);
+$formattedDate = "$year-$month-$day";
 }
-elsif($ljdate - $ejdate < 31){
+elsif($ljdate - $ejdate > 31){
 		($year,$month,$day)=inverse_julian_day($ejdate);
 $day=0;
+$formattedDate = "$year-$month";
 }
-elsif($ljdate - $ejdate < 365){
+elsif($ljdate - $ejdate > 365){
 		($year,$month,$day)=inverse_julian_day($ejdate);
 $day=0;
 $month=0;
+$formattedDate = "$year";
 }
-else{$ejdate=""};
+else{
+
+$ejdate = "";
+$formattedDate = "";
+};
+
+if($formattedDate =~ m/-4712-/){
+		$formattedDate = ""; #fix problem dates that are not parsing in inverse julian date properly
+}
 
 $chc_header=<<EOH;
 
@@ -690,13 +701,11 @@ elsif($image_location{$aid}){
 #### hiding the default behavior which works for UC/JEPS specimens, while we move over to CSpace 
 #$image_link=qq{<a href="/cgi-bin/display_smasch_img.pl?smasch_accno=$aid"> <img src="/common/images/ico_camera.gif" alt="Image available" border="0"></a>};
 
-#Hide E. truncatum
-$image_link="" if $aid eq "UC692153";
-$image_link="" if $aid eq "JEPS26640";
-$image_link="" if $aid eq "JEPS27371";
-$image_link="" if $aid eq "UC1212010";
 
-	$image_link=qq{<a href="http://www.sci.sdsu.edu/herb/$aid.html" <br /><img src="/common/images/ico_camera.gif" alt="Image available" border="0"></a>} if $aid=~/SDSU/;
+if ($aid=~/SDSU\d/){
+	$image_link=qq{<a href="http://www.sci.sdsu.edu/herb/$aid.html" <br /><img src="/common/images/ico_camera.gif" alt="Image available" border="0"></a>};
+}
+
 if ($aid=~/SD\d/){
 	$image_link=$image_location{$aid};
 $image_link=~s/$aid/<img src="\/common\/images\/ico_camera.gif" alt="Image available" border="0">/;
@@ -709,6 +718,13 @@ if ($aid=~/UCR\d/){
 	$image_link=$image_location{$aid};
 $image_link=~s/$aid/<img src="\/common\/images\/ico_camera.gif" alt="Image available" border="0">/;
 }
+#Hide E. truncatum
+$image_link="" if $accession_id eq "UC692153";
+$image_link="" if $accession_id eq "JEPS26640";
+$image_link="" if $accession_id eq "JEPS27371";
+$image_link="" if $accession_id eq "UC1212010";
+	$image_link= "$image_location{$aid}";
+	$image_link=~s/$aid/<img src="\/common\/images\/ico_camera.gif" alt="Image available" border="0">/;
 
 #}
 }
@@ -776,7 +792,7 @@ elsif($CDL_fields[1]=~/^(A\.|Annie) M. Alexander/){
 	$CDL_fields[1]=qq{<a href="http://ucjeps.berkeley.edu/Alexander/indexA.html">$CDL_fields[1]</a>};
 	tie(%field_book, "BerkeleyDB::Hash", -Filename=>"/usr/local/web/ucjeps_data/ucjeps_data/CDL_ALEX_CN", -Flags=>DB_RDONLY)|| die "$!";
 	if(length($CDL_fields[3])>0){
-if($date=~/1911/){
+if($formattedDate=~/1911/){
 		if($field_book{"$CDL_fields[3].1"}){
 			$jeps_collno=qq{<a href="$field_book{"$CDL_fields[3].1"}">$CDL_fields[3] <img src="/ob.gif"></a>};
 		}
@@ -816,20 +832,20 @@ elsif($CDL_fields[1]=~/(Harriet.*Walker)|(H. A. Walker)/){
 $CDL_fields[1]=qq{<a href="http://ucjeps.berkeley.edu/history/biog/walker.html">$CDL_fields[1]</a>};
 }
 elsif($CDL_fields[1]=~/(Dr. )?C. C. Parry/){
-$CDL_fields[1]=qq{<a href="http://www.csupomona.edu/~larryblakely/whoname/who_pary.htm">$CDL_fields[1]</a>};
+$CDL_fields[1]=qq{<a href="http://www.cpp.edu/~larryblakely/whoname/who_pary.htm">$CDL_fields[1]</a>};
 }
 
 elsif($CDL_fields[1]=~/Alice Eastwood/){
-$CDL_fields[1]=qq{<a href="http://www.csupomona.edu/~larryblakely/whoname/who_east.htm">$CDL_fields[1]</a>};
+$CDL_fields[1]=qq{<a href="http://www.cpp.edu/~larryblakely/whoname/who_east.htm">$CDL_fields[1]</a>};
 }
 elsif($CDL_fields[1]=~/S. W. Austin/){
-$CDL_fields[1]=qq{<a href="http://www.csupomona.edu/~larryblakely/whoname/who_aust.htm">$CDL_fields[1]</a>};
+$CDL_fields[1]=qq{<a href="http://www.cpp.edu/~larryblakely/whoname/who_aust.htm">$CDL_fields[1]</a>};
 }
 elsif($CDL_fields[1]=~/(J. W. )?Blankinship/){
-$CDL_fields[1]=qq{<a href="http://gemini.oscs.montana.edu/~mlavin/herb/jwb.htm">$CDL_fields[1]</a>};
+$CDL_fields[1]=qq{<a href="http://www.montana.edu/mlavin/herb/blankinship.html">$CDL_fields[1]</a>};
 }
 elsif($CDL_fields[1]=~/(Dr. )?C. L. Anderson/){
-$CDL_fields[1]=qq{<a href="http://www.csupomona.edu/~larryblakely/whoname/who_andr.htm">$CDL_fields[1]</a>};
+$CDL_fields[1]=qq{<a href="http://www.cpp.edu/~larryblakely/whoname/who_andr.htm">$CDL_fields[1]</a>};
 }
 else{
 $huh=&get_coll_last_name($CDL_fields[1]);
@@ -840,15 +856,55 @@ $CDL_fields[1]=~s/\xc3\xa9/&eacute;/g;
 
 }
 
+	if ((length($CDL_fields[2]) >=1) && (length($CDL_fields[3]) >=1) && (length($CDL_fields[4]) == 0)){
+		$collno_string="$CDL_fields[2] $CDL_fields[3]";
+	}
+	elsif ((length($CDL_fields[2]) >=1) && (length($CDL_fields[3]) >=1) && (length($CDL_fields[4]) >= 1)){
+		$collno_string="$CDL_fields[2] $CDL_fields[3] $CDL_fields[4]";
+	}
+	elsif ((length($CDL_fields[2]) == 0) && (length($CDL_fields[3]) >=1) && (length($CDL_fields[4]) >= 1)){
+		$collno_string="$CDL_fields[3] $CDL_fields[4]";
+	}
+	elsif ((length($CDL_fields[2]) >=1) && (length($CDL_fields[3]) == 0) && (length($CDL_fields[4]) == 0)){
+		$collno_string="$CDL_fields[2]";
+	}	
+	elsif ((length($CDL_fields[2]) == 0) && (length($CDL_fields[3]) >=1) && (length($CDL_fields[4]) == 0)){
+		$collno_string="$CDL_fields[3]";
+	}	
+	elsif ((length($CDL_fields[2]) >=1) && (length($CDL_fields[3]) == 0) && (length($CDL_fields[4]) >=1)){
+		$collno_string="$CDL_fields[2] $CDL_fields[4]";
+	}
+	elsif ((length($CDL_fields[2]) == 0) && (length($CDL_fields[3]) == 0) && (length($CDL_fields[4]) >=1)){
+		$collno_string="$CDL_fields[4]";
+	}
 
 
-$disp_collno=$jeps_collno || $CDL_fields[3];
+$disp_collno=$collno_string || $jeps_collno || $CDL_fields[3];
 $CDL_fields[10]=~s/on lable/on label/;
 $CDL_fields[10]=~ s/Ë&ouml;/&deg;/g;
 $CDL_fields[10]=~ s/â€œ/"/g;
 	$CDL_fields[10]=~s/[ -]*$//;
 	$CDL_fields[10]=~s/\[\]//;
-push(@display, qq{<tr><td>${detail_help}Collector, number, date">Collector, number, date</a></td> <td>$CDL_fields[1], $CDL_fields[2]$disp_collno$CDL_fields[4], $date</td></tr>}) if $CDL_fields[1];
+if ($CDL_fields[1] && $disp_collno && $formattedDate){
+push(@display, qq{<tr><td>${detail_help}Collector, number, formatted date">Collector, number, date</a></td> <td>$CDL_fields[1], $disp_collno, $formattedDate</td></tr>});
+push(@display, qq{<tr><td>Verbatim date</td> <td>$date</td></tr>});
+}
+elsif ($CDL_fields[1] && (length($disp_collno) == 0) && $formattedDate){
+push(@display, qq{<tr><td>${detail_help}Collector, number, date">Collector, number, formatted date</a></td> <td>$CDL_fields[1], s.n., $formattedDate</td></tr>});
+push(@display, qq{<tr><td>Verbatim date</td> <td>$date</td></tr>});
+}
+elsif ($CDL_fields[1] && $disp_collno && $date){
+push(@display, qq{<tr><td>${detail_help}Collector, number, formatted date">Collector, number, date</a></td> <td>$CDL_fields[1], $disp_collno, $date</td></tr>});
+}
+elsif ($CDL_fields[1] && $disp_collno && (length($formattedDate) == 0) && (length($date) == 0)){
+push(@display, qq{<tr><td>${detail_help}Collector, number, date">Collector, number, formatted date</a></td> <td>$CDL_fields[1], $disp_collno, (date unknown)</td></tr>});
+}
+elsif ($CDL_fields[1] && (length($disp_collno) == 0) && (length($formattedDate) == 0) && (length($date) == 0)){
+push(@display, qq{<tr><td>${detail_help}Collector, number, date">Collector, number, formatted date</a></td> <td>$CDL_fields[1], $disp_collno, (date unknown)</td></tr>});
+}
+else {
+push(@display, qq{<tr><td>${detail_help}Collector, number, date">Collector, number, formatted date</a></td> <td>$CDL_fields[1], $disp_collno, $date</td></tr>});
+}
 push(@display, qq{<tr><td>${detail_help}County">County</a></td> <td>$CDL_fields[8]</td></tr>});
 push(@display, qq{<tr><td>${detail_help}Locality">Locality</a></td> <td>$CDL_fields[10]</td></tr>}) if $CDL_fields[10];
 push(@display, qq{$elevation}) if $elevation;
@@ -864,7 +920,7 @@ push(@display, qq{$anno}) if $anno;
 $county=uc($county);
 ($taxon_name=$TID_TO_NAME{$CDL_fields[0]})=~s/ /%20/g;
 #July30 2009
-$taxon_name=~s/(var\.|subsp\.|f\.)%20//g;
+$taxon_name=~s/(var\.|nothosubsp\.|subsp\.|f\.)%20//g;
 
 
 $collector=$CDL_fields[1];
@@ -896,9 +952,13 @@ $related_display.=<<EOP;
 <LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=$taxon_name&collector=$collector&excl_collector=&aid=&year=&month=0&day=0&loc=&coll_num=&max_rec=500&SO=0&YF=$YF"> collector=$collector; taxon=$TID_TO_NAME{$CDL_fields[0]}</a>
 EOP
 if($coll_num){
+#old code just used the CNUM field (field 3), which cause a discrepancy to show on the display record when the collection number was a composite of fields 2,3, or 4, making it appear as if the wrong number was being searched in this part
+#<LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&year=&month=0&day=0&loc=&coll_num=$coll_num&max_rec=500&SO=8&YF=$YF">collector=$collector; number=$coll_num</a>
+#<LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&year=&month=0&day=0&loc=&coll_num=$coll_num&adj_num=1&max_rec=500&SO=8&YF=$YF">collector=$collector; number=$coll_num; include nearby numbers</a>
+
 $related_display.=<<EOP;
-<LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&year=&month=0&day=0&loc=&coll_num=$coll_num&max_rec=500&SO=8&YF=$YF">collector=$collector; number=$coll_num</a>
-<LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&year=&month=0&day=0&loc=&coll_num=$coll_num&adj_num=1&max_rec=500&SO=8&YF=$YF">collector=$collector; number=$coll_num; include nearby numbers</a>
+<LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&year=&month=0&day=0&loc=&coll_num=$disp_collno&max_rec=500&SO=8&YF=$YF">collector=$collector; number=$disp_collno</a>
+<LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&year=&month=0&day=0&loc=&coll_num=$disp_collno&adj_num=1&max_rec=500&SO=8&YF=$YF">collector=$collector; number=$disp_collno; include nearby numbers</a>
 EOP
 }
 if($ejdate){
@@ -906,7 +966,7 @@ $related_display.=<<EOP;
 <LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&year=$year&month=$month&day=$day&loc=&coll_num=&max_rec=500&SO=3&YF=$YF">date=$date; collector=$collector</a>
 EOP
 $related_display.=<<EOP;
-<LI><a href="/cgi-bin/get_consort.pl?county=$county&source=All&taxon_name=&collector=&excl_collector=&aid=&year=$year&month=$month&day=$day&loc=&coll_num=&max_rec=500&SO=0&YF=$YF"> date=$date; county=$CDL_fields[8]</a>
+<LI><a href="/cgi-bin/get_consort.pl?county=$county&source=All&taxon_name=&collector=&excl_collector=&aid=&year=$year&month=$month&day=$day&loc=&coll_num=&max_rec=500&SO=0&YF=$YF">date=$date; county=$CDL_fields[8]</a>
 EOP
 }
 #<LI><a href="/cgi-bin/x_get_consort.pl?county=$county&source=All&taxon_name=$taxon_name&collector=$collector&excl_collector=yes&aid=&year=&month=0&day=0&loc=&coll_num=&max_rec=500&SO=1">taxon=$TID_TO_NAME{$CDL_fields[0]}; county=$CDL_fields[8]; collector=not $collector</a> N.B. this is slow
@@ -1057,7 +1117,7 @@ EOH
 print somewhere_else <<EOP;
 <tr><td width="20%">Accession number 2</td> <td>$aid</td></tr>
 <tr><td>Determination</td> <td><i>$TID_TO_NAME{$CDL_fields[0]}</i> $image_link<br> <a href="/cgi-bin/get_cpn.pl?$taxon"><font size=\"-2\">More information: Jepson Online Interchange</font></a> </td></tr>
-<tr><td>Collector, number, date</td> <td>$CDL_fields[1], $CDL_fields[2]$CDL_fields[3]$CDL_fields[4], $date</td></tr>
+<tr><td>Collector, number, date</td> <td>$CDL_fields[1], $CDL_fields[2] $CDL_fields[3] $CDL_fields[4], $date</td></tr>
 <tr><td>County</td> <td>$CDL_fields[8]</td></tr>
 <tr><td>Locality</td> <td>$CDL_fields[10]</td></tr>
 $elevation
