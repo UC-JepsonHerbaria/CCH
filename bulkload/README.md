@@ -17,46 +17,68 @@
 	
 	- The file format is the collection number, followed by a space, then followed by tab separated accessions that have this collection number, irrespective of collector name.
 	
-	- file format:
-	
-`001 RSA273952	RSA818850`
+	- file format: `001 RSA273952	RSA818850`
 
 `CDL_collectors.in`  Collector last name text file that is used to create the collector name hash file used by the CCH search page.
+
 	- The data is the collectors last name (harvested from the `consort_bulkload` script from the collector field only, stripped of all other collectors, first names, titles, etc.)
+	
 	- The file format is the collector last name, followed by a space, then followed by tab separated accessions that have this name.
+	
 	- Only the last name of the primary collector is used.
-	- file format:
-`Abrams POM48668	POM145908`
+	
+	- file format: `Abrams POM48668	POM145908`
 
 
 `CDL_counties.in`  County name text file that is used to create the county name hash file used by the CCH search page.
+
 	- The data is the county name (harvested from the `consort_bulkload` script from the county field, spaces replaced by `_`, and converted to all caps.)
+	
 	- The file format is the county name, followed by a space, then followed by tab separated accessions that have this name.
-	- There should never be more than 64 lines in this file. 63 total names (counties from California and municipalities in Baja California) plus one line for all record with `UNKOWN` county values
-	- County names as they are found in the participant files are printed on-screen.  If there is more than 64 lines, the participant file has to be corrected to eliminate the bad county
+	
+	- There should never be more than 64 lines in this file. 63 total names (counties from California and municipalities in Baja California) plus one line for all record with `UNKOWN` county values.
+	
+	- County names as they are found in the participant files are printed on-screen.  If there is more than 64 lines, the participant file has to be corrected to eliminate the bad county.
+	
 		- the text on the screen shows what participant file has the first found occurrence of this bad name.
-	- file format:
-`ALAMEDA RSA817095	RSA817094`
+		
+	- file format:`ALAMEDA RSA817095	RSA817094`
 
 `CDL_date_range.in`   Early Julian Date-Late Julian Date range text file that is used to create the date range hash file used by the CCH search page
+
 	- The data is the early and late julian dates (harvested from the `consort_bulkload` script from the ELD and LJD date fields.)
+	
 	- The file format is the EJD-LJD, followed by tab separated accessions that have this date range.
+	
 	- There are older participant databases that do not have an LJD or and EJD field.
+	
 		- The original process for `consort_bulkload` was to process the EJD and LJD at this step and not at the participant database processing step.
+		
 		- prior to 2018, `consort_bulkload` harvested dates from only the verbatim date field, and ignored corrections that were present in the EJD and LJD participant database field
+		
 				- As a result, one could search the CCH and have records come up that display a date not within the range entered.
+				
 				- This is caused when the EJD and LJD processing has corrected a date that has a bad format or an erroneous date in the verbatim date field.
+				
 				- This also caused a problem with the search results page.
+				
 					- The search results are sorted by the EJD and not the verbatim date field.  However the verbatim date is displayed on the search results page.
-					- frequently, dates from outside the range would appear in search results.   
+					
+					- frequently, dates from outside the range would appear in search results.
+					
 					- also the dates would sort incoherently, since the EJD value was used as the sort and the verbatim date was displayed
+					
 					- this caused much consternation among the users and many complaints were e-mailed.
+					
 		- `consort_bulkload` has now been modified to use the EJD and LJD from participant files in first, then use the verbatim date field
+		
 	- `consort_bulkload` still reports when dates fall outside the known range for the "british use" of the Julian Calendar and current date.
+	
 		- The out of range dates are nulled.  They need to be fixed in the participant database processing step when found.  
+		
 		- The error is reported on screen.
-	- file format:
-`2378497-2378861	 UCSC774	UCSC775	UCSC782`
+		
+	- file format:`2378497-2378861	 UCSC774	UCSC775	UCSC782`
 
 `CDL_date_simple.in`  Julian Date text file that is used to create the date hash file used by the CCH search page
 	- The data are julian dates (harvested from the `consort_bulkload` script from the ELD and LJD date fields.)
