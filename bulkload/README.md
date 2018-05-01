@@ -12,9 +12,13 @@
 `\n`
 
 `CDL_coll_number.in`  Collection number text file that is used to create the collection number hash file used by the CCH search page.
+
 	- The data is the collection number (harvested from the `consort_bulkload` script from the collection number field only, stripped of suffix and prefix.)
+	
 	- The file format is the collection number, followed by a space, then followed by tab separated accessions that have this collection number, irrespective of collector name.
+	
 	- file format:
+	
 `001 RSA273952	RSA818850`
 
 `CDL_collectors.in`  Collector last name text file that is used to create the collector name hash file used by the CCH search page.
