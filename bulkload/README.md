@@ -1,15 +1,18 @@
 # CCH data and Scripts
 
 `consort_bulkload.pl`  Script that merges all of the participant's text files into a tab delimited text files ready for converting into hash files.
+
 `G_T_F`  In the `CCH/data_files` directory. Hash file that contains the genus to family cross references.  Used for adding families to various hash files.  Family data is not preserved in the conversion from the participant's database into the CCH text files. Not all databases have a family field either.
+
 `licenses.txt`  In the `CCH/data_files` directory.  Text file that contains all of the individual license text requested by participants.
+
 `CDL_cultivated_ids.txt` In the `CCH/data_files` directory.  The old method for flagging cultivated records in CCH was to add the accession to this file once a cultivated specimen was found.  This is still used, but it is being phased out.
 
-`CDL_annohist.in`  Annotation text file, with `\n` as record delimiter.  The accession number is on the first line of the record, the annotation is on the second line.  When more than one annotation is present, then there are multiple records for an accession.
-	- file format:
-`817804\n`
-`current determination (uncorrected): Scrophularia californica\n`
-`\n`
+`CDL_annohist.in`  Annotation text file, with `\n` as record delimiter. The accession number is on the first line of the record, the annotation is on the second line.  
+
+	- When more than one annotation is present, then there are multiple records for an accession.
+	
+	- file format:Line[0]`817804\n`Line[1]`current determination (uncorrected): Scrophularia californica\n`[delimiter]`\n`
 
 `CDL_coll_number.in`  Collection number text file that is used to create the collection number hash file used by the CCH search page.
 
