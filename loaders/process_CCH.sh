@@ -12,6 +12,17 @@ sort -u log.txt > /JEPS-master/CCH/Loaders/BLMAR/BLMAR_log_sort.txt
 
 echo "$?                                          NEXT";
 
+
+echo "$?                                          parsing CAS";
+perl /JEPS-master/CCH/Loaders/CAS/parse_CAS.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/CAS/CAS_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/CAS/
+sort -u log.txt > /JEPS-master/CCH/Loaders/CAS/CAS_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
 echo "$?                                          parsing OBI";
 perl /JEPS-master/CCH/Loaders/OBI/parse_OBI.pl
 echo "$?                                          sorting log file";
