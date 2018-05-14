@@ -1,0 +1,755 @@
+
+logging: COLLECTOR (): modified: Nick Otting, Barb Wilson==>Nick Otting, Barb Wilson--	Nick Otting	--	Barb Wilson	BLMAR657
+logging: COLLECTOR (): modified: Nick Otting, Barb Wilson==>Nick Otting, Barb Wilson--	Nick Otting	--	Barb Wilson	BLMAR658
+logging: COLLECTOR CCH.pm: No Collector Name	BLMAR403
+logging: COLLECTOR CCH.pm: No Collector Name	BLMAR42
+logging: COLLECTOR CCH.pm: No Collector Name	BLMAR43
+logging: COORDINATE Longitude made negative	--	BLMAR139
+logging: COORDINATE Longitude made negative	--	BLMAR140
+logging: COORDINATE Longitude made negative	--	BLMAR141
+logging: COORDINATE Longitude made negative	--	BLMAR142
+logging: COORDINATE Longitude made negative	--	BLMAR143
+logging: COORDINATE Longitude made negative	--	BLMAR144
+logging: COORDINATE Longitude made negative	--	BLMAR145
+logging: COORDINATE Longitude made negative	--	BLMAR146
+logging: COORDINATE Longitude made negative	--	BLMAR147
+logging: COORDINATE Longitude made negative	--	BLMAR148
+logging: COORDINATE Longitude made negative	--	BLMAR149
+logging: COORDINATE Longitude made negative	--	BLMAR150
+logging: COORDINATE Longitude made negative	--	BLMAR151
+logging: COORDINATE Longitude made negative	--	BLMAR152
+logging: COORDINATE Longitude made negative	--	BLMAR153
+logging: COORDINATE Longitude made negative	--	BLMAR154
+logging: COORDINATE Longitude made negative	--	BLMAR155
+logging: COORDINATE Longitude made negative	--	BLMAR156
+logging: COORDINATE Longitude made negative	--	BLMAR157
+logging: COORDINATE Longitude made negative	--	BLMAR158
+logging: COORDINATE Longitude made negative	--	BLMAR159
+logging: COORDINATE Longitude made negative	--	BLMAR160
+logging: COORDINATE Longitude made negative	--	BLMAR161
+logging: COORDINATE Longitude made negative	--	BLMAR162
+logging: COORDINATE Longitude made negative	--	BLMAR163
+logging: COORDINATE Longitude made negative	--	BLMAR164
+logging: COORDINATE Longitude made negative	--	BLMAR165
+logging: COORDINATE Longitude made negative	--	BLMAR166
+logging: COORDINATE Longitude made negative	--	BLMAR167
+logging: COORDINATE Longitude made negative	--	BLMAR168
+logging: COORDINATE Longitude made negative	--	BLMAR170
+logging: COORDINATE Longitude made negative	--	BLMAR171
+logging: COORDINATE Longitude made negative	--	BLMAR172
+logging: COORDINATE Longitude made negative	--	BLMAR173
+logging: COORDINATE Longitude made negative	--	BLMAR174
+logging: COORDINATE Longitude made negative	--	BLMAR175
+logging: COORDINATE Longitude made negative	--	BLMAR176
+logging: COORDINATE Longitude made negative	--	BLMAR177
+logging: COORDINATE Longitude made negative	--	BLMAR179
+logging: COORDINATE Longitude made negative	--	BLMAR180
+logging: COORDINATE Longitude made negative	--	BLMAR182
+logging: COORDINATE Longitude made negative	--	BLMAR183
+logging: COORDINATE Longitude made negative	--	BLMAR184
+logging: COORDINATE Longitude made negative	--	BLMAR185
+logging: COORDINATE Longitude made negative	--	BLMAR186
+logging: COORDINATE Longitude made negative	--	BLMAR188
+logging: COORDINATE Longitude made negative	--	BLMAR189
+logging: COORDINATE Longitude made negative	--	BLMAR190
+logging: COORDINATE Longitude made negative	--	BLMAR191
+logging: COORDINATE Longitude made negative	--	BLMAR192
+logging: COORDINATE Longitude made negative	--	BLMAR193
+logging: COORDINATE Longitude made negative	--	BLMAR194
+logging: COORDINATE Longitude made negative	--	BLMAR196
+logging: COORDINATE Longitude made negative	--	BLMAR197
+logging: COORDINATE Longitude made negative	--	BLMAR198
+logging: COORDINATE Longitude made negative	--	BLMAR199
+logging: COORDINATE Longitude made negative	--	BLMAR200
+logging: COORDINATE Longitude made negative	--	BLMAR426
+logging: COORDINATE Longitude made negative	--	BLMAR427
+logging: COORDINATE Longitude made negative	--	BLMAR428
+logging: COORDINATE Longitude made negative	--	BLMAR429
+logging: COORDINATE Longitude made negative	--	BLMAR430
+logging: COORDINATE Longitude made negative	--	BLMAR431
+logging: COORDINATE Longitude made negative	--	BLMAR436
+logging: COORDINATE Longitude made negative	--	BLMAR465
+logging: COORDINATE Longitude made negative	--	BLMAR469
+logging: COORDINATE Longitude made negative	--	BLMAR701
+logging: COORDINATE Longitude made negative	--	BLMAR713
+logging: COORDINATE Longitude made negative	--	BLMAR722
+logging: COORDINATE Longitude made negative	--	BLMAR723
+logging: COORDINATE Longitude made negative	--	BLMAR724
+logging: COORDINATE Longitude made negative	--	BLMAR725
+logging: COORDINATE Longitude made negative	--	BLMAR726
+logging: COORDINATE Longitude made negative	--	BLMAR727
+logging: COORDINATE Longitude made negative	--	BLMAR728
+logging: COORDINATE Longitude made negative	--	BLMAR729
+logging: COORDINATE Longitude made negative	--	BLMAR730
+logging: COORDINATE Longitude made negative	--	BLMAR733
+logging: COORDINATE Longitude made negative	--	BLMAR735
+logging: COORDINATE Longitude made negative	--	BLMAR736
+logging: COORDINATE Longitude made negative	--	BLMAR746
+logging: COORDINATE Longitude made negative	--	BLMAR747
+logging: COORDINATE Longitude made negative	--	BLMAR748
+logging: COORDINATE Longitude made negative	--	BLMAR749
+logging: COORDINATE Longitude made negative	--	BLMAR751
+logging: COORDINATE Longitude made negative	--	BLMAR752
+logging: COORDINATE Longitude made negative	--	BLMAR753
+logging: COORDINATE Longitude made negative	--	BLMAR754
+logging: COORDINATE Longitude made negative	--	BLMAR756
+logging: COORDINATE Longitude made negative	--	BLMAR758
+logging: COORDINATE Longitude made negative	--	BLMAR802
+logging: COORDINATE Longitude made negative	--	BLMAR806
+logging: COORDINATE Longitude made negative	--	BLMAR809
+logging: COORDINATE Longitude made negative	--	BLMAR811
+logging: COORDINATE Longitude made negative	--	BLMAR812
+logging: COORDINATE Longitude made negative	--	BLMAR813
+logging: COORDINATE Longitude made negative	--	BLMAR817
+logging: COORDINATE Longitude made negative	--	BLMAR818
+logging: COORDINATE set to null for BLMAR812, Outside California and CA-FP in Baja: >37.491475< >-109.362747<
+logging: COORDINATE: No coordinates for BLMAR1
+logging: COORDINATE: No coordinates for BLMAR10
+logging: COORDINATE: No coordinates for BLMAR100
+logging: COORDINATE: No coordinates for BLMAR101
+logging: COORDINATE: No coordinates for BLMAR102
+logging: COORDINATE: No coordinates for BLMAR103
+logging: COORDINATE: No coordinates for BLMAR104
+logging: COORDINATE: No coordinates for BLMAR105
+logging: COORDINATE: No coordinates for BLMAR106
+logging: COORDINATE: No coordinates for BLMAR107
+logging: COORDINATE: No coordinates for BLMAR108
+logging: COORDINATE: No coordinates for BLMAR109
+logging: COORDINATE: No coordinates for BLMAR11
+logging: COORDINATE: No coordinates for BLMAR110
+logging: COORDINATE: No coordinates for BLMAR111
+logging: COORDINATE: No coordinates for BLMAR112
+logging: COORDINATE: No coordinates for BLMAR113
+logging: COORDINATE: No coordinates for BLMAR114
+logging: COORDINATE: No coordinates for BLMAR115
+logging: COORDINATE: No coordinates for BLMAR116
+logging: COORDINATE: No coordinates for BLMAR117
+logging: COORDINATE: No coordinates for BLMAR118
+logging: COORDINATE: No coordinates for BLMAR119
+logging: COORDINATE: No coordinates for BLMAR12
+logging: COORDINATE: No coordinates for BLMAR120
+logging: COORDINATE: No coordinates for BLMAR121
+logging: COORDINATE: No coordinates for BLMAR122
+logging: COORDINATE: No coordinates for BLMAR123
+logging: COORDINATE: No coordinates for BLMAR124
+logging: COORDINATE: No coordinates for BLMAR125
+logging: COORDINATE: No coordinates for BLMAR126
+logging: COORDINATE: No coordinates for BLMAR127
+logging: COORDINATE: No coordinates for BLMAR128
+logging: COORDINATE: No coordinates for BLMAR129
+logging: COORDINATE: No coordinates for BLMAR13
+logging: COORDINATE: No coordinates for BLMAR130
+logging: COORDINATE: No coordinates for BLMAR131
+logging: COORDINATE: No coordinates for BLMAR132
+logging: COORDINATE: No coordinates for BLMAR133
+logging: COORDINATE: No coordinates for BLMAR134
+logging: COORDINATE: No coordinates for BLMAR135
+logging: COORDINATE: No coordinates for BLMAR136
+logging: COORDINATE: No coordinates for BLMAR137
+logging: COORDINATE: No coordinates for BLMAR138
+logging: COORDINATE: No coordinates for BLMAR14
+logging: COORDINATE: No coordinates for BLMAR15
+logging: COORDINATE: No coordinates for BLMAR16
+logging: COORDINATE: No coordinates for BLMAR17
+logging: COORDINATE: No coordinates for BLMAR178
+logging: COORDINATE: No coordinates for BLMAR18
+logging: COORDINATE: No coordinates for BLMAR181
+logging: COORDINATE: No coordinates for BLMAR187
+logging: COORDINATE: No coordinates for BLMAR19
+logging: COORDINATE: No coordinates for BLMAR195
+logging: COORDINATE: No coordinates for BLMAR2
+logging: COORDINATE: No coordinates for BLMAR20
+logging: COORDINATE: No coordinates for BLMAR201
+logging: COORDINATE: No coordinates for BLMAR202
+logging: COORDINATE: No coordinates for BLMAR203
+logging: COORDINATE: No coordinates for BLMAR204
+logging: COORDINATE: No coordinates for BLMAR205
+logging: COORDINATE: No coordinates for BLMAR206
+logging: COORDINATE: No coordinates for BLMAR207
+logging: COORDINATE: No coordinates for BLMAR208
+logging: COORDINATE: No coordinates for BLMAR209
+logging: COORDINATE: No coordinates for BLMAR21
+logging: COORDINATE: No coordinates for BLMAR210
+logging: COORDINATE: No coordinates for BLMAR211
+logging: COORDINATE: No coordinates for BLMAR212
+logging: COORDINATE: No coordinates for BLMAR213
+logging: COORDINATE: No coordinates for BLMAR214
+logging: COORDINATE: No coordinates for BLMAR215
+logging: COORDINATE: No coordinates for BLMAR216
+logging: COORDINATE: No coordinates for BLMAR217
+logging: COORDINATE: No coordinates for BLMAR218
+logging: COORDINATE: No coordinates for BLMAR219
+logging: COORDINATE: No coordinates for BLMAR22
+logging: COORDINATE: No coordinates for BLMAR220
+logging: COORDINATE: No coordinates for BLMAR221
+logging: COORDINATE: No coordinates for BLMAR222
+logging: COORDINATE: No coordinates for BLMAR223
+logging: COORDINATE: No coordinates for BLMAR224
+logging: COORDINATE: No coordinates for BLMAR225
+logging: COORDINATE: No coordinates for BLMAR226
+logging: COORDINATE: No coordinates for BLMAR227
+logging: COORDINATE: No coordinates for BLMAR228
+logging: COORDINATE: No coordinates for BLMAR229
+logging: COORDINATE: No coordinates for BLMAR23
+logging: COORDINATE: No coordinates for BLMAR230
+logging: COORDINATE: No coordinates for BLMAR231
+logging: COORDINATE: No coordinates for BLMAR232
+logging: COORDINATE: No coordinates for BLMAR233
+logging: COORDINATE: No coordinates for BLMAR234
+logging: COORDINATE: No coordinates for BLMAR235
+logging: COORDINATE: No coordinates for BLMAR236
+logging: COORDINATE: No coordinates for BLMAR237
+logging: COORDINATE: No coordinates for BLMAR238
+logging: COORDINATE: No coordinates for BLMAR239
+logging: COORDINATE: No coordinates for BLMAR24
+logging: COORDINATE: No coordinates for BLMAR240
+logging: COORDINATE: No coordinates for BLMAR241
+logging: COORDINATE: No coordinates for BLMAR242
+logging: COORDINATE: No coordinates for BLMAR243
+logging: COORDINATE: No coordinates for BLMAR244
+logging: COORDINATE: No coordinates for BLMAR245
+logging: COORDINATE: No coordinates for BLMAR246
+logging: COORDINATE: No coordinates for BLMAR247
+logging: COORDINATE: No coordinates for BLMAR248
+logging: COORDINATE: No coordinates for BLMAR249
+logging: COORDINATE: No coordinates for BLMAR25
+logging: COORDINATE: No coordinates for BLMAR250
+logging: COORDINATE: No coordinates for BLMAR251
+logging: COORDINATE: No coordinates for BLMAR252
+logging: COORDINATE: No coordinates for BLMAR253
+logging: COORDINATE: No coordinates for BLMAR254
+logging: COORDINATE: No coordinates for BLMAR255
+logging: COORDINATE: No coordinates for BLMAR256
+logging: COORDINATE: No coordinates for BLMAR257
+logging: COORDINATE: No coordinates for BLMAR258
+logging: COORDINATE: No coordinates for BLMAR259
+logging: COORDINATE: No coordinates for BLMAR26
+logging: COORDINATE: No coordinates for BLMAR260
+logging: COORDINATE: No coordinates for BLMAR261
+logging: COORDINATE: No coordinates for BLMAR262
+logging: COORDINATE: No coordinates for BLMAR263
+logging: COORDINATE: No coordinates for BLMAR264
+logging: COORDINATE: No coordinates for BLMAR265
+logging: COORDINATE: No coordinates for BLMAR266
+logging: COORDINATE: No coordinates for BLMAR267
+logging: COORDINATE: No coordinates for BLMAR268
+logging: COORDINATE: No coordinates for BLMAR269
+logging: COORDINATE: No coordinates for BLMAR27
+logging: COORDINATE: No coordinates for BLMAR270
+logging: COORDINATE: No coordinates for BLMAR271
+logging: COORDINATE: No coordinates for BLMAR272
+logging: COORDINATE: No coordinates for BLMAR273
+logging: COORDINATE: No coordinates for BLMAR274
+logging: COORDINATE: No coordinates for BLMAR275
+logging: COORDINATE: No coordinates for BLMAR276
+logging: COORDINATE: No coordinates for BLMAR277
+logging: COORDINATE: No coordinates for BLMAR278
+logging: COORDINATE: No coordinates for BLMAR279
+logging: COORDINATE: No coordinates for BLMAR28
+logging: COORDINATE: No coordinates for BLMAR280
+logging: COORDINATE: No coordinates for BLMAR281
+logging: COORDINATE: No coordinates for BLMAR282
+logging: COORDINATE: No coordinates for BLMAR283
+logging: COORDINATE: No coordinates for BLMAR284
+logging: COORDINATE: No coordinates for BLMAR285
+logging: COORDINATE: No coordinates for BLMAR286
+logging: COORDINATE: No coordinates for BLMAR287
+logging: COORDINATE: No coordinates for BLMAR289
+logging: COORDINATE: No coordinates for BLMAR29
+logging: COORDINATE: No coordinates for BLMAR290
+logging: COORDINATE: No coordinates for BLMAR291
+logging: COORDINATE: No coordinates for BLMAR292
+logging: COORDINATE: No coordinates for BLMAR293
+logging: COORDINATE: No coordinates for BLMAR294
+logging: COORDINATE: No coordinates for BLMAR295
+logging: COORDINATE: No coordinates for BLMAR296
+logging: COORDINATE: No coordinates for BLMAR297
+logging: COORDINATE: No coordinates for BLMAR298
+logging: COORDINATE: No coordinates for BLMAR299
+logging: COORDINATE: No coordinates for BLMAR3
+logging: COORDINATE: No coordinates for BLMAR30
+logging: COORDINATE: No coordinates for BLMAR300
+logging: COORDINATE: No coordinates for BLMAR301
+logging: COORDINATE: No coordinates for BLMAR302
+logging: COORDINATE: No coordinates for BLMAR303
+logging: COORDINATE: No coordinates for BLMAR304
+logging: COORDINATE: No coordinates for BLMAR305
+logging: COORDINATE: No coordinates for BLMAR306
+logging: COORDINATE: No coordinates for BLMAR307
+logging: COORDINATE: No coordinates for BLMAR308
+logging: COORDINATE: No coordinates for BLMAR309
+logging: COORDINATE: No coordinates for BLMAR31
+logging: COORDINATE: No coordinates for BLMAR310
+logging: COORDINATE: No coordinates for BLMAR311
+logging: COORDINATE: No coordinates for BLMAR312
+logging: COORDINATE: No coordinates for BLMAR313
+logging: COORDINATE: No coordinates for BLMAR314
+logging: COORDINATE: No coordinates for BLMAR315
+logging: COORDINATE: No coordinates for BLMAR316
+logging: COORDINATE: No coordinates for BLMAR317
+logging: COORDINATE: No coordinates for BLMAR318
+logging: COORDINATE: No coordinates for BLMAR319
+logging: COORDINATE: No coordinates for BLMAR32
+logging: COORDINATE: No coordinates for BLMAR320
+logging: COORDINATE: No coordinates for BLMAR321
+logging: COORDINATE: No coordinates for BLMAR322
+logging: COORDINATE: No coordinates for BLMAR323
+logging: COORDINATE: No coordinates for BLMAR324
+logging: COORDINATE: No coordinates for BLMAR325
+logging: COORDINATE: No coordinates for BLMAR326
+logging: COORDINATE: No coordinates for BLMAR327
+logging: COORDINATE: No coordinates for BLMAR33
+logging: COORDINATE: No coordinates for BLMAR330
+logging: COORDINATE: No coordinates for BLMAR331
+logging: COORDINATE: No coordinates for BLMAR335
+logging: COORDINATE: No coordinates for BLMAR336
+logging: COORDINATE: No coordinates for BLMAR337
+logging: COORDINATE: No coordinates for BLMAR339
+logging: COORDINATE: No coordinates for BLMAR34
+logging: COORDINATE: No coordinates for BLMAR340
+logging: COORDINATE: No coordinates for BLMAR341
+logging: COORDINATE: No coordinates for BLMAR342
+logging: COORDINATE: No coordinates for BLMAR343
+logging: COORDINATE: No coordinates for BLMAR344
+logging: COORDINATE: No coordinates for BLMAR345
+logging: COORDINATE: No coordinates for BLMAR346
+logging: COORDINATE: No coordinates for BLMAR347
+logging: COORDINATE: No coordinates for BLMAR349
+logging: COORDINATE: No coordinates for BLMAR35
+logging: COORDINATE: No coordinates for BLMAR350
+logging: COORDINATE: No coordinates for BLMAR352
+logging: COORDINATE: No coordinates for BLMAR353
+logging: COORDINATE: No coordinates for BLMAR354
+logging: COORDINATE: No coordinates for BLMAR356
+logging: COORDINATE: No coordinates for BLMAR357
+logging: COORDINATE: No coordinates for BLMAR358
+logging: COORDINATE: No coordinates for BLMAR359
+logging: COORDINATE: No coordinates for BLMAR36
+logging: COORDINATE: No coordinates for BLMAR360
+logging: COORDINATE: No coordinates for BLMAR361
+logging: COORDINATE: No coordinates for BLMAR362
+logging: COORDINATE: No coordinates for BLMAR363
+logging: COORDINATE: No coordinates for BLMAR364
+logging: COORDINATE: No coordinates for BLMAR365
+logging: COORDINATE: No coordinates for BLMAR366
+logging: COORDINATE: No coordinates for BLMAR367
+logging: COORDINATE: No coordinates for BLMAR368
+logging: COORDINATE: No coordinates for BLMAR369
+logging: COORDINATE: No coordinates for BLMAR37
+logging: COORDINATE: No coordinates for BLMAR371
+logging: COORDINATE: No coordinates for BLMAR372
+logging: COORDINATE: No coordinates for BLMAR373
+logging: COORDINATE: No coordinates for BLMAR374
+logging: COORDINATE: No coordinates for BLMAR375
+logging: COORDINATE: No coordinates for BLMAR376
+logging: COORDINATE: No coordinates for BLMAR377
+logging: COORDINATE: No coordinates for BLMAR378
+logging: COORDINATE: No coordinates for BLMAR379
+logging: COORDINATE: No coordinates for BLMAR38
+logging: COORDINATE: No coordinates for BLMAR380
+logging: COORDINATE: No coordinates for BLMAR381
+logging: COORDINATE: No coordinates for BLMAR383
+logging: COORDINATE: No coordinates for BLMAR384
+logging: COORDINATE: No coordinates for BLMAR385
+logging: COORDINATE: No coordinates for BLMAR386
+logging: COORDINATE: No coordinates for BLMAR387
+logging: COORDINATE: No coordinates for BLMAR388
+logging: COORDINATE: No coordinates for BLMAR389
+logging: COORDINATE: No coordinates for BLMAR39
+logging: COORDINATE: No coordinates for BLMAR391
+logging: COORDINATE: No coordinates for BLMAR393
+logging: COORDINATE: No coordinates for BLMAR394
+logging: COORDINATE: No coordinates for BLMAR395
+logging: COORDINATE: No coordinates for BLMAR397
+logging: COORDINATE: No coordinates for BLMAR399
+logging: COORDINATE: No coordinates for BLMAR4
+logging: COORDINATE: No coordinates for BLMAR40
+logging: COORDINATE: No coordinates for BLMAR400
+logging: COORDINATE: No coordinates for BLMAR401
+logging: COORDINATE: No coordinates for BLMAR403
+logging: COORDINATE: No coordinates for BLMAR404
+logging: COORDINATE: No coordinates for BLMAR405
+logging: COORDINATE: No coordinates for BLMAR407
+logging: COORDINATE: No coordinates for BLMAR408
+logging: COORDINATE: No coordinates for BLMAR409
+logging: COORDINATE: No coordinates for BLMAR41
+logging: COORDINATE: No coordinates for BLMAR410
+logging: COORDINATE: No coordinates for BLMAR411
+logging: COORDINATE: No coordinates for BLMAR412
+logging: COORDINATE: No coordinates for BLMAR413
+logging: COORDINATE: No coordinates for BLMAR415
+logging: COORDINATE: No coordinates for BLMAR416
+logging: COORDINATE: No coordinates for BLMAR417
+logging: COORDINATE: No coordinates for BLMAR418
+logging: COORDINATE: No coordinates for BLMAR419
+logging: COORDINATE: No coordinates for BLMAR42
+logging: COORDINATE: No coordinates for BLMAR420
+logging: COORDINATE: No coordinates for BLMAR421
+logging: COORDINATE: No coordinates for BLMAR422
+logging: COORDINATE: No coordinates for BLMAR423
+logging: COORDINATE: No coordinates for BLMAR424
+logging: COORDINATE: No coordinates for BLMAR425
+logging: COORDINATE: No coordinates for BLMAR43
+logging: COORDINATE: No coordinates for BLMAR432
+logging: COORDINATE: No coordinates for BLMAR433
+logging: COORDINATE: No coordinates for BLMAR435
+logging: COORDINATE: No coordinates for BLMAR437
+logging: COORDINATE: No coordinates for BLMAR44
+logging: COORDINATE: No coordinates for BLMAR440
+logging: COORDINATE: No coordinates for BLMAR441
+logging: COORDINATE: No coordinates for BLMAR442
+logging: COORDINATE: No coordinates for BLMAR444
+logging: COORDINATE: No coordinates for BLMAR445
+logging: COORDINATE: No coordinates for BLMAR446
+logging: COORDINATE: No coordinates for BLMAR447
+logging: COORDINATE: No coordinates for BLMAR448
+logging: COORDINATE: No coordinates for BLMAR449
+logging: COORDINATE: No coordinates for BLMAR45
+logging: COORDINATE: No coordinates for BLMAR450
+logging: COORDINATE: No coordinates for BLMAR451
+logging: COORDINATE: No coordinates for BLMAR452
+logging: COORDINATE: No coordinates for BLMAR453
+logging: COORDINATE: No coordinates for BLMAR454
+logging: COORDINATE: No coordinates for BLMAR455
+logging: COORDINATE: No coordinates for BLMAR456
+logging: COORDINATE: No coordinates for BLMAR457
+logging: COORDINATE: No coordinates for BLMAR458
+logging: COORDINATE: No coordinates for BLMAR459
+logging: COORDINATE: No coordinates for BLMAR46
+logging: COORDINATE: No coordinates for BLMAR460
+logging: COORDINATE: No coordinates for BLMAR461
+logging: COORDINATE: No coordinates for BLMAR462
+logging: COORDINATE: No coordinates for BLMAR463
+logging: COORDINATE: No coordinates for BLMAR464
+logging: COORDINATE: No coordinates for BLMAR466
+logging: COORDINATE: No coordinates for BLMAR467
+logging: COORDINATE: No coordinates for BLMAR468
+logging: COORDINATE: No coordinates for BLMAR47
+logging: COORDINATE: No coordinates for BLMAR470
+logging: COORDINATE: No coordinates for BLMAR48
+logging: COORDINATE: No coordinates for BLMAR49
+logging: COORDINATE: No coordinates for BLMAR490
+logging: COORDINATE: No coordinates for BLMAR491
+logging: COORDINATE: No coordinates for BLMAR492
+logging: COORDINATE: No coordinates for BLMAR493
+logging: COORDINATE: No coordinates for BLMAR494
+logging: COORDINATE: No coordinates for BLMAR495
+logging: COORDINATE: No coordinates for BLMAR496
+logging: COORDINATE: No coordinates for BLMAR497
+logging: COORDINATE: No coordinates for BLMAR498
+logging: COORDINATE: No coordinates for BLMAR499
+logging: COORDINATE: No coordinates for BLMAR5
+logging: COORDINATE: No coordinates for BLMAR50
+logging: COORDINATE: No coordinates for BLMAR500
+logging: COORDINATE: No coordinates for BLMAR501
+logging: COORDINATE: No coordinates for BLMAR502
+logging: COORDINATE: No coordinates for BLMAR503
+logging: COORDINATE: No coordinates for BLMAR504
+logging: COORDINATE: No coordinates for BLMAR505
+logging: COORDINATE: No coordinates for BLMAR506
+logging: COORDINATE: No coordinates for BLMAR507
+logging: COORDINATE: No coordinates for BLMAR508
+logging: COORDINATE: No coordinates for BLMAR509
+logging: COORDINATE: No coordinates for BLMAR51
+logging: COORDINATE: No coordinates for BLMAR510
+logging: COORDINATE: No coordinates for BLMAR511
+logging: COORDINATE: No coordinates for BLMAR512
+logging: COORDINATE: No coordinates for BLMAR513
+logging: COORDINATE: No coordinates for BLMAR514
+logging: COORDINATE: No coordinates for BLMAR515
+logging: COORDINATE: No coordinates for BLMAR516
+logging: COORDINATE: No coordinates for BLMAR517
+logging: COORDINATE: No coordinates for BLMAR518
+logging: COORDINATE: No coordinates for BLMAR519
+logging: COORDINATE: No coordinates for BLMAR52
+logging: COORDINATE: No coordinates for BLMAR520
+logging: COORDINATE: No coordinates for BLMAR522
+logging: COORDINATE: No coordinates for BLMAR523
+logging: COORDINATE: No coordinates for BLMAR524
+logging: COORDINATE: No coordinates for BLMAR525
+logging: COORDINATE: No coordinates for BLMAR526
+logging: COORDINATE: No coordinates for BLMAR527
+logging: COORDINATE: No coordinates for BLMAR528
+logging: COORDINATE: No coordinates for BLMAR529
+logging: COORDINATE: No coordinates for BLMAR53
+logging: COORDINATE: No coordinates for BLMAR530
+logging: COORDINATE: No coordinates for BLMAR531
+logging: COORDINATE: No coordinates for BLMAR532
+logging: COORDINATE: No coordinates for BLMAR533
+logging: COORDINATE: No coordinates for BLMAR534
+logging: COORDINATE: No coordinates for BLMAR535
+logging: COORDINATE: No coordinates for BLMAR536
+logging: COORDINATE: No coordinates for BLMAR537
+logging: COORDINATE: No coordinates for BLMAR538
+logging: COORDINATE: No coordinates for BLMAR539
+logging: COORDINATE: No coordinates for BLMAR54
+logging: COORDINATE: No coordinates for BLMAR540
+logging: COORDINATE: No coordinates for BLMAR541
+logging: COORDINATE: No coordinates for BLMAR542
+logging: COORDINATE: No coordinates for BLMAR543
+logging: COORDINATE: No coordinates for BLMAR544
+logging: COORDINATE: No coordinates for BLMAR545
+logging: COORDINATE: No coordinates for BLMAR546
+logging: COORDINATE: No coordinates for BLMAR547
+logging: COORDINATE: No coordinates for BLMAR548
+logging: COORDINATE: No coordinates for BLMAR549
+logging: COORDINATE: No coordinates for BLMAR55
+logging: COORDINATE: No coordinates for BLMAR550
+logging: COORDINATE: No coordinates for BLMAR551
+logging: COORDINATE: No coordinates for BLMAR552
+logging: COORDINATE: No coordinates for BLMAR553
+logging: COORDINATE: No coordinates for BLMAR554
+logging: COORDINATE: No coordinates for BLMAR555
+logging: COORDINATE: No coordinates for BLMAR556
+logging: COORDINATE: No coordinates for BLMAR557
+logging: COORDINATE: No coordinates for BLMAR558
+logging: COORDINATE: No coordinates for BLMAR559
+logging: COORDINATE: No coordinates for BLMAR56
+logging: COORDINATE: No coordinates for BLMAR560
+logging: COORDINATE: No coordinates for BLMAR561
+logging: COORDINATE: No coordinates for BLMAR562
+logging: COORDINATE: No coordinates for BLMAR563
+logging: COORDINATE: No coordinates for BLMAR564
+logging: COORDINATE: No coordinates for BLMAR567
+logging: COORDINATE: No coordinates for BLMAR57
+logging: COORDINATE: No coordinates for BLMAR574
+logging: COORDINATE: No coordinates for BLMAR575
+logging: COORDINATE: No coordinates for BLMAR576
+logging: COORDINATE: No coordinates for BLMAR577
+logging: COORDINATE: No coordinates for BLMAR578
+logging: COORDINATE: No coordinates for BLMAR579
+logging: COORDINATE: No coordinates for BLMAR58
+logging: COORDINATE: No coordinates for BLMAR580
+logging: COORDINATE: No coordinates for BLMAR581
+logging: COORDINATE: No coordinates for BLMAR584
+logging: COORDINATE: No coordinates for BLMAR585
+logging: COORDINATE: No coordinates for BLMAR586
+logging: COORDINATE: No coordinates for BLMAR587
+logging: COORDINATE: No coordinates for BLMAR588
+logging: COORDINATE: No coordinates for BLMAR589
+logging: COORDINATE: No coordinates for BLMAR59
+logging: COORDINATE: No coordinates for BLMAR590
+logging: COORDINATE: No coordinates for BLMAR591
+logging: COORDINATE: No coordinates for BLMAR592
+logging: COORDINATE: No coordinates for BLMAR593
+logging: COORDINATE: No coordinates for BLMAR594
+logging: COORDINATE: No coordinates for BLMAR595
+logging: COORDINATE: No coordinates for BLMAR596
+logging: COORDINATE: No coordinates for BLMAR597
+logging: COORDINATE: No coordinates for BLMAR598
+logging: COORDINATE: No coordinates for BLMAR599
+logging: COORDINATE: No coordinates for BLMAR6
+logging: COORDINATE: No coordinates for BLMAR60
+logging: COORDINATE: No coordinates for BLMAR600
+logging: COORDINATE: No coordinates for BLMAR601
+logging: COORDINATE: No coordinates for BLMAR604
+logging: COORDINATE: No coordinates for BLMAR605
+logging: COORDINATE: No coordinates for BLMAR606
+logging: COORDINATE: No coordinates for BLMAR607
+logging: COORDINATE: No coordinates for BLMAR608
+logging: COORDINATE: No coordinates for BLMAR609
+logging: COORDINATE: No coordinates for BLMAR61
+logging: COORDINATE: No coordinates for BLMAR610
+logging: COORDINATE: No coordinates for BLMAR611
+logging: COORDINATE: No coordinates for BLMAR612
+logging: COORDINATE: No coordinates for BLMAR613
+logging: COORDINATE: No coordinates for BLMAR615
+logging: COORDINATE: No coordinates for BLMAR616
+logging: COORDINATE: No coordinates for BLMAR617
+logging: COORDINATE: No coordinates for BLMAR618
+logging: COORDINATE: No coordinates for BLMAR619
+logging: COORDINATE: No coordinates for BLMAR62
+logging: COORDINATE: No coordinates for BLMAR620
+logging: COORDINATE: No coordinates for BLMAR621
+logging: COORDINATE: No coordinates for BLMAR622
+logging: COORDINATE: No coordinates for BLMAR624
+logging: COORDINATE: No coordinates for BLMAR625
+logging: COORDINATE: No coordinates for BLMAR626
+logging: COORDINATE: No coordinates for BLMAR627
+logging: COORDINATE: No coordinates for BLMAR628
+logging: COORDINATE: No coordinates for BLMAR629
+logging: COORDINATE: No coordinates for BLMAR630
+logging: COORDINATE: No coordinates for BLMAR631
+logging: COORDINATE: No coordinates for BLMAR632
+logging: COORDINATE: No coordinates for BLMAR633
+logging: COORDINATE: No coordinates for BLMAR634
+logging: COORDINATE: No coordinates for BLMAR637
+logging: COORDINATE: No coordinates for BLMAR638
+logging: COORDINATE: No coordinates for BLMAR639
+logging: COORDINATE: No coordinates for BLMAR64
+logging: COORDINATE: No coordinates for BLMAR641
+logging: COORDINATE: No coordinates for BLMAR643
+logging: COORDINATE: No coordinates for BLMAR644
+logging: COORDINATE: No coordinates for BLMAR645
+logging: COORDINATE: No coordinates for BLMAR646
+logging: COORDINATE: No coordinates for BLMAR647
+logging: COORDINATE: No coordinates for BLMAR648
+logging: COORDINATE: No coordinates for BLMAR649
+logging: COORDINATE: No coordinates for BLMAR65
+logging: COORDINATE: No coordinates for BLMAR650
+logging: COORDINATE: No coordinates for BLMAR651
+logging: COORDINATE: No coordinates for BLMAR653
+logging: COORDINATE: No coordinates for BLMAR655
+logging: COORDINATE: No coordinates for BLMAR656
+logging: COORDINATE: No coordinates for BLMAR657
+logging: COORDINATE: No coordinates for BLMAR658
+logging: COORDINATE: No coordinates for BLMAR659
+logging: COORDINATE: No coordinates for BLMAR66
+logging: COORDINATE: No coordinates for BLMAR660
+logging: COORDINATE: No coordinates for BLMAR661
+logging: COORDINATE: No coordinates for BLMAR662
+logging: COORDINATE: No coordinates for BLMAR663
+logging: COORDINATE: No coordinates for BLMAR664
+logging: COORDINATE: No coordinates for BLMAR665
+logging: COORDINATE: No coordinates for BLMAR666
+logging: COORDINATE: No coordinates for BLMAR667
+logging: COORDINATE: No coordinates for BLMAR668
+logging: COORDINATE: No coordinates for BLMAR669
+logging: COORDINATE: No coordinates for BLMAR67
+logging: COORDINATE: No coordinates for BLMAR670
+logging: COORDINATE: No coordinates for BLMAR671
+logging: COORDINATE: No coordinates for BLMAR672
+logging: COORDINATE: No coordinates for BLMAR673
+logging: COORDINATE: No coordinates for BLMAR674
+logging: COORDINATE: No coordinates for BLMAR675
+logging: COORDINATE: No coordinates for BLMAR676
+logging: COORDINATE: No coordinates for BLMAR677
+logging: COORDINATE: No coordinates for BLMAR678
+logging: COORDINATE: No coordinates for BLMAR679
+logging: COORDINATE: No coordinates for BLMAR68
+logging: COORDINATE: No coordinates for BLMAR680
+logging: COORDINATE: No coordinates for BLMAR681
+logging: COORDINATE: No coordinates for BLMAR682
+logging: COORDINATE: No coordinates for BLMAR683
+logging: COORDINATE: No coordinates for BLMAR684
+logging: COORDINATE: No coordinates for BLMAR685
+logging: COORDINATE: No coordinates for BLMAR686
+logging: COORDINATE: No coordinates for BLMAR687
+logging: COORDINATE: No coordinates for BLMAR688
+logging: COORDINATE: No coordinates for BLMAR689
+logging: COORDINATE: No coordinates for BLMAR69
+logging: COORDINATE: No coordinates for BLMAR690
+logging: COORDINATE: No coordinates for BLMAR691
+logging: COORDINATE: No coordinates for BLMAR692
+logging: COORDINATE: No coordinates for BLMAR693
+logging: COORDINATE: No coordinates for BLMAR694
+logging: COORDINATE: No coordinates for BLMAR695
+logging: COORDINATE: No coordinates for BLMAR696
+logging: COORDINATE: No coordinates for BLMAR697
+logging: COORDINATE: No coordinates for BLMAR698
+logging: COORDINATE: No coordinates for BLMAR699
+logging: COORDINATE: No coordinates for BLMAR7
+logging: COORDINATE: No coordinates for BLMAR70
+logging: COORDINATE: No coordinates for BLMAR700
+logging: COORDINATE: No coordinates for BLMAR702
+logging: COORDINATE: No coordinates for BLMAR703
+logging: COORDINATE: No coordinates for BLMAR704
+logging: COORDINATE: No coordinates for BLMAR705
+logging: COORDINATE: No coordinates for BLMAR707
+logging: COORDINATE: No coordinates for BLMAR708
+logging: COORDINATE: No coordinates for BLMAR71
+logging: COORDINATE: No coordinates for BLMAR710
+logging: COORDINATE: No coordinates for BLMAR711
+logging: COORDINATE: No coordinates for BLMAR712
+logging: COORDINATE: No coordinates for BLMAR714
+logging: COORDINATE: No coordinates for BLMAR715
+logging: COORDINATE: No coordinates for BLMAR716
+logging: COORDINATE: No coordinates for BLMAR717
+logging: COORDINATE: No coordinates for BLMAR718
+logging: COORDINATE: No coordinates for BLMAR719
+logging: COORDINATE: No coordinates for BLMAR72
+logging: COORDINATE: No coordinates for BLMAR720
+logging: COORDINATE: No coordinates for BLMAR73
+logging: COORDINATE: No coordinates for BLMAR731
+logging: COORDINATE: No coordinates for BLMAR734
+logging: COORDINATE: No coordinates for BLMAR737
+logging: COORDINATE: No coordinates for BLMAR738
+logging: COORDINATE: No coordinates for BLMAR739
+logging: COORDINATE: No coordinates for BLMAR74
+logging: COORDINATE: No coordinates for BLMAR740
+logging: COORDINATE: No coordinates for BLMAR741
+logging: COORDINATE: No coordinates for BLMAR742
+logging: COORDINATE: No coordinates for BLMAR743
+logging: COORDINATE: No coordinates for BLMAR744
+logging: COORDINATE: No coordinates for BLMAR745
+logging: COORDINATE: No coordinates for BLMAR75
+logging: COORDINATE: No coordinates for BLMAR755
+logging: COORDINATE: No coordinates for BLMAR757
+logging: COORDINATE: No coordinates for BLMAR759
+logging: COORDINATE: No coordinates for BLMAR76
+logging: COORDINATE: No coordinates for BLMAR77
+logging: COORDINATE: No coordinates for BLMAR78
+logging: COORDINATE: No coordinates for BLMAR79
+logging: COORDINATE: No coordinates for BLMAR8
+logging: COORDINATE: No coordinates for BLMAR80
+logging: COORDINATE: No coordinates for BLMAR805
+logging: COORDINATE: No coordinates for BLMAR81
+logging: COORDINATE: No coordinates for BLMAR810
+logging: COORDINATE: No coordinates for BLMAR815
+logging: COORDINATE: No coordinates for BLMAR816
+logging: COORDINATE: No coordinates for BLMAR82
+logging: COORDINATE: No coordinates for BLMAR83
+logging: COORDINATE: No coordinates for BLMAR84
+logging: COORDINATE: No coordinates for BLMAR85
+logging: COORDINATE: No coordinates for BLMAR86
+logging: COORDINATE: No coordinates for BLMAR87
+logging: COORDINATE: No coordinates for BLMAR88
+logging: COORDINATE: No coordinates for BLMAR89
+logging: COORDINATE: No coordinates for BLMAR9
+logging: COORDINATE: No coordinates for BLMAR90
+logging: COORDINATE: No coordinates for BLMAR91
+logging: COORDINATE: No coordinates for BLMAR92
+logging: COORDINATE: No coordinates for BLMAR93
+logging: COORDINATE: No coordinates for BLMAR94
+logging: COORDINATE: No coordinates for BLMAR95
+logging: COORDINATE: No coordinates for BLMAR96
+logging: COORDINATE: No coordinates for BLMAR97
+logging: COORDINATE: No coordinates for BLMAR98
+logging: COORDINATE: No coordinates for BLMAR99
+logging: COORDINATE: partial coordinates only for BLMAR289	()	(`)
+logging: COUNTY unknown -> CA	--	Unknown	--		BLMAR36
+logging: COUNTY unknown -> CA	--	Unknown	--		BLMAR470
+logging: Check elevation: '1390' problematic formatting or missing units	BLMAR693
+logging: Check elevation: '2000-2200' problematic formatting or missing units	BLMAR153
+logging: Check elevation: '2362' problematic formatting or missing units	BLMAR728
+logging: Check elevation: '2362' problematic formatting or missing units	BLMAR729
+logging: Check elevation: '2362' problematic formatting or missing units	BLMAR730
+logging: Check elevation: '2568' problematic formatting or missing units	BLMAR724
+logging: Check elevation: '2568' problematic formatting or missing units	BLMAR727
+logging: Check elevation: '2870' problematic formatting or missing units	BLMAR371
+logging: Check elevation: '3200' problematic formatting or missing units	BLMAR638
+logging: Check elevation: '3600' problematic formatting or missing units	BLMAR630
+logging: Check elevation: '4200-4600' problematic formatting or missing units	BLMAR209
+logging: Collector name NULL	BLMAR403
+logging: Collector name NULL	BLMAR42
+logging: Collector name NULL	BLMAR43
+logging: ELEV	Humboldt:	 44000 ft. (13411 m.) greater than Humboldt maximum (6960  ft.): discrepancy= 37040 	BLMAR387
+logging: ELEV	Humboldt:	 7873 ft. (2400 m.) greater than Humboldt maximum (6960  ft.): discrepancy= 913 	BLMAR283
+logging: ELEV	Humboldt: discrepancy= 37040  greater than 500 ft, elevation changed to NULL	BLMAR387
+logging: ELEV	Humboldt: discrepancy= 913  greater than 500 ft, elevation changed to NULL	BLMAR283
+logging: No date: BLMAR34
+logging: No date: BLMAR36
+logging: No date: BLMAR37
+logging: No date: BLMAR39
+logging: No date: BLMAR42
+logging: No date: BLMAR460
+logging: No date: BLMAR470
+logging: Scientific name Navarretia pilosissima not published, modified to just genus:	Navarretia	--	BLMAR548
+logging: Scientific name modified from Null value:	Liliaceae	--	BLMAR345
+logging: TAXON CCH.pm: Name on JFP-1b list (unpublished, invalidly published, illegitimate, or rejected name), Erysimum menziesii subsp. eurekense changed accepted name - Erysimum menziesii	BLMAR56
+logging: TAXON CCH.pm: Orthographic variant altered (1) from Croton setigerus to Croton setiger	--	BLMAR252
+logging: TAXON CCH.pm: Spelling altered (1) from Anthozanthum occidentale to Anthoxanthum occidentale	-	--	BLMAR264
+logging: TAXON CCH.pm: Spelling altered (1) from Brodea elegans to Brodiaea elegans	-	--	BLMAR816
+logging: TAXON CCH.pm: Spelling altered (1) from Bromus racemosus var. hordeaceus to Bromus hordeaceus var. racemosus	-	--	BLMAR16
+logging: TAXON CCH.pm: Spelling altered (1) from Cakile edentula subsp. califonica to Cakile edentula subsp. californica	-	--	BLMAR307
+logging: TAXON CCH.pm: Spelling altered (1) from Helianthus exilis/bolanderi to Helianthus exilis	-	--	BLMAR325
+logging: TAXON CCH.pm: Spelling altered (1) from Helianthus exilis/bolanderi to Helianthus exilis	-	--	BLMAR374
+logging: TAXON CCH.pm: Spelling altered (1) from Montia howelli to Montia howellii	-	--	BLMAR621
+logging: TAXON CCH.pm: Spelling altered (1) from Plantago/cryptantha Unknown to Plantago	-	--	BLMAR605
+logging: TAXON CCH.pm: Spelling altered (1) from Quercus garryana subsp. brewerii to Quercus garryana subsp. breweri	-	--	BLMAR208
+logging: TAXON CCH.pm: Spelling altered (1) from Ranunculus occidentalis/californicus to Ranunculus occidentalis	-	--	BLMAR470
+logging: TAXON CCH.pm: Spelling altered (1) from Triantha occidentalis subsp. offidentalis to Triantha occidentalis subsp. occidentalis	-	--	BLMAR102
+logging: TAXON CCH.pm: Spelling altered (1) from Tritelia laxa to Triteleia laxa	-	--	BLMAR815
+skipping: Record with no accession id N	Carex vesicaria	blister sedge	Eden valley	T.20N, R.12W.NW1/4NW1/4				Toney creek	dried up creekbed		2400ft	Mendocino	#382		1 July, 2004	Jennifer Anthony-Wheeler
+skipping: Record with no accession id N	Erysimum concinnum	Curly wallflower	King range	T.2S., R.3W., Sec24, SW1/4				Mattole beach		Voucher transferred to Smithsonian		Humboldt	#603		1 April, 2011	Jennifer Wheeler
+skipping: Record with no accession id N	Melica geyeri	Geyer ' s oniongrass	Red Mountain		39 55, 31.1" N	123 39 ' 32.936" W		growing along old road, just before you turn down the trail to Jen ' s fenn (just past the windy gap gate)			3595ft					
