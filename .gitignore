@@ -13,6 +13,9 @@ loaders/RSA/RSA_out.txt
 loaders/RSA/RSA_ID.txt
 loaders/RSA/RSA_GIS.txt
 loaders/RSA/data_files/
+loaders/UCSC/old_data/
+loaders/UCSC/old_files/
+loaders/UCSC/UCSC_out.txt
 loaders/YOSE/data_files/
 loaders/YOSE/YOSE_out.txt
 bulkload/data_files/

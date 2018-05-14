@@ -1105,7 +1105,7 @@ $GUID_sym{'$id_nonCode'}=$occurrenceID;
 
 print OUT3 "$catnum\t$GUID{'$catnum'}\n";
 print OUT3 "$id\t$GUID_old{'$id'}\n";
-print OUT3 $institutionCode.$id_nonCode."\t".$GUID_old{'$id_nonCode'}."\n";
+print OUT3 $institutionCode.$id_nonCode."\t".$GUID_sym{'$id_nonCode'}."\n";
 
 ##########Begin validation of scientific names
 

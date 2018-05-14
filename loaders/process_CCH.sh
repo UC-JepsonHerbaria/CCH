@@ -33,4 +33,15 @@ sort -u log.txt > /JEPS-master/CCH/Loaders/OBI/OBI_log_sort.txt
 echo "$?                                          NEXT";
 
 
+
+echo "$?                                          parsing UCSC";
+perl /JEPS-master/CCH/Loaders/UCSC/parse_UCSC.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/UCSC/UCSC_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/UCSC/
+sort -u log.txt > /JEPS-master/CCH/Loaders/UCSC/UCSC_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
 echo "$?                                          process complete";
