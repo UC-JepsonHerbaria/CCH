@@ -3954,7 +3954,6 @@
         <field>East Malaysia</field>
         <field>East Sepik</field>
         <field>Eastern Division</field>
-        <field>Eastern Divsion</field>
         <field>El Progreso</field>
         <field>Esmeraldas</field>
         <field>Esteli</field>
@@ -4035,7 +4034,6 @@
         <field>Manitoba</field>
         <field>Mariana Islands</field>
         <field>Mato Grosso</field>
-        <field>Matto Grosso</field>
         <field>Mayaguez</field>
         <field>Mazandaran</field>
         <field>MD</field>
@@ -4058,7 +4056,6 @@
         <field>MS</field>
         <field>MT</field>
         <field>MX</field>
-        <field>N. Segovia</field>
         <field>Narino</field>
         <field>NAY</field>
         <field>Nayarit</field>
@@ -4222,7 +4219,6 @@
       <list alias="Country" caseInsensitive="false">
         <field>unknown</field>
         <field>Afghanistan</field>
-        <field>&#xC5;land Islands</field>
         <field>Albania</field>
         <field>Algeria</field>
         <field>American Samoa</field>
