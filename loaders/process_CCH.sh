@@ -6,6 +6,7 @@
 echo "$?                                          parsing BLMAR";
 perl /JEPS-master/CCH/Loaders/BLMAR/parse_BLMAR.pl
 echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/BLMAR/BLMAR_out.txt /JEPS-master/CCH/bulkload/input/new_files/
 cp log.txt /JEPS-master/CCH/Loaders/BLMAR/
 sort -u log.txt > /JEPS-master/CCH/Loaders/BLMAR/BLMAR_log_sort.txt
 
