@@ -25,8 +25,8 @@ $seen{$aid}++;
 foreach(@lines){
 (@fields)=split(/\t/,$_,100);
 grep(s/^"(.*)"/$1/,@fields);
-unless( $#fields==33){
-print ERR "$#fields Fields not 33 $_\n";
+unless( $#fields==38){
+print ERR "$#fields Fields not 38 $_\n";
 next;
 }
 ($Accession_number,
@@ -57,6 +57,11 @@ $elev_m,
 $Notes,
 $X_Long,
 $Y_Lat,
+$Zone,
+$NAD,
+$UTM_East,
+$UTM_North,
+$T_R,
 $X_LongMin,
 $X_LongMax,
 $Y_LatMin,
@@ -72,18 +77,18 @@ next;
 }
 #print "$Date_A $Date_B\n";
 if($X_Long || $Y_Lat){
-$X_Long=~s/[^0-9.]//g;
-$Y_Lat=~s/[^0-9.]//g;
-if($X_Long<50 && $X_Long > 35){
-$decimal_lat = $X_Long;
-}
-if($Y_Lat > 115 && $Y_Lat < 135){
-$decimal_long="-$Y_Lat";
-}
-else{
-$decimal_long="-$X_Long";
-$decimal_lat = $Y_Lat;
-}
+	$X_Long=~s/[^0-9.]//g;
+	$Y_Lat=~s/[^0-9.]//g;
+	if($X_Long<50 && $X_Long > 35){
+		$decimal_lat = $X_Long;
+	}
+	if($Y_Lat > 115 && $Y_Lat < 135){
+		$decimal_long="-$Y_Lat" if $Y_Lat;
+	}
+	else{
+		$decimal_long="-$X_Long" if $X_Long;
+		$decimal_lat = $Y_Lat;
+	}
 #print <<EOP;
 #$decimal_lat
 #$decimal_long
@@ -318,6 +323,14 @@ else{
 $General_habitat = "$Specific_habitat_abundance" if $Specific_habitat_abundance;
 }
 $Datum=~s/, (.*)/\nSource: $1/;
+
+if($decimal_lat || $decimal_long){
+	unless( $decimal_long=~/^-\d+\.?\d*$/ && $decimal_lat =~/^\d+\.?\d*$/){
+		print ERR "$Accession_number: Unexpected coord format-- coords nulled.  Long was $decimal_long, Lat was $decimal_lat\n";
+		$decimal_long="";
+		$decimal_lat = "";
+	}
+}
 
 print OUT <<EOP;
 Date: $Date_B
