@@ -1,36 +1,42 @@
-open(IN,"/Users/richardmoe/4_data/taxon_ids/smasch_taxon_ids.txt") || die;
-while(<IN>){
-	chomp;
-($code,$name,@rest)=split(/\t/);
-	$taxon{$name}++;
-}
-open(IN,"../CDL/alter_names") || die;
-while(<IN>){
-	chomp;
-s/\cJ//;
-s/\cM//;
-	next if m/^#/;
-	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-	$alter{$rsa}=$smasch;
-}
-open(OUT, ">OBI.out") || die;
-open(ERR, ">OBI_err") || die;
+use Time::JulianDay;
+use Time::ParseDate;
+use lib '/Users/davidbaxter/DATA';	
+use CCH; #loads non-vascular plant names list ("mosses"), alter_names table, and max_elev values
+&load_noauth_name; #loads taxon id master list (smasch_taxon_ids.txt) into an array %TID
+$today_JD = &get_today_julian_day;
 
-open(IN, "Sorted_OBIDATA_27A_June_2013.csv") || die;
-@lines=(<IN>);
-foreach(@lines){
-($aid=$_)=~s/\t.*\n//;
-$seen{$aid}++;
+open(OUT, ">OBI.out") || die;
+
+my $error_log = "log.txt";
+unlink $error_log or warn "making new error log file $error_log";
+
+
+#Note: OBI file received as Excel spreadsheet
+#Open in Excel then save as tab-delimited txt
+#remove MS line breaks
+#remove enclosing quotes
+$current_file="OBIDATA_Dec_2015.txt";
+
+open(IN, $current_file) || die; 
+while(<IN>){
+	chomp;
+	&CCH::check_file;
 }
-foreach(@lines){
-(@fields)=split(/\t/,$_,100);
-grep(s/^"(.*)"/$1/,@fields);
-unless( $#fields==38){
-print ERR "$#fields Fields not 38 $_\n";
-next;
-}
+close(IN);
+
+
+open(IN, "$current_file") || die;
+Record: while(<IN>){
+	chomp;
+	(@fields)=split(/\t/,$_,100);
+	grep(s/^"(.*)"/$1/,@fields); #fix double-double quotes within fields
+	unless( $#fields==48){
+		&log_skip("$#fields Fields not 49 $_");
+		next;
+	}
 ($Accession_number,
-$Date_entered,
+$Date_entered, #OBI curatorial field
+$Entered_by,
 $Search_no,
 $Status,
 $Collector,
@@ -39,12 +45,17 @@ $additional_collectors,
 $TJM2_Family,
 $TJM2_binomial,
 $Binomial_on_label,
+$same_different, #OBI curatorial field
+$Jenn_Yost, #OBI curatorial field
 $author_of_binomial,
-$infraspecific_rank,
-$infraspecific_epithet,
-$infraspecific_epithet,
+$subspecies_epithet,
+$variety_epithet,
+$forma_epithet,
+$x_hybrid_epithet,
+$infraspecific_epithet_author,
 $Annotation,
 $Date_B,
+$translated_date, #I created this field using the =TEXT function in Excel
 $Country,
 $State,
 $County,
@@ -54,9 +65,12 @@ $Specific_habitat_abundance,
 $Plant_description,
 $elev_ft,
 $elev_m,
+$Origin_of_sheet, #OBI curatorial field
 $Notes,
-$X_Long,
 $Y_Lat,
+$X_Long,
+$Error_Radius,	#NOTE: This field newly added but not populated. Not incorporated in parser yet because not defined
+$Georef_Source,	#NOTE: This field newly added but not populated. Not incorporated in parser yet because not defined
 $Zone,
 $NAD,
 $UTM_East,
@@ -66,41 +80,188 @@ $X_LongMin,
 $X_LongMax,
 $Y_LatMin,
 $Y_LatMax,
-$Datum)=@fields;
-if($Country=~/^(MX|Mexico|Peru|LESOTHO|South Africa)$/i){
-print ERR "Skipped: country $Country not USA $_\n";
-next;
+$Datum,
+$OBI_Collection, #OBI curatorial field
+$Loan #OBI curatorial field
+)=@fields;
+
+
+########ACCESSION NUMBER
+#hereafter referred to as id
+$id=$Accession_number;
+#check for nulls
+unless ($id=~/^\d+$/){
+	&log_skip("Accession number $id is uncertain -> $_");
+	next;
 }
-if($State=~/(AK|AZ|Alaska|Arizona|Az|Baja|Baja_Calif_Sur|Baja_California|CO|Chihuahua|Colorado|Free_State_Province|Guam|Guerro|Hawaii|IL|Idaho|Illinois|Kwazulu-natal_Province|Michoacan|Missouri|Montana|Morelos|Mpumalanga_Province|NE|NM|NV|Nevada|New_Mexico|Northwest_Province|Nuevo_Leon|OR|Oaxaca|Oregon|Puebla|SD|Sinaloa|Sonora|State|Tamaulipas|UT|Utah|WA|WY|Washington|Wisconsin|Wyoming)$/){
-print ERR "Skipped: State $State not CA $_\n";
-next;
+#add prefix
+$id="OBI$id";
+
+#remove duplicates
+if($seen{$id}++){
+	++$skipped{one};
+	warn "Duplicate accession number: $id<\n";
+	&log_skip("Duplicate accession number\t$id");
+	next;
 }
-#print "$Date_A $Date_B\n";
-if($X_Long || $Y_Lat){
-	$X_Long=~s/[^0-9.]//g;
-	$Y_Lat=~s/[^0-9.]//g;
-	if($X_Long<50 && $X_Long > 35){
-		$decimal_lat = $X_Long;
+
+
+#####COUNTRY
+if ($Country){ #ignore records where $Country is blank
+	unless($Country=~/USA|United States|^ *$/i){ #Unless Country is USA or spaces only,
+	&log_skip("Country $Country not USA\t$id"); #skip it
+	next;
 	}
-	if($Y_Lat > 115 && $Y_Lat < 135){
-		$decimal_long="-$Y_Lat" if $Y_Lat;
+}
+
+######STATE
+if ($State){
+	unless($State=~/^CA$|^California$|^ *$/i){
+	#if($State=~/(AK|AZ|Alaska|Arizona|Az|Baja|Baja_Calif_Sur|Baja_California|CO|Chihuahua|Colorado|Free_State_Province|Guam|Guerro|Hawaii|IL|Idaho|Illinois|Kwazulu-natal_Province|Michoacan|Missouri|Montana|Morelos|Mpumalanga_Province|NE|NM|NV|Nevada|New_Mexico|New Mexico|Northwest_Province|Nuevo_Leon|OR|Oaxaca|Oregon|Puebla|SD|Sinaloa|Sonora|State|Tamaulipas|UT|Utah|WA|WY|Washington|Wisconsin|Wyoming)$/){
+	&log_skip("State $State not CA\t$id");
+	next;
+	}
+}
+
+
+#############DATE
+$EJD=$LJD="";
+$YYYY=$MM=$DD=$late_YYYY=$late_MM=$late_DD="";
+#up to the most recent load (Sept 2014), dates were unhelpfully converted to variable date formats by Excel.
+#This parsing uses a date-to-text column I added to the Excel file myself
+#using the formula '=TEXT(S2,"m/dd/yyyy")'
+#note that many dates do not get translated properly by Excel,
+#those are handled subsequently
+
+my %month_hash = &month_hash;
+
+foreach($translated_date){
+	s/,//g; #remove commas from untranslated dates to make them simpler to work with
+	s/^ *//g;
+	s/ *$//g;
+}
+#atomize days months and years
+if ($translated_date eq '1/00/1900'){ #how Excel translates an empty string as a date
+	&log_change("no date recorded $id");
+	$YYYY=$MM=$DD="";
+}
+elsif ($translated_date =~ /^(\d\d?)\/(\d\d?)\/(\d\d\d\d)$/){ #OBI records dates as m/d/yyyy
+	$MM = $1;
+	$DD = $2;
+	$YYYY = $3;
+}
+elsif ($translated_date =~ /^([A-Za-z]+) (\d\d?)-(\d\d?) (\d\d\d\d)$/){ #e.g. May 22-25, 1993
+	$MM = $1;
+	$DD = $2;
+	$late_DD = $3;
+	$YYYY = $4
+}
+elsif ($translated_date =~ /^([A-Za-z]+) (\d\d?) (\d\d\d\d)$/){ #e.g. May 22-25, 1993
+	$MM = $1;
+	$DD = $2;
+	$YYYY = $3;
+}
+elsif ($translated_date =~ /^(\d\d?)-(\d\d?) ([A-Za-z]+) (\d\d\d\d)$/){ #e.g. 17-19 Aug 1984
+	$DD=$1;
+	$late_DD=$2;
+	$MM=$3;
+	$YYYY=$4;
+}
+elsif ($translated_date =~ /^(\d\d?) ([A-Za-z]+) (\d\d\d\d)$/){ #e.g. 17 Aug 1984
+	$DD=$1;
+	$MM=$2;
+	$YYYY=$3;
+}
+elsif ($translated_date =~ /^([A-Za-z]+) (\d\d\d\d)$/){ #e.g. August 1957
+	$MM = $1;
+	$YYYY = $2;
+}
+elsif ($translated_date =~ /^(\d\d\d\d) ([A-Za-z]+) (\d\d?)$/){ #e.g. 1957 August
+	$MM = $1;
+	$YYYY = $2;
+	$DD = $3;
+}
+elsif ($translated_date =~ /^(\d\d\d\d) ([A-Za-z]+)$/){ #e.g. 1957 August
+	$MM = $1;
+	$YYYY = $2;
+}
+
+
+elsif ($translated_date){
+	&log_change("date not in predicted format $translated_date\t$id");
+	$YYYY=$MM=$DD="";
+}
+
+$MM = &get_month_number($MM, $id, %month_hash);
+
+####Right now, OBI is the only one where I have started handling more complex date formats
+####This should be turned into a subroutine i.e. &make_julian_days_complex
+if ($YYYY && $MM && $DD && $late_DD){
+	$EJD=julian_day($YYYY, $MM, $DD);
+	$LJD=julian_day($YYYY, $MM, $late_DD);
+}
+if ($YYYY && $MM && $DD){
+	$EJD=julian_day($YYYY, $MM, $DD);
+	$LJD=$EJD;
+}
+elsif($YYYY && $MM){	
+	if($MM==12){	
+		$EJD=julian_day($YYYY, $MM, 1);	
+		$LJD=julian_day($YYYY, $MM, 31);
 	}
 	else{
-		$decimal_long="-$X_Long" if $X_Long;
-		$decimal_lat = $Y_Lat;
+		$EJD=julian_day($YYYY, $MM, 1);
+		$LJD=julian_day($YYYY, $MM+1, 1);
+		$LJD -= 1;
 	}
-#print <<EOP;
-#$decimal_lat
-#$decimal_long
-#$Datum
-#
-#EOP
 }
 else{
-$decimal_long="";
-$decimal_lat = "";
+	$EJD=$LJD="";
 }
-#next;
+
+($EJD, $LJD)=&check_julian_days($EJD, $LJD, $today_JD, $id);
+
+
+
+
+
+####COORDINATES
+$decimalLatitude = $Y_Lat;
+$decimalLongitude = $X_Long;
+if(($decimalLatitude=~/\d/ && $decimalLongitude=~/\d/)){ #If decLat and decLong are both digits
+	if ($decimalLongitude > 0) {
+		$decimalLongitude="-$decimalLongitude";	#make decLong = -decLong if it is greater than zero
+		&log_change("minus added to longitude\t$id");
+	}	
+	if($decimalLatitude > 42.1 || $decimalLatitude < 32.5 || $decimalLongitude > -114 || $decimalLongitude < -124.5){ #if the coordinate range is not within the rough box of california...
+		&log_change("coordinates set to null, Outside California: >$latitude< >$longitude<\t$id");	#print this message in the error log...
+		$decimalLatitude =$decimalLongitude="";	#and set $decLat and $decLong to ""
+	}
+}
+
+
+
+#######NAME###########
+
+#Infra epithets are processed in the following order
+#Because when there are multiple levels of infraspecific taxonomy indicated
+#the lowest rank is the correct infra epithet for the scientific name
+#thus, f. has priority over var., and var. over subsp.
+if ($forma_epithet){
+	$Binomial_on_label = "$Binomial_on_label f. $forma_epithet";
+}
+elsif ($variety_epithet){
+	$Binomial_on_label = "$Binomial_on_label var. $variety_epithet";
+}
+elsif ($subspecies_epithet){
+	$Binomial_on_label = "$Binomial_on_label subsp. $subspecies_epithet";
+}
+elsif ($x_hybrid_epithet){
+	$Binomial_on_label = "$Binomial_on_label X $x_hybrid_epithet";
+}
+else {
+	$Binomial_on_label = $Binomial_on_label;
+}
 
 unless($Binomial_on_label eq $TJM2_binomial){
 	if($Annotation){
@@ -114,30 +275,18 @@ unless($Binomial_on_label eq $TJM2_binomial){
 $Annotation=~s/; /\nAnnotation: /g;
 $Annotation=~s/, */; /g;
 
-unless ($Accession_number=~/^\d+$/){
-print ERR "Skipped: Accession number $Accession_number is uncertain -> $_\n";
-next;
-}
-if ($seen{$Accession_number}>1){
-print ERR "Skipped: Accession number $Accession_number is duplicated ($seen{$Accession_number})\n";
-next;
-}
-$Accession_number="OBI$Accession_number";
 $name=$TJM2_binomial;
-foreach($name){
-s/^ *//;
-s/ *$//;
-s/  */ /g;
-}
 if($name=~/^ *$/){
-$name=$Binomial_on_label;
-foreach($name){
-s/^ *//;
-s/ *$//;
-s/  */ /g;
-}
+	$name=$Binomial_on_label;
 }
 foreach($name){
+		s/^ *//;
+		s/ *$//;
+		s/  */ /g;
+}
+$name= ucfirst(lc($name)); #added because they have the problem of Excel capitalizing after a period
+foreach($name){
+	$old_name = $name;
 	if(m/ (cf|aff)\./){
 		if($Notes){
 			$Notes .= "; as $_";
@@ -146,135 +295,79 @@ foreach($name){
 			$Notes .= "as $_";
 		}
 		s/ (cf|aff)\.//;
-print ERR "Logging: $TJM2_binomial altered to $_\n";
+		&log_change("$old_name altered to $_");
 	}
-s/ ssp.? / subsp. /;
-s/ su[sb]p.? / subsp. /;
-s/ su[nb]sp\.? / subsp. /;
-s/ var / var. /;
-s/ x / X /;
-s/ sp\.?$//;
-}
-			if($name=~/([A-Z][a-z-]+ [a-z-]+) X /){
-				$hybrid_annotation=$name;
-				warn "$1 from $name\n";
-				$name=$1;
-			}
-			elsif($name=~/([A-Z][a-z-]+ [a-z-]+ (var\.|subsp\.) [a-z-]+) X /){
-				$hybrid_annotation=$name;
-				warn "$1 from $name\n";
-				$name=$1;
-			}
-			else{
-				$hybrid_annotation="";
-			}
-if($alter{$name}){
-$name=$alter{$name};
-print ERR "Logging: $TJM2_binomial altered to $name\n";
-}
-if($name=~/^ *$/){
-print ERR "Skipped: $Accession_number no name\n";
-next;
+	s/ ssp.? / subsp. /;
+	s/ su[sb]p.? / subsp. /;
+	s/ su[nb]sp\.? / subsp. /;
+	s/ var / var. /;
+	s/ var \. / var. /;
+	s/ x / X /;
+	s/ sp\.?$//;
 }
 
-
-
-
-unless($taxon{$name}){
-                if($name=~s/subsp\./var./){
-                        if($taxon{$name}){
-                                print ERR <<EOP;
-Logging: $TJM2_binomial not yet entered into SMASCH taxon name table: entered as $name
-EOP
-                        }
-        }
-        elsif($name=~s/var\./subsp./){
-                if($taxon{$name}){
-                        print TAXON_OUT <<EOP;
-Logging: $TJM2_binomial not yet entered into SMASCH taxon name table: entered as $name
-EOP
-                }
+if($name=~/([A-Z][a-z-]+ [a-z-]+) X /){
+	$hybrid_annotation=$name;
+	warn "$1 from $name\n";
+	$name=$1;
 }
+elsif($name=~/([A-Z][a-z-]+ [a-z-]+ (var\.|subsp\.) [a-z-]+) X /){
+	$hybrid_annotation=$name;
+	warn "$1 from $name\n";
+	$name=$1;
+}
+else{
+	$hybrid_annotation="";
 }
 
-
-
-
-
-
-
-
-
-unless($taxon{$name}){
-print ERR "Skipped: $TJM2_binomial not in SMASCH\n";
-$NIS{$TJM2_binomial}++;
-next;
+if($name=~/([A-Z][a-z-]+ [a-z-]+) \+ /){
+	&log_change("$1 from $name\n");
+	$name=$1;
 }
+elsif($name=~/([A-Z][a-z-]+ [a-z-]+) and /){
+	&log_change("$1 from $name\n");
+	$name=$1;
+}
+
+$name = &validate_scientific_name($name, $id);
+
+###########COUNTY###########
 foreach($County){
-s/^ *//;
-s/ *$//;
-s/  */ /g;
-s/-.*//;
-s/ Co\.//;
-s/ County//;
-$o_county=$_;
-s/Solana/Solano/;
-s/Del Monte/Del Norte/;
-s/Alemeda/Alameda/;
-s/Calavaras/Calaveras/;
-s/Conta Costa/Contra Costa/;
-s/Eldorado/El Dorado/;
-s/Fresno to Monterey/Fresno/;
-s/Fresno-Inyo/Fresno/;
-s/Humbloldt/Humboldt/;
-s/Imperial.+/Imperial/;
-s/Inyo.+/Inyo/;
-s/Inyo\?/Inyo/;
-s/Kern.*/Kern/;
-s/Los Angeles.+/Los Angeles/;
-s/Los angeles/Los Angeles/;
-s/Mono.*/Mono/;
-s/Montery/Monterey/;
-s/Not Given/Unknown/;
-s/Not given/Unknown/;
-s/Orange.*/Orange/;
-s/Placer.*/Placer/;
-s/Riverside.*/Riverside/;
-s/San Bernadino/San Bernardino/;
-s/San Clara/Santa Clara/;
-s/San Deigo/San Diego/;
-s/San Diego.*/San Diego/;
-s/Santa Mateo/San Mateo/;
-s/^Mateo/San Mateo/;
-s/Sierra-Plumas/Sierra/;
-s/Trinuty/Trinity/;
-s/Tulare .*/Tulare/;
-s/Ventura.*/Ventura/;
-s/^Benito/San Benito/;
-s/Humbolt/Humboldt/;
-s|Colusa/Lake|Colusa|;
-s/^ *$/Unknown/;
-s/^[Uu][nN][Kk]$/Unknown/;
-s/Sikiyou/Siskiyou/;
-s/^\?$/Unknown/;
-s/SL:O/San Luis Obispo/;
-s/^SLO$/San Luis Obispo/i;
-s/^SB$/Santa Barbara/i;
-s/Humbodt/Humboldt/;
-s/Fresno line/Fresno/;
-unless ($_ eq $o_county){
-print ERR "Logging: $o_county altered to $_\n";
-}
-}
-unless ($County=~m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|[Uu]nknown)$/){
-#warn "Not a CA county: >$County<\n";
-		print ERR <<EOP;
-Skipped: Not a CA county, $County $Accession_no
-EOP
-next;
-}
-#($Accession_number, $Date_entered, $Search_no, $Status, $Collector, $Collection_no, $additional_collectors, $TJM2_Family, $TJM2_binomial, $Binomial_on_label, $author_of_binomial, $infraspecific_rank, $infraspecific_epithet, $infraspecific_epithet, $Annotation, $Date_A, $Date_B, $Country, $State, $County, $Collection_locality, $General_habitat, $Specific_habitat_abundance, $Plant_description, $elev_ft, $elev_m, $Notes, $X_Long, $Y_Lat, $X_LongMin, $X_LongMax, $Y_LatMin, $Y_LatMax, $Datum)=@fields;
-#print "$County $State\n";
+	s/^ *//;
+	s/ *$//;
+	s/  */ /g;
+	s/-.*//;
+	s/ Co\.//;
+	s/ County//;
+		s/[()]*//g;	#remove all instances of the literal characters "(" and ")"
+		s/ +coun?ty.*//i;	#substitute a space followed by the word "county" with "" (case insensitive, with or without the letter n)
+		s/ +co\.//i;	#substitute " co." with "" (case insensitive)
+		s/ +co$//i;		#substitute " co" with "" (case insensitive)
+		s/ *$//;		
+		s/^$/Unknown/;	
+		s/County Unknown/unknown/;	#"County unknown" => "unknown"
+		s/County unk\./unknown/;	#"County unk." => "unknown"
+		s/Unplaced/unknown/;	#"Unplaced" => "unknown"
+		#print "$_\n";
+
+		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown|Unknown)$/){
+			$v_county= &verify_co($_);	#Unless $county matches one of the county names from the above list, create a value $v_county for that value using the &verify_co function
+			if($v_county=~/SKIP/){		#If $v_county is "/SKIP/" (i.e. &verify_co cannot recognize it)
+				&log_skip("$id NON-CA COUNTY? $_");	#run the &skip function, printing the following message to the error log
+				++$skipped{one};
+				next;
+			}
+
+			unless($v_county eq $_){	#unless $v_county is exactly equal to what was input into the &verify_co function (i.e. if &verify_co successfully changed the county)
+				&log_change("$id COUNTY $_ -> $v_county");		#call the &log function to print this log message into the change log...
+				$_=$v_county;	#and then set $county to whatever the verified $v_county is.
+			}
+
+
+		}
+	}
+
+
 
 if($elev_ft=~/\d/){
 $elevation=$elev_ft;
@@ -324,21 +417,23 @@ $General_habitat = "$Specific_habitat_abundance" if $Specific_habitat_abundance;
 }
 $Datum=~s/, (.*)/\nSource: $1/;
 
-if($decimal_lat || $decimal_long){
-	unless( $decimal_long=~/^-\d+\.?\d*$/ && $decimal_lat =~/^\d+\.?\d*$/){
-		print ERR "$Accession_number: Unexpected coord format-- coords nulled.  Long was $decimal_long, Lat was $decimal_lat\n";
-		$decimal_long="";
-		$decimal_lat = "";
+if($decimalLatitude || $decimalLongitude){
+    unless( $decimalLongitude=~/^-\d+\.?\d*$/ && $decimalLatitude =~/^\d+\.?\d*$/){
+		&log_change("$id: Unexpected coord format-- coords nulled.  Long was $decimalLongitude, Lat was $decimalLatitude");
+		$decimalLongitude="";
+		$decimalLatitude = "";
 	}
 }
 
 print OUT <<EOP;
 Date: $Date_B
+EJD: $EJD
+LJD: $LJD
 CNUM_prefix: $CNP
 CNUM: $Collection_no
 CNUM_suffix: $CNS
 Name: $name
-Accession_id: $Accession_number
+Accession_id: $id
 County: $County
 Loc_other: $Physiographic_region
 Location: $Collection_locality
@@ -350,8 +445,8 @@ Other_coll: $additional_collectors
 Habitat: $General_habitat
 Notes: $Notes
 Macromorphology: $Plant_description
-Decimal_latitude: $decimal_lat
-Decimal_longitude: $decimal_long
+Decimal_latitude: $decimalLatitude
+Decimal_longitude: $decimalLongitude
 Datum: $Datum
 Annotation: $Annotation
 Hybrid_annotation: $hybrid_annotation
@@ -359,12 +454,4 @@ Type_status: $Kind_of_type
 
 EOP
 
-foreach $i (0 .. $#fields){
-#print "$i   $fields[$i]\n";
 }
-}
-open(OUT, ">NIS") || die;
-foreach(sort {$NIS{$a}<=> $NIS{$b}}(keys(%NIS))){
-print OUT "$NIS{$_} $_\t$_\n";
-}
-
