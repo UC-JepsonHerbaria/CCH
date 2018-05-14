@@ -16,10 +16,13 @@ my %month_hash = &month_hash;
 
 ####INSERT NAMES OF FILES and assign variables
 
-my $images_file='OBI_SymbiotaDownloads/images.tab';
-my $dets_file='OBI_SymbiotaDownloads/identifications.tab';
-my $records_file='OBI_SymbiotaDownloads/occurrences.tab';
-my $temp_file='OBI_temp.txt'; #file without the large number of unwanted records filtered from step 1
+my $images_file='/JEPS-master/CCH/Loaders/OBI/OBI_SymbiotaDownloads/images.tab';
+my $dets_file='/JEPS-master/CCH/Loaders/OBI/OBI_SymbiotaDownloads/identifications.tab';
+my $records_file='/JEPS-master/CCH/Loaders/OBI/OBI_SymbiotaDownloads/occurrences.tab';
+my $temp_file='/JEPS-master/CCH/Loaders/OBI/OBI_temp.txt'; #file without the large number of unwanted records filtered from step 1
+my $error_log = 'log.txt';
+unlink $error_log or warn "making new error log file $error_log";#log.txt is used by logging subroutines in CCH.pm
+
 
 my $included;
 my %skipped;
@@ -50,14 +53,10 @@ my $id;
 my $id;
 
 
-open(OUT,">OBI_out.txt") || die;
-open(OUT2,">OBI_AID.txt") || die; #text file for OBI accession conversion 
-open(OUT3,">AID_GUID_OBI.txt") || die; #text file for OBI accession conversion 
-open(TEMP,">OBI_temp.txt") || die;
-#log.txt is used by logging subroutines in CCH.pm
-my $error_log = "log.txt";
-unlink $error_log or warn "making new error log file $error_log";
-
+open(OUT,">/JEPS-master/CCH/Loaders/OBI/OBI_out.txt") || die;
+open(OUT2,">/JEPS-master/CCH/Loaders/OBI/OBI_AID.txt") || die; #text file for OBI accession conversion 
+open(OUT3,">/JEPS-master/CCH/Loaders/OBI/AID_GUID_OBI.txt") || die; #text file for OBI accession conversion 
+open(TEMP,">$temp_file") || die;
 
 
 #process the images
@@ -573,16 +572,16 @@ $references	#added 2016, not processed
 #	}
 	
 	
-##################Exclude known problematic from Baja California and other States in Mexico with "California" as state
-# if ($id =~/^(10615070|8720137|3132405|1939552|1939555|9372982|3157806|4182802|982039|982186|986591|10570608|10929212|3150102|3269779|904990|10571329|1940962|957093|4962440|5001448|10593214|10572572|10678657|3129513|903956|10932808|8735151|7718784|10796230|3148362|10678725|10743352|10500255|5501463|3132653|1912776|7247972|3145054|10550870|10546591|10531453|10755578|10794450|10794455|10969903|6165250|10870828|178669|4177487|10846560|1939654|10727925|1939566|3132654|6165302|3132655|5501705|5501448|5501418|5501427|6165662|5500734|6165216|1939553|6165097)$/){
-#	#print  ("Baja California record with California as state\t$id\t--\t$locality");
-#		++$temp_skipped{one};
-#		next Record;
-#	}
+##################Exclude known problematic from Baja California and other Countries with "California" as state
+ if ($id =~/^(8628467)$/){
+	print  ("Out of USA record with California as state==>$id\t$country\t$stateProvince\t$locality\n");
+		++$temp_skipped{one};
+		next Record;
+	}
 	
 ##################Exclude known problematic localities from other States in Mexico with "California" as state	
  if ($locality =~/(Cedros Island|Cerros Island|Campeche|Tuxpe.*a, Camp\.|Clarion Island|Isla del Carmen|Esc.?rcega|HopelchTn|Cd\. del C.?rmen|Mamantel|Xpujil|Ciudad del Carmen|Tuxpe.?a, Camp\.)/){
-	#print  ("Mexico record with California as state\t$id");
+	print  ("Mexico record with California as state\t$id\n");
 		++$temp_skipped{one};
 		next Record;
 	}	
@@ -2831,7 +2830,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'OBI_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/OBI/OBI_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
@@ -2861,9 +2860,27 @@ while(<IN>){
 	}
 close(IN);
 
-open(ERR, ">NIS.txt") || die;
-foreach(sort {$NIS{$a}<=> $NIS{$b}}(keys(%NIS))){
-print ERR "$NIS{$_} $_\t$_\n";
-}
+#test code to count lines of specific type but this does not work at the moment because all lines in log file are unique
+#my $error = 'log_sort.txt';
+#open(my $ERR, '>:encoding(UTF-8)', $error)
+#  or die "Could not open file '$error' $!";
 
+
+#my $LOG = 'log.txt';
+#open(my $lg, $LOG)
+#  or die "Could not open file '$LOG' $!";
+
+#while (my $row = <$lg>){
+
+#chomp $row;
+
+#$NIS{$row}++;
+#foreach(sort {$NIS{$a}<=> $NIS{$b}}(keys(%NIS))){
+#print $ERR "$NIS{$row} $row\n";
+#}
+
+#}
+#close $ERR;
+#close $lg;
+#print "done\n\n";
 
