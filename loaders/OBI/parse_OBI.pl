@@ -453,6 +453,10 @@ my $idnum;
 	}
 
 
+        if ($. == 1){#activate if need to skip header lines
+			next;
+		}
+
 #note that if the fields change. The field headers can be found in the occurrences.tab file
 		$temp_line_store=$_;
 		++$temp_count;
@@ -1367,46 +1371,55 @@ foreach ($year){
 	s/ *$//g;
 	s/  +//g;
 }
+
 foreach ($day){
 	s/^0$//g;
 	s/^ *//g;
 	s/ *$//g;
 	s/  +/ /g;
-	if ($day =~ m/^(\d)$/){
-		$day = "0$1";
-	}
 }
+
 foreach ($month){
 	s/^0$//g;
 	s/^ *//g;
 	s/ *$//g;
 	s/  +/ /g;
-	$month_rev = &get_month_number($coll_month, $id, %month_hash);
-	if ($month =~ m/^(\d)$/){ #see note above, JulianDate module needs leading zero's for single digit days and months
-		$month = "0$1";
 	}
 
-}	
+
+#fix some odd date errors
+
+if (($id =~ m/^(OBI80566)$/) && ($verbatimEventDate=~m/^2\?3 May 1992/i)){
+	&log_change("Date: error, EventDate and Y M D fields not parsed correctly and an error present in verbatim date ==>$verbatimEventDate\t$eventDate==>$id\n");
+
+	$verbatimEventDate = "2-3 May 1992";
+	$eventDate = ""; #event date incorrect, now NULL; parser will use corrected verbatim date
+}
+
 
 #combine dates for values that are in the split date fields, and to a 3rd date field
 	if((length($year) > 1) && (length($day) >= 1) && (length($month_rev) >= 1)){
-		$eventDate_parse = $year ."-" . $month_rev . "-". $day;
+			$eventDate_parse = $year ."-" . $month_rev . "-". $day;
+			&log_change("Date parse (1): $year-$month-$day==>$id\n");
 		}
 	elsif((length($year) > 1) && (length($day) == 0) && (length($month_rev) >= 1)){
 		$eventDate_parse = $year ."-" . $month_rev;
+			&log_change("Date parse (2): $year-$month-$day==>$id\n");
 		}
 	elsif((length($year) > 1) && (length($day) == 0) && (length($month_rev) == 0)){
 		$eventDate_parse = $year;
+			&log_change("Date parse (3): $year-$month-$day==>$id\n");
 		}
 	elsif((length($year) > 1) && (length($day) >= 1) && (length($month_rev) == 0)){
 		$eventDate_parse = $year;
+					&log_change("Date parse (4): $year-$month-$day==>$id\n");
 		}
 	elsif((length($year)== 0) && (length($day) == 0) && (length($month_rev) == 0)){
 		$eventDate_parse = "";
-		&log_change("Date: YYYY-MM-DD fields NULL\t$id\n");
+		&log_change("Date: YYYY-MM-DD fields NULL==>$id\n");
 		}
 	else{
-		&log_change("Date: YYYY-MM-DD fields missing values, cannot process: Y($year)-M($month)-D($day)\t\t$id\n");
+		&log_change("Date: YYYY-MM-DD fields missing values, cannot process: Y($year)-M($month)-D($day)==>$id\n");
 		$eventDate_parse = "";
 	}
 
@@ -1424,7 +1437,7 @@ foreach ($eventDate_parse){
 
 #find what fields have a date value, choose one and add to $eventDateAlt
 	if((length($eventDate) > 1) && (length($verbatimEventDate) > 1) && (length($eventDate_parse) > 1)){
-		$eventDateAlt = $eventDate_parse;
+		$eventDateAlt = $eventDate;
 		&log_change("Date (1): eventDate selected for\t$id\n");
 		}
 	elsif((length($eventDate) > 1) && (length($verbatimEventDate) == 0) && (length($eventDate_parse) == 0)){
@@ -1435,17 +1448,21 @@ foreach ($eventDate_parse){
 		$eventDateAlt = $verbatimEventDate;
 		&log_change("Date (3): alternate fields empty, verbatimEventDate selected for\t$id\n");
 		}
+	elsif((length($eventDate) == 0) && ($verbatimEventDate =~ m/^\d+-\d+/) && (length($eventDate_parse) > 1)){
+		$eventDateAlt = $verbatimEventDate;
+		&log_change("Date (4): date range detected in verbatim date field, Y M D fields skipped, verbatimEventDate selected for\t$id\n");
+		}
 	elsif((length($eventDate) == 0) && (length($verbatimEventDate) == 0) && (length($eventDate_parse) > 1)){
 		$eventDateAlt = $eventDate_parse;
-		&log_change("Date (4): alternate fields empty, eventDate_parse selected for\t$id\n");
+		&log_change("Date (5): alternate fields empty, eventDate_parse selected for\t$id\n");
 		}
 	elsif((length($eventDate) > 1) && (length($verbatimEventDate) == 0) && (length($eventDate_parse) > 1)){
 		$eventDateAlt = $eventDate;
-		&log_change("Date (5): verbatimEventDate empty, eventDate selected for\t$id\n");
+		&log_change("Date (6): verbatimEventDate empty, eventDate selected for\t$id\n");
 		}
 	elsif((length($eventDate) > 1) && (length($verbatimEventDate) >= 1) && (length($eventDate_parse) == 0)){
 		$eventDateAlt = $eventDate;
-		&log_change("Date (6): eventDate selected for\t$id\n");
+		&log_change("Date (7): eventDate selected for\t$id\n");
 		}
 	elsif((length($eventDate) == 0) && (length($verbatimEventDate) == 0) && (length($eventDate_parse) == 0)){
 		$eventDateAlt = "";
@@ -1668,7 +1685,7 @@ if ($DD2 =~ m/^(\d)$/){
 }
 
 
-#$formatEventDate = "$YYYY-$MM-$DD";
+$formatEventDate = "$YYYY-$MM-$DD";
 #($YYYY, $MM, $DD)=&atomize_ISO_8601_date($formatEventDate);
 #warn "$formatEventDate\t--\t$id";
 
@@ -1988,7 +2005,7 @@ foreach ($locality){
 
 ###############ELEVATION########
 
-foreach( $verbatimElevation){
+foreach($verbatimElevation){
 	s/ [eE]lev.*//;	#remove trailing content that begins with [eE]lev
 	s/feet/ft/;	#change feet to ft
 	s/\d+ *m\.? \((\d+).*/$1 ft/;
@@ -2007,6 +2024,7 @@ foreach( $verbatimElevation){
 	s/- *ft/ft/;
 	s/meters/m/;
 	s/,//g;
+	s/\+//g;
 	s/\>//g;
 	s/\<//g;
 	s/\@//g;
@@ -2048,6 +2066,13 @@ foreach($minimumElevationInMeters){
 		&log_change("Elevation problem, elevation non-numeric or poorly formatted, \t$id\t--\t($minimumElevationInMeters)\t--\t($verbatimElevation)\n");		#call the &log function to print this log message into the change log...
 		$elevation = "";
 	}
+
+#fix the persistently bad elevations, each of these have been checked by online maps to see if the units are in fact meters
+if ((length($minimumElevationInMeters) == 0) && ($verbatimElevation=~m/^35[-?](170)$/)){
+	&log_change("ELEVATION: verbatim elevation error, modified to '$1 m', MIN MAX elevation in meters fields NULL and a range in present in elevation, units missing but verified as meters: ($minimumElevationInMeters)\t($verbatimElevation)==>$id\n");
+	$verbatimElevation = "35-170m";
+	$elevation = "170 m";
+}
 
 
 #process verbatim elevation fields into CCH format
@@ -2267,17 +2292,20 @@ my $coordinates;
 	}	
 	elsif ((length($verbatimLatitude) == 0) && (length($verbatimLongitude) == 0)){
 		$decimalLongitude = $decimalLatitude = $latitude = $longitude = "";
+		$datum = $georeferenceSource = "";
 		print "COORDINATE NULL $id\n";
 	}
 	else {
 		&log_change("COORDINATE: partial coordinates only for \t$id\t($verbatimLatitude)\t($verbatimLongitude)\n");
 		$decimalLongitude = $decimalLatitude = $latitude = $longitude = "";
+		$datum = $georeferenceSource = "";
 	}
 
 #NULL coordinates that are only integer degrees, these are highly inaccurate and not useful for mapping
 	if (($verbatimLatitude =~ m/^\d\d$/) && ($verbatimLongitude =~ m/^-?1\d\d$/)){
-		$decimalLatitude=$latitude = "";
-		$decimalLongitude=$longitude = "";
+		$decimalLatitude = $latitude = "";
+		$decimalLongitude = $longitude = "";
+		$datum = $georeferenceSource = "";
 		&log_change("COORDINATE verbatim Lat/Long only to degree, now NULL: $verbatimLatitude\t--\t$verbatimLongitude==>$catnum\t$id\n");
 	}
 
@@ -2301,7 +2329,13 @@ if (($id =~ m/^(OBI77011)$/) && ($longitude =~ m/122\.83/)){
 	&log_change("COORD: latitude and longitude ($verbatimLatitude; $verbatimLongitude) maps in the Pacific Ocean, coordinates changed to ($latitude; $longitude)==>$county\t$location\t--$catnum\t$id\n");
 	#the original is in error and maps to far out into the Pacific Ocean, causing a yellow flag
 }
-
+if (($id =~ m/^(OBI69865)$/) && ($latitude =~ m/38\./)){ 
+#8609306	OBI			PreservedSpecimen	c0bd0748-8663-42b7-ac5b-b9f103d69c48	69865		Plantae	Magnoliophyta		Myrtales	Myrtaceae	Eucalyptus globulus	Labill.	Eucalyptus	globulus										Jenn Yost and Matt Ritter			4							8-Apr				Tree Age: ~25 yrs; noted level of reproduction: mod/extensive															United States	California	Santa Barbara		Orcutt Rd, onramp 101 S, Caltrans planting possibly				38.864962	-120.396739																		2013-07-02 00:00:00		306	urn:uuid:c0bd0748-8663-42b7-ac5b-b9f103d69c48	http://swbiodiversity.org/seinet/collections/individual/index.php?occid=8609306
+	$latitude = "34.86496";
+	$longitude = "-120.39673";
+	&log_change("COORD: latitude and longitude ($verbatimLatitude; $verbatimLongitude) maps to Union Valley Reservoir in El Dorado County, coordinates changed to ($latitude; $longitude)==>$county\t$location\t--$catnum\t$id\n");
+	#the original is in error and maps to Union Valley Reservoir in El Dorado County, causing a yellow flag
+}
 
 
 
@@ -2826,4 +2860,10 @@ while(<IN>){
 				&log_skip("Z) problem character detected: s/$match/    /g   $_ ---> $store{$_}\n\n"); #Z) so this sorts last
 	}
 close(IN);
+
+open(ERR, ">NIS.txt") || die;
+foreach(sort {$NIS{$a}<=> $NIS{$b}}(keys(%NIS))){
+print ERR "$NIS{$_} $_\t$_\n";
+}
+
 
