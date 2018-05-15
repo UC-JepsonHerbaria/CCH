@@ -1,348 +1,335 @@
-use utf8;
-BEGIN{
-push(@INC,"/Users/jfp04/data/CDL");
-}
-use Smasch;
-open(OUT, ">CDA_out") || die;
-open(IN,"CAS_non_vasc") || warn "no non vasc file\n";
-while(<IN>){
+#use utf8; #not sure if this is necessary
+use lib '/Users/davidbaxter/DATA';
+use CCH; #loads alter_names has %alter, non-vascular genus has %exclude, county %max_elev hash, and various processing subroutines
+$today_JD = &get_today_julian_day;
+&load_noauth_name; #load taxonID-to-scientificName hash %TID
+my %month_hash = &month_hash;
+
+open(OUT, ">CDA.out") || die;
+my $error_log = "log.txt";
+unlink $error_log or warn "making new error log file $error_log";
+
+my $file = 'CDAtoCCH4_16.txt';
+###File arrives as an Excel xlsx file, with a lot of unfortunate in-cell line breaks
+###Use find replace to remove "\n" to remove in-cell line breaks
+###then save as a utf8 tab-delimited text file with no quotes
+###N.B. You can load the file without removing the line breaks to make an informative log file for CDA
+#Some problem specimens:
+###CDA29638	M. Beyers	105, is a duplicate with the wrong accession number, change to CDA29638b
+###CDA33958	M. Beyers	823A id'd to just Agrostis is a duplicate of the next record, change to CDA33958b
+###CDA24566	M. Beyers	865 is a duplicate with the wrong accession number, change to CDA24566b
+###CDA30254	G.F. Hrusa	16650 is a duplicate with the wrong accession number, change to CDA30254b
+###CDA41051	T.C. Fuller	33b-58 is a duplicate with the wrong accession number, change to CDA41051b
+###CDA6208 Unknown	s.n.	Jan	1	1906 is two mostly similar records, delete the second, incomplete record
+###CDA20081	T. Gibson	PDR 1089395 is two identical records, delete one
+
+open(IN,$file) || die;
+Record: while(<IN>){
 	chomp;
-	$ignore_name{$_}++;
-}
-foreach(sort(keys(%ignore_name))){
-print " ignore $_\n";
-}
-open(IN,"CAS_alter_coll") || warn "no alternative collector file\n";
-while(<IN>){
-	chomp;
-	s/\cJ//;
-	s/\cM//;
-	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-	$alter_coll{$rsa}=$smasch;
-}
-open(IN,"../CDL/alter_names") || warn "no alternative name file\n";
-while(<IN>){
-	chomp;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
-open(IN,"alter_CDA") || warn "no alternative name file\n";
-while(<IN>){
-	chomp;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
-#open(IN,"../CDL/tnoan.out") || die;
-#while(<IN>){
-#74515	Centaurea × pouzinii
-#warn "×  TNOAN $_\n" if m/pouzin/;
-	#chomp;
-	#($id,$name)=split(/\t/);
-	#$taxon{$name}=$id;
-#}
-&load_noauth_name();
-foreach(keys(%PARENT)){
-print "$_\n" if m/pouzin/;
-}
-%taxon=%PARENT;
-foreach(keys(%taxon)){
-warn "×  HASH $_\n" if m/pouzin/;
-}
-open(ERR,">CDA_error");
-while(<>){
-s/\cB//g;
-s/Â±/+\/-/g;
-s/Ã/--/g;
-s/Ã/~/g;
-s/â/&ntilde;/g;
-s/Ã/--/g;
+	s/\cK/ /g;
+	s/\cB//g;
+	s/Â±/+\/-/g;
+	s/Ã/--/g;
+	s/Ã/~/g;
+	s/â/&ntilde;/g;
+	s/Ã/--/g;
 	s/&apos;/'/g;
-	#print if m/pouzin/;
-	chomp;
 	@fields=split(/\t/,$_,100);
-#unless ($#fields>25){
-#print "\n$#fields\n";
-#foreach $i (0 .. $#fields){
-#print "$i $fields[$i]\n";
-#}
-#}
-#next;
-	grep(s/^"(.*)"$/$1/,@fields);
-#warn "FIELDS $#fields $_\n" unless $#fields==27;
-#cda_num	col_num	genus	spec_epith	rank	intra	datac	datac2	county	elev	elev_unit	lat_degn	lat_minn	lat_secn	lon_degn	lon_minn	lon_secn	twnshp	range	sec	bm	month	day	year	collector	quad	quad_scale	collect2	subhead	det_by
-	$other_coll=$name=$accession_id= $collector= $combined_collector= $CNUM =$loc_other= $location= $county= $genus= $species= $i_rank= $variety= $latitude= $longitude= $elevation= $elev_u= $month= $day= $year= $township= $range= $section= $T_R_Section="";
-#$township, 
-#$range,
-($accession_id,
-$CNUM,
-$genus,
-$species,
-$i_rank, 
-$variety,
-$datac,
-$datac2,
-$county, 
+
+	unless($#fields==32){
+		&log_skip("Fields should be 32; I count $#fields\t$_");
+		next Record;
+	}
+
+	$scientificName=$latitude=$longitude=$T_R_Section="";
+
+($id, 
+$collector, 
+$recordNumber, 
+$other_coll, 
+$month, 
+$day, 
+$year, 
+$genus, 
+$specificEpithet,  
+$infra_rank,
+$infraspecificEpithet,
+$identifiedBy,
+$label_subhead, #i.e. "Plants of $label_subhead". Generally not published
+$locality,
+$habitat,
+$occurrenceRemarks, #called PLCHARS for plant characteristics
+$county,
 $elevation,
-$elev_u,
+$elev_units, # needs to be processed/shortened
 $lat_degn,
-$lat_minn, 
+$lat_minn,
 $lat_secn,
 $lat_hem,
 $lon_degn,
 $lon_minn,
 $lon_secn,
 $lon_hem,
-$month,
-$day,
-$year,
-$collector,
-$quad,
-$quad_scale,
-$combined_collector,
-$loc_other, 
-$det_by)=@fields;
-	if($combined_collector){
-		$combined_collector="$collector, $combined_collector";
-		$other_coll=$combined_collector;
-	}
-	else{
-		$combined_collector="";
-	}
-$PREFIX= $SUFFIX="";
-foreach($CNUM){
-	s/(\d),(\d\d\d)$/$1$2/;
-	if(s| *1/2||){
-		$SUFFIX="1/2";
-	}
-	if(m/^(\d+)(.*)/){
-		$PREFIX="";
-		$CNUM=$1;
-		$SUFFIX=$2;
-	}
-	elsif(m/(.*[^0-9])(\d+)(.*)/){
-		$PREFIX=$1;
-		$CNUM=$2;
-		$SUFFIX=$3;
-	}
-	else{
-		$PREFIX=$_;
-		$CNUM="";
-		$SUFFIX="";
-	}
-}
-	$loc_other=~s/.*(weeds|flora|plants) of the //i;
-	$loc_other=~s/.*(weeds|flora|plants) of //i;
-$location=$datac;
-if($datac2){
-$location .=  " $datac2";
-}
-$county=uc($county);
-$county=~s/ELDORADO/EL DORADO/;
-$county=~s/^ *$/UNKNOWN/;
-$county=~s/ \/.*//;
-unless($county=~m/^(SHASTA|LOS ANGELES|SAN DIEGO|BUTTE|INYO|TRINITY|PLUMAS|SONOMA|NAPA|SOLANO|MENDOCINO|SANTA BARBARA|SAN LUIS OBISPO|LASSEN|YOLO|GLENN|SACRAMENTO|PLACER|SIERRA|TULARE|MONO|MERCED|MONTEREY|SAN BERNARDINO|COLUSA|MODOC|AMADOR|SUTTER|LAKE|TEHAMA|NEVADA|SISKIYOU|EL DORADO|HUMBOLDT|TUOLUMNE|CALAVERAS|KERN|CONTRA COSTA|SAN JOAQUIN|ALAMEDA|FRESNO|SAN BENITO|SANTA CRUZ|ALPINE|SANTA CLARA|MARIN|YUBA|SAN MATEO|MADERA|DEL NORTE|IMPERIAL|RIVERSIDE|VENTURA|MARIPOSA|STANISLAUS|ORANGE|KINGS|SAN FRANCISCO|UNKNOWN)$/){
-print ERR "County $county not California $accession_id\n";
-next;
-}
-$county=ucfirst(lc($county));
-$county=~s/ (.)/ \u$1/g;
+$township, #so far not processed
+$range,
+$section,
+$quarter,
+$bm, #I don't know what this means. Basemap???
+$quad #name of quad map
+)=@fields;
 
-$name="$genus $species $i_rank $variety";
-$name=~s/ *`//g;
-$name=~s/ *$//;
+#######ACCESSION ID
+#check for nulls
+if ($id=~/^ *$/){
+	&skip("Record with no accession id $_");
+	next Record;
+}
+
+#Remove duplicates
+if($seen{$id}++){
+	++$skipped{one};
+	warn "Duplicate number: $id<\n";
+	&log_skip("Duplicate accession number\t$id");
+	next Record;
+}
 
 
-		$name="" if $name=~/^No name$/i;
-			unless($name){
-				&skip("No name: $accession_id", @columns);
-				next;
-			}
-			($genus=$name)=~s/ .*//;
-			if($ignore_name{$genus}){
-				&skip("Non-vascular plant: $accession_id", @columns);
-				next;
-			}
-			$name=ucfirst($name);
-			if($name=~/  /){
-				if($name=~/^[A-Z][a-z]+ [a-z]+ +[a-z]+$/){
-					&log("$name: var. added $accession_id");
-					$name=~s/^([A-Z][a-z]+ [a-z]+) +([a-z]+)$/$1 var. $2/;
-				}
-				$name=~s/  */ /g;
-			}
-			if($name=~/CV\.? /i){
-				&skip("Can't deal with cultivars yet: $accession_id", $name);
-				#$badname{$name}++;
-				next;
-			}
-			foreach($name){
-$original_name=$name;
-warn "$_\n" if m/pouzin/;
-				s/ ssp / subsp. /;
-				s/ spp\.? / subsp. /;
-				s/ var / var. /;
-				s/ ssp\. / subsp. /;
-				s/ f / f\. /;
-				s/ [xX] / × /;
-				#s/ [xX] / × /;
-warn "$_\n" if m/pouzin/;
-if(s/ (cf\.|aff\.)//){
-$note="as $original_name";
+###COLLECTOR###
+if($other_coll){
+	$recordedBy="$collector, $other_coll";
 }
 else{
-$note="";
+	$recordedBy=$collector;
 }
-			}
-			if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
-				$hybrid_annotation=$name;
-				warn "$1 from $name\n";
-				$name=$1;
-			}
-			else{
-				$hybrid_annotation="";
-			}
 
-			if($alter{$name}){
-				&log ("Spelling altered to $alter{$name}: $name");
-				$name=$alter{$name};
-			}
-			unless($taxon{$name}){
-				$on=$name;
-				if($name=~s/subsp\./var./){
-					if($taxon{$name}){
-						&log("Not yet entered into SMASCH taxon name table: $on entered as $name");
-					}
-					else{
-						&skip("Not yet entered into SMASCH taxon name table: $original_name skipped");
-						++$badname{$name};
-						next;
-					}
-				}
-				elsif($name=~s/var\./subsp./){
-		if($taxon{$name}){
-&log("Not yet entered into SMASCH taxon name table: $on entered as $name");
-		}
-		else{
-&skip("Not yet entered into SMASCH taxon name table: $original_name skipped");
-++$badname{$name};
-next;
-		}
+#####COLLECTOR NUMBER####
+$CNUM_prefix= $CNUM_suffix="";
+($CNUM_prefix, $CNUM,$CNUM_suffix)=&parse_CNUM($recordNumber);
+
+
+####COLLECTION DATE
+
+#clean up date fields
+foreach ($year){
+	s/before 1920//g;
+	s/\?$//g;
+	s/s$//g;
+}
+
+foreach ($day){
+	s/late//g;
+	s/28-Aug-64/28/g;
+	s/'//g;
+	s/,//g;
+	s/5-Mar//g;
+	s/11-Sep//g;
+	s/0+//g;    
+}
+
+$verbatimDate=$EJD=$LJD="";
+#assemble verbatimDate from date fields
+$verbatimDate="$month $day $year";
+$verbatimDate=~s/^ *//;
+$verbatimDate=~s/ *$//;
+$verbatimDate=~s/  */ /;
+
+#make julian days
+$month = &get_month_number($month, $id, %month_hash);
+($EJD, $LJD)=&make_julian_days($year, $month, $day, $id);
+($EJD, $LJD)=&check_julian_days($EJD, $LJD, $today_JD, $id);
+
+
+######SCIENTIFIC NAME###
+#assemble name
+$scientificName="$genus $specificEpithet $infra_rank $infraspecificEpithet";
+$scientificName=~s/ *`//g;
+$scientificName=~s/ *$//;
+
+#create hybrid annotation
+if($scientificName=~/([A-Z][a-z-]+ [a-z-]+) × /){
+	$hybrid_annotation=$scientificName;
+	warn "$1 from $scientificName\n";
+	$scientificName=$1;
+}
+else{
+	$hybrid_annotation="";
+}
+
+#remove cultivar records
+if($scientificName=~/(CV\.? | '[a-z]+)/i){
+	&log_skip("Can't deal with cultivars yet\t$id", $scientificName);
+	next Record;
+}
+#remove problem specimen records, possible cultivars or not from California
+if($id=~/(CDA6932)/){
+	&log_skip("Problematic specimens not from California or possible cultivars\t$id", $scientificName);
+	next Record;
+}
+
+#validate name
+$scientificName=ucfirst(lc($scientificName));
+$scientificName = &strip_name($scientificName);
+$scientificName = &validate_scientific_name($scientificName, $id);
+
+
+####ANNOTATION (based on $identifiedBy)
+if($identifiedBy=~m|^(.+)|){
+	$annotation="$scientificName; $1"
+}
+else{ $annotation=""; }
+
+
+#########LOCALITY, HABITAT, OCCURRENCEREMARKS
+##no processing required for $locality, $habitat, $occurrenceRemarks
+
+#########COUNTY
+foreach ($county){
+	unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown|Unknown)$/){
+		$v_county= &verify_co($_); #Unless $county matches one of the county names from the above list, create a value $v_county for that value using the &verify_co function
+		if($v_county=~/SKIP/){ #If $v_county is "/SKIP/" (i.e. &verify_co cannot recognize it)
+			&log_skip("NON-CA COUNTY? $_\t$id"); #run the &skip function, printing the following message to the error log
+    		++$skipped{one};
+            next Record;
+        }
+
+        unless($v_county eq $_){ #unless $v_county is exactly equal to what was input into the &verify_co function (i.e. if &verify_co successfully changed the county)
+            &log_change("COUNTY $_ -> $v_county\t$id"); #call the &log function to print this log message into the change log...
+            $_=$v_county; #and then set $county to whatever the verified $v_county is.
+        }
+    }
+}
+
+
+########ELEVATION
+#construct DwC verbatimElevation
+if ($elevation){
+	$verbatimElevation="$elevation $elev_units";
+}
+else {$verbatimElevation=""; }
+
+#clean up and check units
+foreach ($elev_units) {
+	s/meters?/m/;
+	s/feet/ft/;
+	s/\.//;
+}
+if ($elev_units){
+	unless ($elev_units eq "ft" || $elev_units eq "m"){
+		warn "weird elev units >$elev_units<\t$id\n";
+		&log_change("weird elev units >$elev_units<; elevation nulled\t$id");
+		$elevation=$elev_units="";
 	}
-	else{
-&skip("Not yet entered into SMASCH taxon name table: $original_name skipped");
-++$badname{$name};
-	next;
-	}
 }
 
-
-
-
-
-if($lat_degn){
-	$latitude=$lat_degn;
-	if($lat_minn){
-		$latitude.=" $lat_minn";
-		if($lat_secn){
-			$latitude.=" $lat_secn";
-		}
-	}
-	$latitude .="N";
+#isolate numeric value of elevation
+foreach ($elevation){
+	s/[~><\+±, ]//g;
 }
-$latitude=~s/ (\d) / 0$1 /;
-$latitude=~s/ (\dN)/ 0$1/;
-$latitude="" if $latitude=~/^0+ /;
-
-if($lon_degn){
-	$longitude=$lon_degn;
-	if($lon_minn){
-		$longitude.=" $lon_minn";
-		if($lon_secn){
-			$longitude.=" $lon_secn";
-		}
-	}
-	$longitude .="W";
-}
-
-$longitude=~s/ (\d) / 0$1 /;
-$longitude=~s/ (\dW)/ 0$1/;
-$longitude="" if $longitude=~/^0+ /;
-
-if($latitude=~/^1\d\d/){
-$hold=$latitude;
-$latitude=$longitude;
-$longitude=$hold;
-$longitude=~s/N/W/;
-$latitude=~s/W/N/;
-&log("$accession_id: lat and long reversed");
-}
-#if(($decimal_latitude=~/\d/  && $decimal_longitude=~/\d/)){
-    #$decimal_longitude="-$decimal_longitude" if $decimal_longitude > 0;
-	    #if($decimal_latitude > 42.1 || $decimal_latitude < 32.5 || $decimal_longitude > -114 || $decimal_longitude < -124.5){
-		        #&log( "1 coordinates set to null, Outside California: $accession_id: >$decimal_latitude< >$decimal_longitude< $latitude $longitude");
-				#}
+#if ($elevation){
+#	unless ($elevation=~/^([0-9.-]+)$/) {
+	
+		if(($elevation=~/^([0-9.-]+)([FfTtMm.]+)/) && ($elev_units eq "")){ #fix some really problematic elevations
+			$elevation=$1;
+			$elev_units=$2;
+			$elev_units=~s/\.//;
+			warn "elevation not numeric only >$id<\n";
+			&log_change("elevation >$elevation< changed because not numeric; may contain units\t$id");
+			}
+#	}
 #}
-if($latitude && $longitude){
-	unless($latitude=~/[nN]/ && $longitude=~/[Ww]/){
-	&log ("2 direction missing: $accession_id: >$decimal_latitude< >$decimal_longitude< $latitude $longitude");
-	$latitude=$longitude="";
-		}
-		unless(&verify_cal_lat($latitude) && &verify_cal_long($longitude)){
-		&log("3 coordinates set to null, Outside California: $accession_id: >$decimal_latitude< >$decimal_longitude< $latitude $longitude ");
-		warn "3 coordinates set to null, Outside California: $accession_id: >$decimal_latitude< >$decimal_longitude< $latitude $longitude ";
-	$latitude=$longitude="";
-		}
-		}
-		#else{
-		#print "4 coordinates set to null, coordinate missing: $accession_id: >$decimal_latitude< >$decimal_longitude< $latitude $longitude\n";
-#}
+
+#######LATITUDE, LONGITUDE, etc.
+#assemble verbatimLatitude and verbatimLongitude
+$verbatimLatitude = "$lat_degn $lat_minn $lat_secn $lat_hem";
+$verbatimLongitude = "$lon_degn $lon_minn $lon_secn $lon_hem";
+foreach ($verbatimLatitude, $verbatimLongitude){
+	s/^ *//;
+	s/ $//;
+	s/  */ /g;
+}
+
+#calculate decimalLatitude and decimalLongitude
+$decimalLatitude= &dms2decimal($lat_degn, $lat_minn, $lat_secn);
+$decimalLongitude= &dms2decimal($lon_degn, $lon_minn, $lon_secn);
+if($decimalLongitude){
+	unless ($decimalLongitude=~/^-/) {
+		$decimalLongitude="-$decimalLongitude";
+	}
+}
+
+#check lat and lon reversed
+if($latitude=~/^-1\d\d/){
+	$hold=$decimalLatitude;
+	$decimalLatitude=$decimalLongitude;
+	$decimalLatitude=$hold;
+	&log_change("lat and long reversed; corrected for CCH\t$id");
+}
+
+#Check if outside California box
+($decimalLatitude,$decimalLongitude)=&outside_CA_box($decimalLatitude,$decimalLongitude,$id);
 
 
+####TOWNSHIP RANGE SECTION
+#put prefixes if not there
+if ($township) {
+	unless ($township=~/^[Tt]/){
+		$township=~"T$township";
+	}
+}
+if ($range) {
+	unless ($range=~/^[Rr]/){
+		$range=~"R$range";
+	}
+}
+if ($section) {
+	unless ($section=~/^[Ss]/){
+		$section=~"S$section";
+	}
+}
 
-
-$elevation="$elevation $elev_u" if $elevation;;
-$month="" if $month=~/^0*$/;
-$day="" if $day=~/^0*$/;
-$year="" if $year=~/^0*$/;
-$date="$month $day $year";
-$T_R_Section="$township$range$section";
+#assemble TRS
+$T_R_Section="$township$range$section $quarter";
+$T_R_Section=~s/ *$//;
 $T_R_Section="" if $T_R_Section eq "0";
-if($det_by=~m|^(.+)|){
-$annotation="$name; $1"
-}
-else{
-$annotation="";
-}
 
+#T_R_Section is not a darwin core field but it is used by CCH
+#for DwC, the whole $T_R_Section could be published as verbatimCoordinates
+#with verbatimCoordinateSystem set as "Township Range Section" or similar
+
+
+#print out the final printout
 print OUT <<EOP;
-Date: $date
 CNUM: $CNUM
-CNUM_prefix: $PREFIX
-CNUM_suffix: $SUFFIX
-Accession_id: $accession_id
-Name: $name
+CNUM_prefix: $CNUM_prefix
+CNUM_suffix: $CNUM_suffix
+Accession_id: $id
+Name: $scientificName
+Date: $verbatimDate
+EJD: $EJD
+LJD: $LJD
 Collector: $collector
-Combined_collector: $combined_collector
+Combined_collector: $recordedBy
 Other_coll: $other_coll
 Loc_other: $loc_other
-Location: $location
+Location: $locality
+Habitat: $habitat
+Macromorphology: $occurrenceRemarks
 Country: USA
 State: California
 County: $county
-Latitude: $latitude
-Longitude: $longitude
-Elevation: $elevation
+Latitude: $verbatimLatitude
+Longitude: $verbatimLongitude
+Decimal_latitude: $decimalLatitude
+Decimal_longitude: $decimalLongitude
+Elevation: $verbatimElevation
 T/R/Section: $T_R_Section
 Annotation: $annotation
 Hybrid_annotation: $hybrid_annotation
-Note: $note
+Notes: 
 
 EOP
 }
-sub skip {
-print ERR "skipping: @_\n"
-}
-sub log {
-print ERR "logging: @_\n";
-}
-__END__
+
+#Darwin Core values processed by this script but not output to CCH format:
+#$recordNumber
+#$identifiedBy
