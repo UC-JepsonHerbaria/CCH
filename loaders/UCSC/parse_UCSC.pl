@@ -1692,7 +1692,7 @@ foreach ($eventDate_parse){
 		$DD2 = "31";
 	warn "(15)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{4})$/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{4})$/){
 		$DD = "";
 		$MM = $1;
 		$YYYY=$2;
@@ -1700,7 +1700,7 @@ foreach ($eventDate_parse){
 		$DD2 = "";
 	warn "(5)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{2})([0-9]{4})$/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{2})([0-9]{4})$/){
 		$DD = $2;
 		$MM = $1;
 		$YYYY= $3;
@@ -1724,7 +1724,7 @@ foreach ($eventDate_parse){
 		$MM="";
 	#warn "(18)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([0-9]{4})-([0-9]{1,2})[- ]*$/){
+	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([0-9]{1,2})[- ]*$/){
 		$MM=$2;
 		$YYYY=$1;
 		$MM2 = "";

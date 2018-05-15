@@ -13,7 +13,7 @@ $today_JD = &get_today_julian_day;
 
 my %month_hash = &month_hash;
 
-open(OUT,">CATA_out.txt") || die;
+open(OUT,">/JEPS-master/CCH/Loaders/CATA/CATA_out.txt") || die;
 
 #log.txt is used by logging subroutines in CCH.pm
 my $error_log = "log.txt";
@@ -28,7 +28,7 @@ my %seen;
 my $det_string;
 
 
-my $file = 'CATA_OCT2015_mod.tab';
+my $file = '/JEPS-master/CCH/Loaders/CATA/CATA_OCT2015_mod.tab';
 
 #####process the file
 #CATA file arrives as a comma-separated csv with double-quotes as text qualifiers
@@ -374,6 +374,34 @@ my $eventDateAlt;
 
 $eventDateAlt = $coll_day."-".$coll_month."-".$coll_year ;
 
+#assemble a date for a correctly formatted verbatim date
+	if ((length($coll_day) == 0) && (length($coll_month) >= 1) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_month." ".$coll_year;
+	}
+	elsif ((length($coll_day) >= 1) && (length($coll_month) >= 1) && (length($coll_year) == 0)){
+		$verbatimEventDate = $coll_day." ".$coll_month." [year missing]";
+		warn "(1) date missing year==>$verbatimEventDate\t$id";
+	}	
+	elsif ((length($coll_day) >= 1) && (length($coll_month) >= 1) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_day." ".$coll_month." ".$coll_year;
+	}	
+	elsif ((length($coll_day) >= 1) && (length($coll_month) == 0) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_day." [month missing] ".$coll_year;
+		warn "(2) date missing month==>$verbatimEventDate\t$id";
+	}
+	elsif ((length($coll_day) == 0) && (length($coll_month) == 0) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_year;
+	}
+	elsif ((length($coll_day) == 0) && (length($coll_month) == 0) && (length($coll_year) == 0)){
+		$verbatimEventDate="";
+	}
+	else{
+		&log_change("DATE: problem, missing or incompatible values==>day: $coll_day\tmonth: $coll_month\tyear: $coll_year\t$id\n");
+		$verbatimEventDate="";
+	}
+
+
+#finish parsing the modified event date
 foreach ($eventDateAlt){
 	s/,//g;
 	s/^-+//; #remove added dash for the dates without a day value
@@ -509,7 +537,7 @@ foreach ($eventDateAlt){
 		$DD2 = "31";
 	warn "(15)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{4})$/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{4})$/){
 		$DD = "";
 		$MM = $1;
 		$YYYY=$2;
@@ -517,7 +545,7 @@ foreach ($eventDateAlt){
 		$DD2 = "";
 	warn "(5)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{2})([0-9]{4})$/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{2})([0-9]{4})$/){
 		$DD = $2;
 		$MM = $1;
 		$YYYY= $3;
@@ -541,7 +569,7 @@ foreach ($eventDateAlt){
 		$MM="";
 	warn "(18)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([0-9]{4})-([0-9]{1,2})[- ]*$/){
+	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([0-9]{1,2})[- ]*$/){
 		$MM=$2;
 		$YYYY=$1;
 		$MM2 = "";
@@ -1356,7 +1384,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'CATA_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/CATA/CATA_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
