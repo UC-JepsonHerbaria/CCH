@@ -2,7 +2,7 @@
 use Geo::Coordinates::UTM;
 use strict;
 #use warnings;
-use lib '/Users/davidbaxter/DATA';
+use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH; #load non-vascular hash %exclude, alter_names hash %alter, and max county elevation hash %max_elev
 my $today_JD;
 
@@ -1170,8 +1170,7 @@ elsif ((length($latitude) == 0) && (length($longitude) == 0)){
 				&log_change("11a) Poorly formatted UTM coordinates, Lat & Long nulled: $UTME, $UTMN, $zone, $id\n");
 				$decimalLatitude = $decimalLongitude = $georeferenceSource = "";
 			}
-			$ellipsoid = int(23);
-			($decimalLatitude,$decimalLongitude)=utm_to_latlon($ellipsoid,$zone,$easting,$northing);
+			($decimalLatitude,$decimalLongitude)=utm_to_latlon(23,$zone,$easting,$northing);
 			&log_change("Decimal degrees derived from UTM for $id: $decimalLatitude, $decimalLongitude");
 			$georeferenceSource = "UTM conversion by CCH loading script";
 		}
