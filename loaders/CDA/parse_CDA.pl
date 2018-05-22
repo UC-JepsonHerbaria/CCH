@@ -3,7 +3,7 @@ use Geo::Coordinates::UTM;
 use strict;
 #use warnings;
 use Data::GUID;
-use lib '/Users/davidbaxter/DATA';
+use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH; #load non-vascular hash %exclude, alter_names hash %alter, and max county elevation hash %max_elev
 my $today_JD;
 
@@ -25,11 +25,11 @@ my $det_string;
 my $count_record;
 
 
-open(OUT, ">CDA_out.txt") || die;
+open(OUT, ">/JEPS-master/CCH/Loaders/CDA/CDA_out.txt") || die;
 my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
 
-my $file = 'CDAtoCCH4_16.txt';
+my $file = '/JEPS-master/CCH/Loaders/CDA/CDAtoCCH4_16.txt';
 ###File arrives as an Excel xlsx file, with a lot of unfortunate in-cell line breaks
 ###Use find replace to remove "\n" to remove in-cell line breaks
 ###then save as a utf8 tab-delimited text file with no quotes
@@ -328,6 +328,41 @@ else{
 #Fix records with unpublished or problematic name determination that should not be fixed in AlterNames
 
 
+if (($id =~ m/^(CDA8134)$/) && (length($TID{$tempName}) == 0)){ 
+#CDA8134	T.C. Fuller	434-58		May	21	1958	Layia	chrysanthemoides	 var. 	oligochaeta	T.C. Fuller		2 miles north of Novato. 			Marin																
+	$tempName =~ s/Layia chrysanthemoides var\. oligochaeta/Layia chrysanthemoides/;
+	&log_change("Scientific name not published: Layia chrysanthemoides var. oligochaeta, probably previously determined as Layia calliglossa var. oligochaeta and annotated without updating subtaxon, modified to to just the species rank:\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CDA5477)$/) && (length($TID{$tempName}) == 0)){ 
+#CDA5477	G.D. Barbe	2484		Apr	10	1979	Anagallis	arvensis	 f.	azurea			Point Reyes National Seashore.  Along road to Coast Camp from Limantour Parking Lot. 		Locally common with the coral-colored form. [=A. a. var. coerulea Ledeb.]	Marin																
+	$tempName =~ s/Anagallis arvensis f\. azurea/Anagallis arvensis/;
+	&log_change("Scientific name not published: Anagallis arvensis f. azurea, not a published form name, modified to just the species rank:\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CDA28907)$/) && (length($TID{$tempName}) == 0)){ 
+#CDA28907	D.G. Kelch	9.369		Jun	9	2009	Deinandra	pungens				East SF Bay.	Union City, nr intersection of Horner and Veasy Sts in waste areas near diked salt marsh.		Local roadside annual w/ Malva spp., Distichlis spicata, Convolvulus arvensis, & Malvella leprosa. Fls yellow.	Alameda	2	meters	37	35	44.48	N	122	5	25.02	W						
+	$tempName =~ s/Deinandra pungens/Centromadia pungens/;
+	&log_change("Scientific name not published: Deinandra pungens, not a published combination, modified to:\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CDA3026)$/) && (length($TID{$tempName}) == 0)){ 
+#CDA3026	A.C. Sanders	23685	Mitch Provance	Oct	1	2000	Chenopodium	album	 var. 	mediterraneum	S. E. Clemants	San Bernardino Mtns.	Hwy 330 at turnout 4.3 miles above City Creek Station, 4.2 mi. below W end of Fredalba Rd., slopes above Little Mill Creek	Burned chaparral (except patches) w/Quercus wislizenii, Arctostaphylos, Pinus attentuata, Turricula p., etc.	Fairly common annual on loose roadside fill; 0.5-1.5 m tall.  Erect central axis w/ green stripes; basal branches spreading then ascending, upper all ascending; infl. branches somewhat drooping.  Flowers green.  Determined by Clemants as C. album cf. var. mediterraneum Aellen, not in IPNI.	San Bernardino	1235	meters	34	11.88		N	117	8.78		W	1N	3W	12			Harrison Mtn. 7.5’ Q.
+	$tempName =~ s/Chenopodium album var\. mediterraneum/Chenopodium album/;
+	&log_change("Scientific name not published: Chenopodium album var. mediterraneum, modified to just the species rank:\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CDA27432)$/) && (length($TID{$tempName}) == 0)){ 
+#CDA27432	G.D. Barbe	3002	J.T. Howell, T.C. Fuller	Jul	16	1980	Lupinus	elatus	 ssp. 	elatus		Kern Plateau	North and below crest of west-northwest ridge from Bald Mountain summit (lookout tower).			Tulare	2805	meters														
+	$tempName =~ s/Lupinus elatus ssp\. elatus/Lupinus elatus/;
+	&log_change("Scientific name not published: Lupinus elatus ssp. elatus, not a published combination, modified to just the species rank:\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CDA43219)$/) && (length($TID{$tempName}) == 0)){ 
+#CDA43219	David B. Dunn, LeDoux & Keeney	20719a		Jun	11	1973	Lupinus	formosus	 ssp. 	proximus	Melvin L. Conrad		Along the Lockwood Valley Road, 3 miles west and south of Kern County line.	In a grove of pinyon pines.		Ventura	1677	meters														
+	$tempName =~ s/Lupinus formosus ssp\. proximus/Lupinus formosus/;
+	&log_change("Scientific name not published: Lupinus formosus ssp. proximus, not a published combination, modified to just the species rank:\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CDA1547|CDA1546)$/) && (length($TID{$tempName}) == 0)){ 
+#CDA1547	E.C. Whitney	s.n.		Jun	3	1971	Cirsium	remotifolium	 var. 	mendocinum	David J. Keil		Bear River Ridge County roadside, Johnson Corrals, NE of Capetown.	County roadside.	In bud, county roadside near Johnson Corrals.(Label states “Sec. 10”, in error. Corral is in Sec. 8, road runs Sec. 9- Sec.16)Cirsium remotifolium var. mendocinum (Petrak) Keil,Annotated by David J. Keil, Flora of North America, 2002.	Humboldt	366	meters	40	28	36	N	124	18	40	W	1N	2W	8		H	
+	$tempName =~ s/Cirsium remotifolium var. mendocinum/Cirsium remotifolium/;
+	&log_change("Scientific name not published: Cirsium remotifolium var. mendocinum, not a published combination, modified to just the species rank:\t$tempName\t--\t$id\n");
+}
 
 ##########Begin validation of scientific names
 
@@ -409,8 +444,36 @@ foreach ($coll_day){
 }
 
 
-
 $eventDateAlt = $coll_day."-".$coll_month."-".$coll_year ;
+
+#assemble a date for a correctly formatted verbatim date
+	if ((length($coll_day) == 0) && (length($coll_month) >= 1) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_month." ".$coll_year;
+	}
+	elsif ((length($coll_day) >= 1) && (length($coll_month) >= 1) && (length($coll_year) == 0)){
+		$verbatimEventDate = $coll_day." ".$coll_month." [year missing]";
+		warn "(1) date missing year==>$verbatimEventDate\t$id";
+	}	
+	elsif ((length($coll_day) >= 1) && (length($coll_month) >= 1) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_day." ".$coll_month." ".$coll_year;
+	}	
+	elsif ((length($coll_day) >= 1) && (length($coll_month) == 0) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_day." [month missing] ".$coll_year;
+		warn "(2) date missing month==>$verbatimEventDate\t$id";
+	}
+	elsif ((length($coll_day) == 0) && (length($coll_month) == 0) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_year;
+	}
+	elsif ((length($coll_day) == 0) && (length($coll_month) == 0) && (length($coll_year) == 0)){
+		$verbatimEventDate="";
+	}
+	else{
+		&log_change("DATE: problem, missing or incompatible values==>day: $coll_day\tmonth: $coll_month\tyear: $coll_year\t$id\n");
+		$verbatimEventDate="";
+	}
+
+
+#finish parsing the modified event date
 
 foreach ($eventDateAlt){
 	s/`//g;	
@@ -556,7 +619,7 @@ foreach ($eventDateAlt){
 		$DD2 = "";
 	#warn "(5)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{2})([0-9]{4})$/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{2})([0-9]{4})$/){
 		$DD = $2;
 		$MM = $1;
 		$YYYY= $3;
@@ -580,7 +643,7 @@ foreach ($eventDateAlt){
 		$MM="";
 	#warn "(18)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([0-9]{4})-([0-9]{1,2})[- ]*$/){
+	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([0-9]{1,2})[- ]*$/){
 		$MM=$2;
 		$YYYY=$1;
 		$MM2 = "";
@@ -793,7 +856,7 @@ foreach($elevation_units){
 	s/\.//g;
 }
 
-$verbatimElevation = $elevation.$elevation_units;
+$verbatimElevation = $elevation." ".$elevation_units;
 
 
 if (length($elevation) >= 1){
@@ -991,10 +1054,43 @@ my $long_seconds;
 my $long_decimal;
 my $zone_number;
 
+#long stadning problem here is that the database at CDA does not allow '0' as a value in a number field, so when the minutes are '0' the field is blank.  This leads to bad errors in the the conversion below.
+# zero seconds are not really a problem because that should be equivalent to just degrees and minutes.
+#zero degrees are an error for California coordinates
+#this error is creating thousands of yellow flags
 
-$verbatimLatitude = $lat_deg." ".$lat_min." ".$lat_sec;
+if ((length($lat_deg) >= 1) && (length($lat_min) == 0) && (length($lat_sec) >= 1)){
+	$lat_min = "0";
+	$verbatimLatitude = $lat_deg." ".$lat_min." ".$lat_sec;
+	warn "NULL value for lat minutes found, converting to a value of '0': $verbatimLatitude ($long_deg)\t($lat_min)\t($lat_sec)\n";
+}
+elsif ((length($lat_deg) >= 1) && (length($lat_min)>= 1) && (length($lat_sec) >= 1)){
+	$verbatimLatitude = $lat_deg." ".$lat_min." ".$lat_sec;
+}
+elsif ((length($lat_deg) >= 1) && (length($lat_min)>= 1) && (length($lat_sec) >= 1)){
+	$verbatimLatitude = $lat_deg." ".$lat_min;
+}
+else {
+		&log_change("COORDINATE: Latitude not mappable, null values present==>($long_deg)\t($lat_min)\t($lat_sec)\n");
+	$verbatimLatitude = "";
+}
 
-$verbatimLongitude = $long_deg." ".$long_min." ".$long_sec;
+if ((length($long_deg) >= 1) && (length($long_min) == 0) && (length($long_sec) >= 1)){
+	$long_min = "0";
+	$verbatimLongitude = $long_deg." ".$long_min." ".$long_sec;
+	warn "NULL value for lat minutes found, converting to a value of '0': $verbatimLongitude ($long_deg)\t($long_min)\t($long_sec)\n";
+}
+elsif ((length($long_deg) >= 1) && (length($long_min)>= 1) && (length($long_sec) >= 1)){
+	$verbatimLongitude = $long_deg." ".$long_min." ".$long_sec;
+}
+elsif ((length($long_deg) >= 1) && (length($long_min)>= 1) && (length($long_sec) >= 1)){
+	$verbatimLongitude = $long_deg." ".$long_min;
+}
+else {
+		&log_change("COORDINATE: Longitude not mappable, null values present==>($long_deg)\t($long_min)\t($long_sec)\n");
+	$verbatimLongitude = "";
+}
+
 
 
 foreach ($verbatimLatitude, $verbatimLongitude){
@@ -1419,7 +1515,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'CDA_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/CDA/CDA_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
