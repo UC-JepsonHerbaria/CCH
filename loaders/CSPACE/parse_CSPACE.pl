@@ -1,41 +1,20 @@
-use lib '/Users/richardmoe/4_DATA/CDL';
+use lib '/Users/davidbaxter/DATA/';
 use CCH;
 
-$extract_dir= "data_in/";
+my $extract_dir= "data_in/";
 
-
-#TRS from smasch.
-#Temporarily necessary because the extract is skipping verbatim_coordinates sometimes
-open(IN,"trs_not_null") || die;
-while(<IN>){
-chomp;
-($id,$trs)=split(/\t/);
-$smasch_trs{$id}=$trs;
-}
-close_IN;
-
-
-$hybrid_file="${extract_dir}/cch_hybridparents.txt";
-$other_vouchers="${extract_dir}/cch_othervouchers.txt";
-$anno_vouchers="${extract_dir}/cch_annovouchers.txt";
-$types="${extract_dir}/cch_typespecimens.txt";
-$determinations="${extract_dir}/cch_determinations.txt";
-$accessions="${extract_dir}/cch_accessions.txt";
-
-open(IN,"name_apostr_incl.txt") || die;
-while(<IN>){
-	chomp;
-($id,$name)=split(/\t/);
-$apos_name{$id}=$name;
-}
-close(IN);
-
-
+my $hybrid_file="${extract_dir}/cch_hybridparents.txt";
+my $other_vouchers="${extract_dir}/cch_othervouchers.txt";
+my $anno_vouchers="${extract_dir}/cch_annovouchers.txt";
+my $types="${extract_dir}/cch_typespecimens.txt";
+my $determinations="${extract_dir}/cch_determinations.txt";
+my $accessions="${extract_dir}/cch_accessions.txt";
+my $solr_file="4solr.ucjeps.public.csv";
 
 open(IN,"$hybrid_file") || die "couldnt open $hybrid_file $!";
 while(<IN>){
 	chomp;
-#catalognumber	pos	hybridparentname	hybridparentqualifier
+	#catalognumber	pos	hybridparentname	hybridparentqualifier
 	@fields=split(/\t/);
 	$fields[3]=~s/× //;
 	$next_parent=&strip_name($fields[3]);
@@ -50,8 +29,12 @@ while(<IN>){
 #print "$_: $hybrid{$_}\n";
 #}
 
-open(IN,"_excl") || die;
 #list of accession numbers to be skipped because they are photographs or are hort vouchers from several counties
+#the right way to do this would be to
+#1) have all these properly indicated as being photographs and hort vouchers in CCH
+#2) export the "Cultivated" and "Form" stuff to CCH extract (or exclude photographs at that point
+#3) export cultivated = yes to be used in CCH.
+open(IN,"_excl") || die;
 while(<IN>){
 	chomp;
 	$hort{$_}++;
@@ -88,6 +71,9 @@ foreach $id(keys(%TYPE)){
 	if($TYPE{$id}{'Holotype'}){
 		$store_voucher{$id}{TYPE}= "Holotype: $TYPE{$id}{'Holotype'}";
 	}
+		elsif($TYPE{$id}{'Isotype'}){
+		$store_voucher{$id}{TYPE}= "Isotype: $TYPE{$id}{'Isotype'}";
+	}
 	elsif($TYPE{$id}{'Lectotype'}){
 		$store_voucher{$id}{TYPE}= "Lectotype: $TYPE{$id}{'Lectotype'}";
 	}
@@ -100,11 +86,23 @@ foreach $id(keys(%TYPE)){
 	elsif($TYPE{$id}{'Isoneotype'}){
 		$store_voucher{$id}{TYPE}= "Isoneotype: $TYPE{$id}{'Isoneotype'}";
 	}
+	elsif($TYPE{$id}{'Epitype'}){
+		$store_voucher{$id}{TYPE}= "Epitype: $TYPE{$id}{'Epitype'}";
+	}
+	elsif($TYPE{$id}{'Isoepitype'}){
+		$store_voucher{$id}{TYPE}= "Isoepitype: $TYPE{$id}{'Isoepitype'}";
+	}
 	elsif($TYPE{$id}{'Type'}){
 		$store_voucher{$id}{TYPE}= "Type: $TYPE{$id}{'Type'}";
 	}
+	elsif($TYPE{$id}{'Non-type'}){
+		$store_voucher{$id}{TYPE}= "Not a Type: $TYPE{$id}{'Non-type'}";
+	}
 	elsif($TYPE{$id}{'Syntype'}){
 		$store_voucher{$id}{TYPE}= "Syntype: $TYPE{$id}{'Syntype'}";
+	}
+	elsif($TYPE{$id}{'Isosyntype'}){
+		$store_voucher{$id}{TYPE}= "Isosyntype: $TYPE{$id}{'Isosyntype'}";
 	}
 	elsif($TYPE{$id}{'Cotype'}){
 		$store_voucher{$id}{TYPE}= "Cotype: $TYPE{$id}{'Cotype'}";
@@ -139,6 +137,10 @@ while(<IN>){
 		$store_voucher{$id}{'type'}=$desc;
 		$VK{$type}++;
 	}
+	elsif($type=~/other number/){
+		$store_voucher{$id}{'Other_label_number'}=$desc;
+		$VK{$type}++;
+	}
 }
 close IN;
 foreach $voucher (sort(keys(%VK))){
@@ -155,6 +157,7 @@ while(<IN>){
 											#next unless $id eq "JEPS2760";
 	if($notetype eq "habitat"){
 		$habitat{$id}=$note;
+		$note="";
 	}
 	elsif($notetype eq "brief description"){
 		if($note=~/includes/){
@@ -241,7 +244,7 @@ while(<IN>){
 	}
 	else{
 		#unexpected note type?
-		print "UN NT $_\n";
+		print "unexpected note type\t$_\n";
 	}
 	$note{$id}=$note unless $note{$id};
 }
@@ -254,32 +257,32 @@ foreach $voucher (sort(keys(%VK))){
 %VK=();
 
 
+##########GET IMAGE LINKS FROM CSPACE PUBLIC PORTAL SOLR DUMP
 
-#foreach $id (keys(%store_voucher)){
-##print "$id\t";
-#foreach $voucher (
-	#"VTM",
-	#"Associated_species",
-	#"Biotic_interactions",
-	#"Color",
-	#"Data_in_packet",
-	#"Macromorphology",
-	#"Micromorphology",
-	#"Phenology",
-	#"Population_biology",
-	#"Reproductive_biology",
-	#"Horticulture",
-	#){
-	#if($store_voucher{$id}{$voucher}){
-	##print "$voucher -> $voucher{$id}{$voucher}\t";
-#}
-#}
-##print "\n";
-#}
+open(IN, "$solr_file") || die;
+while(<IN>){
+	$solr_blob="";
+	chomp;
+	@solr_fields=split(/\t/,$_,100);
 
+#The number of fields in the solr core changes over time as more fields are added
+#however the image_blob field has always been last, and csid should remain in position [1]
+$solr_csid = $solr_fields[1];
+$solr_blob = $solr_fields[$#solr_fields];
+next unless $solr_blob;
 
+if ($solr_blob =~ /(.*),(.*)/){
+	$solr_blob = $1
+}
+else {
+	($solr_blob = $solr_blob);
+}
 
-#die;
+$IMG{$solr_csid} = "https://ucjeps.cspace.berkeley.edu/ucjeps_project/imageserver/blobs/$solr_blob/derivatives/OriginalJpeg/content";
+}
+
+##########END IMAGE PROCESSING
+
 
 open(IN, "$determinations") || die;
 #annotation history
@@ -289,7 +292,7 @@ next if m/bulkloaded from norris/;
 next if m/D\. *H\. Norris/;
 	chomp;
 	($Accession_Number,
-$csid,
+	$csid,
 	$Determination_Position,
 	$Taxon_Name,
 	$Qualifier,
@@ -306,15 +309,41 @@ $csid,
 	}
 	$Notes=~s/nocl/Identification on label/;
 	#print "$Notes\n" if $Notes;
-	$det_string="$Taxon_Name; $ID_By; $ID_Date; $Notes";
+	$det_string="$Taxon_Name, $ID_By, $ID_Date, $Notes";
 	$ANNO{$Accession_Number}.="Annotation: $det_string\n";
 }
 
+##########Add Country and State (to allow exclusion of Mexico specimens with missing county data
+$solr_file="4solr.ucjeps.public.csv";
+open(IN,"$solr_file") || die "couldnt open $solr_file $!";
+while(<IN>){
+	chomp;
+        @fields=split(/\t/, $_,100);
+        $group=$fields[5];
+        $accession=$fields[2];
+        $country=$fields[16];
+        $state=$fields[15];
+        $county=$fields[14];
+        $locality=$fields[13];
+        
+#		next unless ($country =~ /Mexico/);
+#		next unless ((length($county) == 0) || 
+		next if ($group =~ /(Algae|Bryophytes)/);
+
+$COUNTRY{$accession}=$country;
+$COUNTY{$accession}=$county2;
+$STATE{$accession}=$state;
+}
+
+##########
 use Time::JulianDay;
-open(ERR, ">UCJEPS_ERROR.txt") || die;
+my $error_log = "log.txt";
+unlink $error_log or warn "making new error log file $error_log";
+
+open(DUP, ">UCJEPS_DUP.txt") || die;
 &load_noauth_name; #FROM CCH.pm
 #Load names of non-vascular genera to be excluded
-open(IN, "/Users/richardmoe/4_CDL_BUFFER/smasch/mosses") || die;
+open(IN, "/Users/davidbaxter/DATA/mosses") || die;
 while(<IN>){
 	chomp;
 	s/ .*//;
@@ -322,20 +351,19 @@ while(<IN>){
 }
 close(IN);
 
+
+
 open(OUT, ">CSPACE.out") || die;
-#supplement.out is list of records under numbers that suffered collision upon migration of Smasch to CSPACE
-open(IN,"supplement.out") || die;
-while(<IN>){
-	print OUT;
-}
+
 foreach ($accessions){
+
 	open(IN,$accessions) || die;
-open(CSID, ">AID_CSID.txt") || die;
-Record: while(<IN>){
+	open(CSID, ">AID_CSID.txt") || die;
+	Record: while(<IN>){
 		chomp;
 		@fields=split(/\t/, $_, 100);
 		($SpecimenNumber,
-$csid,
+		$csid,
 		$Determination,
 		$Collector,
 		$CollectorNumber,
@@ -347,7 +375,7 @@ $csid,
 		$Elevation,
 		$MinElevation,
 		$MaxElevation,
-$Elevation_unit,
+		$Elevation_unit,
 		$Habitat,
 		$DecLatitude,
 		$DecLongitude,
@@ -358,225 +386,219 @@ $Elevation_unit,
 		$CoordinateUncertaintyUnit,
 		) = @fields;
 		#print "$Elevation, $MinElevation, $MaxElevation, $Elevation_unit,\n";
-$Other_coll= $Combined_coll="";
-foreach($Collector){
-if(s/^(.*) with (.*)$/$1/){
-$Other_coll=$2;
-$Combined_coll="$1, $2";
-}
-elsif(s/^(.*) \[with (.*)\]?/$1/){
-$Other_coll=$2;
-$Combined_coll="$1, $2";
-}
-}
-#if($Determination=~/Campylium/){
-#print ">$Determination<\n";
-#}
-$Determination=~s/^ +//;
-if($Determination=~/Campylium/){
-print ">$Determination<\n";
-}
+
+	$Other_coll= $Combined_coll="";
+
+	foreach($Collector){
+		if(s/^(.*) with (.*)$/$1/){
+			$Other_coll=$2;
+			$Combined_coll="$1, $2";
+		}
+		elsif(s/^(.*) \[with (.*)\]?/$1/){
+			$Other_coll=$2;
+			$Combined_coll="$1, $2";
+		}
+	}
+	
+##################Exclude known problematic specimens from Baja California and other States in Mexico with unknown or blank county field
+# if ($SpecimenNumber =~/^(10615070|8720137|3132405|1939552|1939555|9372982|3157806|4182802|982039|982186|986591|10570608|10929212|3150102|3269779|904990|10571329|1940962|957093|4962440|5001448|10593214|10572572|10678657|3129513|903956|10932808|8735151|7718784|10796230|3148362|10678725|10743352|10500255|5501463|3132653|1912776|7247972|3145054|10550870|10546591|10531453|10755578|10794450|10794455|10969903|6165250|10870828|178669|4177487|10846560|1939654|10727925|1939566|3132654|6165302|3132655|5501705|5501448|5501418|5501427|6165662|5500734|6165216|1939553|6165097)$/){
+#	&skip("Mexico record with unknown or blank county field\t$id\t--\t$locality");
+#		++$skipped{one};
+#		next Record;
+#	}
+##################	
+
 ($possible_skip=$Determination)=~s/ .*//;
 if($exclude{$possible_skip}){
 $excl_NV{$possible_skip}++;
 next Record;
 }
-if($Determination=~/Campylium/){
-print "not skipped >$Determination<\n";
-}
-if ($dup{$SpecimenNumber}){
-print "DUP: $SpecimenNumber $Determination\n     $dup{$SpecimenNumber}"
-}
-$dup{$SpecimenNumber}.= "$SpecimenNumber  $Determination\n";
-		$loc_coords_TRS=~s/TRS: //;
 
-###########################REMOVE AFTER EXTRACT IS WORKING with COORDS ####################
-unless($loc_coords_TRS){
-if($smasch_trs{$SpecimenNumber}){
-		$loc_coords_TRS=$smasch_trs{$SpecimenNumber};
-#warn "TRS added $loc_coords_TRS\n";
-}
-}
-		if($hort{$SpecimenNumber}){
-			#&log("Skipped $SpecimenNumber hort or bad magic\n");
-			next;
-		}
-											#next unless $SpecimenNumber eq "JEPS2760";
-		if($Determination=~/^\s*$/){
-			#&log("Skipped $SpecimenNumber No name\n");
-			next;
-		}
-		if($Determination=~/^No name$/i){
-			#&log("Skipped $SpecimenNumber No name\n");
-			next;
-		}
+	
+#Remove duplicates
+	if($seen{$SpecimenNumber}++){
+		++$skipped{one};
+		warn "Duplicate number: $fields[0]<\n";
+		print DUP<<EOP;
+Duplicate accession number, skipped: $fields[0]
+EOP
+		next;
+	}
+
+###########REMOVE FIELD STATION IDs for now
+	if ($SpecimenNumber =~/(BFRS|HREC|SCFS)/){
+		next;
+	}
+##################
+		#####exclude cultivated stuff from _excl list
+#		if($hort{$SpecimenNumber}){
+			#&log_skip("Skipped $SpecimenNumber hort or bad magic"); disabled now
+			#next;
+#		}
+#####finish process of cultivated specimens
+	if ($cultivated =~ m/TRUE/){
+		$cult eq "P";
+		&log("Cultivated specimen, needs to be purple flagged\t--\t$scientificName\n");
+	}
+	else{
+		$cult =	&flag_cult($cult);
+	}
+
 		$CoordinateUncertainty="" if $CoordinateUncertainty==0;
+
+
 		$name=&strip_name($Determination);
 
 		if($name=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
-                 	$hybrid_annotation=$name;
-                 	warn "$1 from $name\n";
-                 	&log("$1 from $name");
-                 	$name=$1;
-        	}
-        	else{
+        	$hybrid_annotation=$name;
+            warn "$1 from $name\n";
+            &log_change("$1 from $name");
+            $name=$1;
+        }
+        else{
            	$hybrid_annotation="";
-        	}
+        }
 
-		($genus=$name)=~s/\s.*//;
+$name= &validate_scientific_name($name, $SpecimenNumber);
+$name=~s/unknown//;
+$name=~s/ *$//;
+#added to try to remove the word "unknown" for some new records
 
-		if($exclude{$genus}){
-        		&log("Excluded, not a vascular plant: $name");
-        		++$skipped{one};
-        		next Record;
-		}
 
-		%infra=( 'var.','subsp.','subsp.','var.');
 
-#print "N>$name<\n";
-		$test_name=&strip_name($name);
-#print "TN>$test_name<\n";
+#############ELEVATIONS##########
 
-		if($TID{$test_name}){
-        		$name=$test_name;
+$MinElevation=~s/^ *$//;
+$MaxElevation=~s/^ *$//;
+$Elevation=~s/^ *$//;
+if($MinElevation && $MaxElevation){
+	if($Elevation_unit){
+		$Elevation="${MinElevation}-${MaxElevation} $Elevation_unit";
+		if(${MinElevation} == ${MaxElevation}){
+			$Elevation="${MinElevation} $Elevation_unit";
+			&log_change("Superfluous elevation  $_");
 		}
-		elsif($alter{$test_name}){
-        		&log("$SpecimenNumber $Determination altered to $alter{$test_name}");
-                	$name=$alter{$test_name};
-		}
-		elsif($test_name=~s/(var\.|subsp\.)/$infra{$1}/){
-        		if($TID{$test_name}){
-                		&log("$SpecimenNumber $Determination not in SMASCH  altered to $test_name");
-                		$name=$test_name;
-        		}
-        		elsif($alter{$test_name}){
-                		&log("$SpecimenNumber $name not in smasch  altered to $alter{$test_name}");
-                		$name=$alter{$test_name};
-        		}
-        		elsif($apos_name{$SpecimenNumber}){
-                		&log("$SpecimenNumber $name has apostrophe problem  kluged to $apos_name{$SpecimenNumber}");
-                		$name=$apos_name{$SpecimenNumber};
-        		}
-        		else{
-                		&log ("$SpecimenNumber $Determination is not yet in the master list: $name skipped");
-                		++$skipped{one};
-                		next Record;
-        		}
-		}
-		else{
-        		if($apos_name{$SpecimenNumber}){
-                		&log("$SpecimenNumber $name has apostrophe problem  kluged to $apos_name{$SpecimenNumber}");
-                		$name=$apos_name{$SpecimenNumber};
-        		}
-			else{
-        			&log ("$SpecimenNumber $Determination is not yet in the master list: $name skipped");
-        			#print "$Determination is not yet in the master list: $name skipped";
-        			++$skipped{one};
-        			next Record;
-			}
-		}
-
-		$MinElevation=~s/^ *$//;
- 		$MaxElevation=~s/^ *$//;
- 		$Elevation=~s/^ *$//;
-		if($MinElevation && $MaxElevation){
-			if($Elevation_unit){
-				$Elevation="${MinElevation}-${MaxElevation} $Elevation_unit";
-				if(${MinElevation} == ${MaxElevation}){
-					$Elevation="${MinElevation} $Elevation_unit";
-                               		&log("Superfluous elevation  $_\n");
-				}
-			}
-			else{
-				#warn "$Elevation no units\n";
-				$Elevation="";
-                               	&log("Elevation lacking units $_\n");
-			}
-		}
-		elsif($MinElevation || $MaxElevation){
-			$Elevation= ($MinElevation || $MaxElevation);
-			if($Elevation_unit){
-				$Elevation.=" $Elevation_unit";
-			}
-			else{
-				#warn "$Elevation no units\n";
-				$Elevation="";
-                               	&log("Elevation lacking units $_\n");
-			}
-		}
-		elsif($Elevation){
-			unless($Elevation=~/[FfMm]/){
-				if($Elevation_unit){
-					$Elevation .= " $Elevation_unit";
-				}
-				else{
-					if($Elevation=~/^(0|zero|sea level)/){
-						$Elevation= "0 ft";
-					}
-					else{
-						$Elevation="";
-                               			&log("Elevation lacking units $_\n");
-					}
-				}
-			}
-		}
-foreach($Elevation){
-
-#print "$_\t";
-s/ elev.*//;
-s/ <([^>]+)>/ $1/;
-s/^\+//;
-s/^\~/ca. /;
-s/zero/0/;
-s/,//g;
-s/(Ft|ft|FT|feet|Feet)/ ft/;
-s/(m|M|meters?|Meters?)/ m/;
-s/\.$//;
-s/  +/ /g;
-#print "$_\n";
+	}
+	else{
+		#warn "$Elevation no units\n";
+		$Elevation="";
+		&log_change("Elevation lacking units $_");
+	}
 }
-#next;
-		if($CollectorNumber){
-			($prefix, $CNUM,$suffix)=&parse_CNUM($CollectorNumber);
-			#print "1 $prefix\t2 $CNUM\t3 $suffix\n";
+elsif($MinElevation || $MaxElevation){
+	$Elevation= ($MinElevation || $MaxElevation);
+	if($Elevation_unit){
+		$Elevation.=" $Elevation_unit";
+	}
+	else{
+		#warn "$Elevation no units\n";
+		$Elevation="";
+		&log_change("Elevation lacking units $_");
+	}
+}
+elsif($Elevation){
+	unless($Elevation=~/[FfMm]/){
+		if($Elevation_unit){
+			$Elevation .= " $Elevation_unit";
 		}
 		else{
-			$prefix= $CNUM=$suffix="";
-		}
- 		foreach($County){
-			s/^$/Unknown/;
-                	unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)$/){
-                        	$v_county= &verify_co($_);
-                        	if($v_county=~/SKIP/){
-                                	&log("SKIPPED NON-CA county? $_\n");
-                                	next Record;
-                        	}   
-	
-                        	unless($v_county eq $_){
-                                	&log("$fields[0] $_ -> $v_county\n");
-                                	$_=$v_county;
-                        	}   
-                	}   
-        	}   
-					#$JD=julian_day($year, $monthno, $day_month);
-		if( $EarlyCollectionDate=~m/^(\d+)-(\d+)-(\d+)/){
-			$EJD=julian_day($1, $2, $3);
-			if( $LateCollectionDate=~m/^(\d+)-(\d+)-(\d+)/){
-				$LJD=julian_day($1, $2, $3);
+			if($Elevation=~/^(0|zero|sea level)/){
+				$Elevation= "0 ft";
 			}
 			else{
-				$LJD=$EJD;
+				$Elevation="";
+				&log_change("Elevation lacking units $_");
 			}
 		}
-		else{
-			$EJD=$LJD="";
-		}
+	}
+}
+foreach($Elevation){
+	#print "$_\t";
+	s/ elev.*//;
+	s/ <([^>]+)>/ $1/;
+	s/^\+//;
+	s/^\~/ca. /;
+	s/zero/0/;
+	s/,//g;
+	s/(Ft|ft|FT|feet|Feet)/ ft/;
+	s/(m|M|meters?|Meters?)/ m/;
+	s/\.$//;
+	s/  +/ /g;
+}
+
+
+########COLLECTOR NUMBER
+if($CollectorNumber){
+	($prefix, $CNUM,$suffix)=&parse_CNUM($CollectorNumber);
+}
+else{
+	$prefix= $CNUM=$suffix="";
+}
+
+
+###########COUNTIES
+foreach($County){
+
+
+	s/Unknown/unknown/;
+	
+	if((length($County) == 0) && ($COUNTRY{$SpecimenNumber} =~m/Mexico/)){
+		&log_change("Mexico record with unknown or blank county field\t$id\t--\t$locality");
+			++$skipped{one};
+			next Record;
+	}
+	if(($County=~m/unknown/) && ($COUNTRY{$SpecimenNumber} =~m/Mexico/)){
+		&log_change("Mexico record with unknown or blank county field\t$id\t--\t$Locality");
+			++$skipped{one};
+			next Record;
+	}
+	
+	s/^$/unknown/;
+	unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|Ensenada|Mexicali|Tecate|Tijuana|Rosarito, Playas de|unknown)$/){
+		$v_county= &verify_co($_);
+		if($v_county=~/SKIP/){
+			&log_change("SKIPPED NON-CA county? $_\t$SpecimenNumber\n");
+			next Record;
+		}   
+	   	unless($v_county eq $_){
+			&log_change("$fields[0] $_ -> $v_county\n");
+			$_=$v_county;
+		}   
+	}   
+	
+}
+
+ ######################Unknown County List
+
+	if($county=~m/(unknown|Unknown)/){	#list each $county with unknown value
+		&log_change("COUNTY unknown -> $stateProvince\t--\t$County\t--\t$locality\t$id");		
+	}
+
+  
+					
+					
+#########COLLECTION DATES
+if( $EarlyCollectionDate=~m/^(\d+)-(\d+)-(\d+)/){
+	$EJD=julian_day($1, $2, $3);
+	if( $LateCollectionDate=~m/^(\d+)-(\d+)-(\d+)/){
+		$LJD=julian_day($1, $2, $3);
+	}
+	else{
+		$LJD=$EJD;
+	}
+}
+else{
+	$EJD=$LJD="";
+}
 ################################################## KLUGE TO COMPENSATE FOR A CSPACE  SINGLE DAY PROBLEM #####################
 if($LJD-$EJD==1 && $CollectionDate !~/-/){
 #print "$SpecimenNumber\t$CollectionDate\t$EarlyCollectionDate\t$LateCollectionDate\n";
 $EJD+=1;
 }
 #############################################################################################################################
+
+
+
 #get rid of carriage return in Locality
 		$Locality=~s/\\n/ /g;
 		if($hybrid{$SpecimenNumber}){
@@ -589,7 +611,7 @@ $EJD+=1;
 		if($DecLongitude=~/^1\d\d/){
 			print "$SpecimenNumber $DecLongitude\n";
 			$DecLongitude=~s/^/-/;
-			&log("$SpecimenNumber: minus added to longitude");
+			&log_change("$SpecimenNumber: minus added to longitude");
 		}
 	
 		$note{$SpecimenNumber}=~s/^[ .]*$//;
@@ -606,8 +628,8 @@ LJD: $LJD
 CNUM: $CNUM
 CNUM_prefix: $prefix
 CNUM_suffix: $suffix
-Country: USA
-State: CA
+Country: $COUNTRY{$SpecimenNumber}
+State: $STATE{$SpecimenNumber}
 County: $County
 Location: $Locality
 T/R/Section: $loc_coords_TRS
@@ -621,9 +643,12 @@ Datum: $Datum
 Max_error_distance: $CoordinateUncertainty
 Max_error_units: $CoordinateUncertaintyUnit
 Hybrid_annotation: $hybrid_anno
+Cultivated: $cult
 Habitat: $habitat{$SpecimenNumber}
 Notes: $note{$SpecimenNumber}
+Image: $IMG{$csid}
 EOP
+++$included;
 
 		foreach $voucher (
 			"VTM",
@@ -636,6 +661,7 @@ EOP
 			"Phenology",
 			"Population_biology",
 			"Reproductive_biology",
+			"Other_label_number",
 			"Horticulture"
 			){
 #print "$SpecimenNumber $voucher--------->";
@@ -645,7 +671,9 @@ EOP
 			#print "$voucher: $store_voucher{$SpecimenNumber}{$voucher}\n";
 				}
 			else{
-				print OUT "$voucher: Data on label not transcribed.\n";
+				###These are voucher information like "includes macromorphology" from the SMASCH days, when existence of voucher information was indicated but not transcribed
+				###We don't publish these, because it looks weird
+				#print OUT "$voucher: Data on label not transcribed.\n";
 				#print "$voucher: Data on label not transcribed.\n";
 			}
 		}
@@ -662,42 +690,26 @@ EOP
 
 	}
 }
+
+}
+
+
+print <<EOP;
+INCL: $included
+EXCL: $skipped{one}
+EOP
+
 print "Excluded as non vascular\n", join("\n",sort(keys(%excl_NV))), "\n";
 
 
+close(IN);
+close(OUT);
+close(DUP);
 
-
-
-sub parse_CNUM{
-			local($_)=shift;
-			if(m/^\s+$/){
-				return("","","");
-	}
- 	s/ *$//;
-        s/^ *//;
-        if(m/^([^0-9]*)([0-9]+)([^0-9]*)$/){
-return("$1",$2,$3);
-        }
-        elsif(m/(.*[12]\d\d\d[^0-9])(\d+)([^0-9]*)/){
-return("$1",$2,$3);
-        }
-        elsif(m/(.*[-\/ ])(\d+)([^0-9].*)/){
-return("$1",$2,$3);
-        }
-        elsif(m/([A-Z]+)(\d+)$/){
-return("$1",$2,"");
-        }
-        elsif(m/([A-Z]+)(\d+)([^0-9].*)/){
-return("$1",$2,$3);
-        }
-else{
-	return ("$_","","");
+#print out the dupes at the end so you won't miss them
+open(DATA, "<UCJEPS_DUP.txt" ) or die "Can't open $file : $!";
+while( <DATA> ) {
+	print "$_";
 }
-}
+close DATA;
 
-sub log {
-	print ERR "@_\n";
-}
-
-__END__
-JEPS59501	Mimulus moschatus Douglas ex Lindl.	Ezra Brainerd and Viola B. Baird	256	Jul 17 1915	1915-07-17 04:00:00		1 mi above Bear Rock (cliffs e of river); Sierra Nevada Mts., Truckee River	Placer	6700 ft									0	
