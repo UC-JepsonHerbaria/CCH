@@ -5,17 +5,25 @@ chomp;
 s/\t.*//;
 $coll_comm{$_}++;
 }
-open(IN,"../CDL/tnoan.out") || die;
+open(IN,"/Users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
 while(<IN>){
 chomp;
 s/^.*\t//;
 $taxon{$_}++;
 }
-#open(IN,"../riv_non_vasc") || die;
-#while(<IN>){
-	#chomp;
-	#$exclude{$_}++;
-#}
+open(IN,"Users/rlmoe/data/CDL/riv_non_vasc") || die;
+while(<IN>){
+	chomp;
+	if(m/\cM/){
+	die;
+	}
+	$exclude{$_}++;
+}
+
+
+
+
+
 open(IN,"../CDL/alter_names") || die;
 while(<IN>){
 	chomp;
@@ -27,19 +35,21 @@ open(OUT,">hsc_problems") || die;
 $date=localtime();
 print OUT <<EOP;
 $date
-Report from running parse_riverside.pl
-Name alterations from file riv_alter_names
+Report from running parse_hsc.pl
+Name alterations from file alter_names
 Name comparisons made against SMASCH taxon names (which are not necessarily correct)
 Genera to be excluded from riv_non_vasc
 
 EOP
 
-open(IN,"HSC_jul_18.txt") || die;
+#open(IN,"HSC_june_2010.csv") || die;
+open(IN,"HSC_all.csv") || die;
 #$/="\cM";
 #open(IN,"probs") || die;
 Record: while(<IN>){
 $assoc=$combined_collectors=$Collector_full_name= $elevation= $name=$lat=$long="";
 #next unless m/Annette Winn/;
+   s/’/'/g;
 s/\cK+$//;
 s/\cK//g;
 s/\cM/ /g;
@@ -83,26 +93,27 @@ EOP
 		$_=$fields[$i];
 		s/ *$//;
 		s/^ *//;
-		if(length($_)>254){
-			$fields[$i]=substr($_, 0, 249) . " ...";
-			#print "$fields[$i]\n";
-		}
-		else{
+		#if(length($_)>254){
+			#$fields[$i]=substr($_, 0, 249) . " ...";
+			##print "$fields[$i]\n";
+		#}
+		#else{
 			$fields[$i]=$_;
-		}
+		#}
 	}
 
 	################collector numbers
 	$fields[3]=~s/ *$//;
 	$fields[3]=~s/^ *//;
+	$fields[3]=~s/,//;
 	if($fields[3]=~s/-$//){
 		$fields[4]="-$fields[4]";
 	}
 	if($fields[3]=~s/^-//){
 		$fields[2].="-";
 	}
-	if($fields[3]=~s/^([0-9]+)(-[0-9]+)$/$2/){
-		$fields[2].=$1;
+	if($fields[3]=~s/^([0-9]+)-([0-9]+)$/$2/){
+		$fields[2].="$1-";
 	}
 	if($fields[3]=~s/^([0-9]+)(\.[0-9]+)$/$1/){
 		$fields[4]=$2 . $fields[4];
@@ -125,10 +136,11 @@ EOP
 		$fields[4]=$1 . $fields[4];
 	}
 		foreach($fields[31]){
-unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
+		s/^ *$/unknown/;
+unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)$/i){
 		print OUT<<EOP;
 
-		Unknown California county $fields[0]: $_
+$fields[0]		Unknown California county: $_
 EOP
 	}
 			s/\[//;
@@ -163,9 +175,15 @@ EOP
 			s/MONO/Mono/;
 			s/NAPA/Napa/;
 			s/bernardino/Bernardino/;
+			s/Humboldt and Del Norte/Humboldt/;
+			s/Kern and Inyo/Kern/;
+s/Riverside and San Bernardino/Riverside/;
+s/Siskiyou and Trinity/Trinity/;
+s/Trinity and Siskiyou/Siskiyou/;
+
 unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
 		print OUT<<EOP;
-		Unknown California county not reconciled $fields[0]: $_ skipped
+$fields[0]		Unknown California county not reconciled: $_ skipped
 EOP
 		next Record;
 	}
@@ -266,6 +284,7 @@ $name=~s/ *$//;
 $name=~s/  +/ /g;
 $name=~s/ssp\./subsp./;
 $name=~s/ [Xx] / � /;
+$name=~s/ *$//;
 if($name=~/([A-Z][a-z-]+ [a-z-]+) � /){
                  $hybrid_annotation=$name;
                  warn "$1 from $name\n";
@@ -360,6 +379,7 @@ $name{$name}++;
 		s/^J\. ?C\. $/J. C./;
 		s/John A. Churchill M. ?D. $/John A. Churchill M. D./;
 		s/L\. *F\. *La[pP]r./L. F. LaPre/;
+		s/L\. *F\. *La[pP]ré/L. F. LaPre/;
 		s/B\. ?G\. ?Pitzer/B. Pitzer/;
 		s/J. Andr�/J. Andre/;
 		s/Jim Andr�/Jim Andre/;
@@ -367,6 +387,7 @@ $name{$name}++;
 		$_= $alter_coll{$_} if $alter_coll{$_};
 			++$collector{$_};
 		if($Associated_collectors){
+$Associated_collectors=~s/^, *//;
 $Associated_collectors=~s/D. *Charlton, *B. *Pitzer, *J. *Kniffen, *R. *Kniffen, *W. *W. *Wright, *Howie *Weir, *D. *E. *Bramlet/D. Charlton, et al./;
 $Associated_collectors=~s/Mark *Elvin, *Cathleen *Weigand, *M. *S. *Enright, *Michelle *Balk, *Nathan *Gale, *Anuja *Parikh, *K. *Rindlaub/Mark Elvin, et al./;
 $Associated_collectors=~s/P. *Mackay/P. MacKay/;
@@ -393,7 +414,7 @@ $Associated_collectors=~s/.*Boyd.*Kashiwase.*LaDoux.*Provance.*Sanders.*White.*B
 		$Associated_collectors=~s/([^,]) et al\./$1, et al./;
 		$Associated_collectors=~s/ & others/, et al./;
 		$Associated_collectors=~s/, others/, et al./;
-		$Associated_collectors=~s/L\. *F\. *La[pP]r./L. F. LaPre/;
+		$Associated_collectors=~s/L\. *F\. *La[pP]ré/L. F. LaPre/;
 		$Associated_collectors=~s/B\. ?G\. ?Pitzer/B. Pitzer/;
 		$Associated_collectors=~s/ +,/, /g;
 		$Associated_collectors=~s/  */ /g;
@@ -427,7 +448,14 @@ $Associated_collectors=~s/.*Boyd.*Kashiwase.*LaDoux.*Provance.*Sanders.*White.*B
 
 if($low_range_m){
 	if($top_range_m){
+		if($top_range_m > 4300){
+			print OUT "Elevation set to null: $Label_ID_no: $top_range_m";
+			$elevation="";
+		}
+		else{
+
 		$elevation="$low_range_m - $top_range_m m";
+		}
 	}
 	else{
 		$elevation="$low_range_m m";
@@ -436,7 +464,13 @@ if($low_range_m){
 elsif($low_range_f){
 	#these incorrectly labelled "m" first loading!
 	if($top_range_f){
+		if($top_range_f > 15000){
+			print OUT "Elevation set to null: $Label_ID_no: $top_range_f";
+			$elevation="";
+		}
+		else{
 		$elevation="$low_range_f - $top_range_f ft";
+		}
 	}
 	else{
 		$elevation="$low_range_f ft";
@@ -585,9 +619,9 @@ else{
 }
 print TABFILE <<EOP;
 Date: $month $day $year
-CNUM_PREFIX: ${Coll_no_prefix}
+CNUM_prefix: ${Coll_no_prefix}
 CNUM: ${Coll_no}
-CNUM_SUFFIX: ${Coll_no_suffix}
+CNUM_suffix: ${Coll_no_suffix}
 Name: $name
 Accession_id: $Label_ID_no
 Family_Abbreviation: $family
@@ -600,10 +634,10 @@ T/R/Section: $Unified_TRS
 USGS_Quadrangle: $topo_quad
 Elevation: $elevation
 Collector: $Collector_full_name
-Other_coll: $other_coll
-Combined_coll: $combined_collectors
+Other_coll: $Associated_collectors
+Combined_collector: $combined_collectors
 Habitat: $ecol_notes
-Associated_with: $assoc
+Associated_species: $assoc
 Notes: $Plant_description
 Latitude: $lat
 Longitude: $long
@@ -803,3 +837,9 @@ UCR47728
 
 Longitude 117 02 28W
 UCR95717
+"HSC-81373"	"L.F. LaPré"		"sn"		1985	"May"	28		"PLG"	"Eriogonum"		"kennedyi"		"var."	"austromontanum"										"Synonym of most recent determination"				"US"	"CA"	"San Bernardino"			"E end of Bear Valley around Baldwin Lake, north shore in sec 31, near BM 6736"				"N"	0				"W"	0														2073		6800						
+"HSC-81374"	"L.F. LaPré"		"sn"		1985	"May"	28		"CRY"	"Eremogone"		"ursina"													"Synonym of most recent determination"				"US"	"CA"	"San Bernardino"			"E end of Bear Valley around Baldwin Lake, north shore in sec 31, near BM 6736"				"N"	0				"W"	0														2073		6800						
+"HSC-84168"	"B. Pitzer"		"421"		1987	"Mar"	2	"L.F. LaPré"	"AST"	"Encelia"		"farinosa"													"A.C. Sanders"	1987	"Mar"		"US"	"CA"	"Riverside"		"Romoland 7.5"	"Bundy Canyon; ca. 2 mi. SE of Lake Elsinore and 0.5 mi. N of Bundy Canyon Rd. off Raciti Rd."				"N"	0				"W"	0	"6S"	"4W"	"24"	"SE 1/4"										701		2300		"Coastal sage scrub  "				
+"HSC-86918"	"L.F. LaPré"		"sn"		1988	"Mar"	3		"AST"	"Ericameria"		"linearifolia"													"Synonym of most recent determination"				"US"	"CA"	"San Bernardino"	"Santa Ana River Valley"	"Redlands 7.5’ Q."	"Santa Ana River wash, N of Redlands & E  of Orange St. Tri-City Aggregate property"	34	5	37	"N"	34.09	117	10	10	"W"	-117.17	"1S"	"3W"	"11"	"SW/4"	"1S"	"3W"	"14"	"N/2"						427		1400		"Wash & bench with alluvial fan sage scrub dominated by Lepidospartum, Salvia apiana, Senecion douglasii, etc. on sandy & gravelly soil.  "				
+"HSC-87025"	"L.F. LaPré"		"sn"		1988	"Jun"	3		"AST"	"Deinandra"		"kelloggii"													"Synonym of most recent determination"				"US"	"CA"	"Riverside"	"Peninsular Range"	"Alberhill 7.5’ Q."	"Indian Trails project site, Indian Truck Trail exit on W side of I-15 fwy in Temescal Cyn, ca. 1/4 mi from the freeway"	33	45		"N"	33.75	117	27		"W"	-117.45																		"Dirt rd.  "				
+HSC-84169	B.G. Pitzer		432		1987	Mar	2	L.F. LaPr	POA	Muhlenbergia		microsperma																	US	CA	Riverside		Romoland 7.5Õ Q.	"Bundy Canyon, 2 mi SE of Lake Elsinore, 0.5 mi N of Bundy Canyon Road"	33	37		N	33.61666667	117	15		W	-117.25	 6S	4W	24	 SE/4 										703		2300		"Coastal sage scrub on fairly steep slopes, w/ Salvia mellifera, Adenostoma fasciculatum, Artemisia californica & Ceanothus crassifolius."			Wild: native/naturalized	Introduced
