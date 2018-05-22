@@ -26,8 +26,8 @@ my $tempCounty;
 
 
 
-my $xml_file = 'data_files/CHSC_2017-11-16_all_CA_for_CCH.xml';
-my $tab_file= 'CHSC_xml.txt';
+my $xml_file = '/JEPS-master/CCH/Loaders/CHSC/data_files/CHSC_2017-11-16_all_CA_for_CCH.xml';
+my $tab_file= '/JEPS-master/CCH/Loaders/CHSC/CHSC_xml.txt';
 
 
 #log.txt is used by logging subroutines in CCH.pm
@@ -142,7 +142,7 @@ my $informationWithheld;
 
 
 
-open(OUT, ">CHSC_xml.txt") || die; 
+open(OUT, ">>/JEPS-master/CCH/Loaders/CHSC/CHSC_xml.txt") || die; 
 
 #Stage 1, XML parsing
 
@@ -1771,7 +1771,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'CHSC_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/CHSC/CHSC_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
