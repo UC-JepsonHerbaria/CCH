@@ -773,7 +773,7 @@ elsif($CDL_fields[1]=~/^(W\.|Willis) ?(L\.|Linn) ?(J\.|Jepson)/){
 	tie(%field_book, "BerkeleyDB::Hash", -Filename=>"/usr/local/web/ucjeps_data/ucjeps_data/jepson_collno", -Flags=>DB_RDONLY)|| die "$!";
 	if(length($CDL_fields[3])>0){
 		if($field_book{$CDL_fields[3]}){
-			$jeps_collno=qq{<a href="/cgi-bin/display_fb.pl?page_no=$field_book{$CDL_fields[3]}">$CDL_fields[3] <img src="/ob.gif"></a>};
+			$jeps_collno=qq{<a href="http://ucjeps.berkeley.edu/cgi-bin/display_fb.pl?page_no=$field_book{$CDL_fields[3]}">$CDL_fields[3] <img src="/ob.gif"></a>};
 			#$jeps_collno=qq{<a href="/images/fieldbooks/$field_book{$CDL_fields[3]}">$CDL_fields[3]</a>};
 		}
 	}
@@ -879,7 +879,7 @@ $CDL_fields[1]=~s/\xc3\xa9/&eacute;/g;
 	}
 
 
-$disp_collno=$collno_string || $jeps_collno || $CDL_fields[3];
+$disp_collno=$jeps_collno || $collno_string || $CDL_fields[3];
 $CDL_fields[10]=~s/on lable/on label/;
 $CDL_fields[10]=~ s/Ë&ouml;/&deg;/g;
 $CDL_fields[10]=~ s/â€œ/"/g;

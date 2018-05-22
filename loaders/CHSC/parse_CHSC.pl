@@ -1,4 +1,6 @@
 
+#perl -lne '$a++ if /Accession_id: CHSC\d+/; END {print $a+0}' CHSC_out.txt
+
 use Geo::Coordinates::UTM;
 use strict;
 #use warnings;
