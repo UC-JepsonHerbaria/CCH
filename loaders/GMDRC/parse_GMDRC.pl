@@ -1,600 +1,556 @@
-use lib '/Users/rlmoe/data/CDL';
-use CCH;
+use Time::JulianDay;
+use Time::ParseDate;
+use Geo::Coordinates::UTM;
+use lib '/Users/davidbaxter/DATA';
+use CCH; #loads alter_names hash %alter, non-vascular hash %exclude, and county max elevation hash %max_elev
 $today=`date "+%Y-%m-%d"`;
 chomp($today);
 ($today_y,$today_m,$today_d)=split(/-/,$today);
-&load_noauth_name;
-##meters to feet conversion
-$meters_to_feet="3.2808";
+$today_JD=julian_day($today_y, $today_m, $today_d);
+
+&load_noauth_name; #loads taxon id master list (smasch_taxon_ids.txt) into an array
+my %month_hash = &month_hash;
 
 
-
-
-open(TABFILE,">parse_granite.out") || die;
-open(ERR,">granite_problems") || die;
+open(OUT,">GMDRC.out") || die;
+open(ERR,">granite_log") || die;
 $date=localtime();
-print OUT <<EOP;
+print ERR <<EOP;
 $date
 Report from running parse_granite.pl
-Name alterations from file ~/data/CDL/alter_names
-Name comparisons made against ~/taxon_ids/smasch_taxon_ids (SMASCH taxon names, which are not necessarily correct)
-Genera to be excluded from riv_non_vasc
+Name alterations from file ~/DATA/alter_names
+Name comparisons made against ~/DATA/smasch_taxon_ids.txt (SMASCH taxon names, which are not necessarily correct)
+Genera to be excluded from "mosses"
 
 EOP
-open(IN,"../../RSA/oldrsa/RSA/rsa_alter_coll") || die;
-while(<IN>){
-        chomp;
-        s/\cJ//;
-        s/\cM//;
-        next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-        $alter_coll{$rsa}=$smasch;
-}
 
+#####process the file
+#GMDRC arrives as an xlsx file, with some in-cell line breaks
+#To handle this, I add a column at the end called "DUMMYCOLUMN" and populate that all the way down
+#Save as txt, open in vi
+#remove ALL MS line breaks --> :%s/[Ctrl+V][Ctrl+M]//g
+#then replace the dummycolumn with a line break -> :%s/\tDUMMYCOLUMN/[Ctrl+V][Ctrl+M]/g;
+#if you don't do this, either CCH::checkfile will yell at you or you'll only get one line
 
-$data_file="";
-open(IN,"$data_file" ) || die;
+#also, because MS Excel likes to export double quotes around cells with commas in them:
+#:%s/\t"/\t/g;
+#:%s/"\t/\t/g;
+#:%s/^"//;
+#:%s/"$//;
+
+#	my $file = 'CCHexport24NOV2014.txt';
+#	my $file = 'CCHexport25JAN2015.txt';
+	my $file = 'CCHexport03Feb2015.txt';
+
+open(IN,"$file" ) || die;
 
 Record: while(<IN>){
-	$annotation=$assoc=$combined_collectors=$Collector_full_name= $elevation= $name=$lat=$long=$decimal_lat=$decimal_long="";
-	$zone=$easting=$northing="";
-	s/\cK+$//;
-	s/\cK//g;
-	s/\cM/ /g;
-	s/\x91/'/g;
-	s/’/'/g;
-	s/Õ/'/g;
-	s/Ò/"/g;
-	s/Ó/"/g;
-	$line_store=$_;
-	++$count;
 	chomp;
-	@fields=split(/\t/);
-	unless($fields[0]=~/^GMDRC/){
-		++$skipped{one};
-		print OUT<<EOP;
+#	CCH::&check_file;
+	@fields=split(/\t/,$_,100);
+		unless($#fields==65){
+			print ERR "$#fields bad field number $_\n";
+		}
 
-No GM accession number, skipped: $_
+foreach (@fields){	
+	s/\0//g;
+	s/\x00//g; #remove null bytes
+}
+	s/Ž/&eacute/g;
+	s/\x8e/&eacute;/;
+	s/\xa1/&deg;/; #think about how you will parse, like, will this degree sign get in the way of calculations? Do you display it?
+	s/\xc9/.../;
+	s/\xd2/"/;
+	s/\xd3/"/;
+	s/\xd5/'/;
+	#because MS Excel likes to export double quotes around cells with commas in them:
+	s/\t"/\t/g;
+	s/"\t/\t/g;
+	s/^"//;
+	s/"$//;
+
+
+($CCH, #used on their end for export purposes. No use here.
+$id, #GMDRC####
+$Family,
+$Genus,
+$idQualifier,
+$Species,
+$SpeciesAuthor,
+$infra_type,
+$infra_epithet,
+$infra_author,
+$hybrid_orig_det,
+$genus_hybrid_OD,
+$species_hybrid_OD,
+$species_hybrid_author_OD,
+$identified_by,
+$ID_month,
+$ID_day,
+$ID_year,
+$state,
+$coll_num,
+$coll_first_name,
+$coll_last_name,
+$county,
+$topo_scale,
+$coll_month,
+$coll_day,
+$coll_year,
+$topo_quad,
+$other_coll,
+$T,
+$R,
+$S,
+$Quarter,
+$T2,
+$R2,
+$S2,
+$Quarter2,
+$desert_region, #probably won't use
+$datum,
+$physiographic_locality, #not needed, as it's included in $locality
+$lat_deg,
+$lat_min, #sometimes is in degree decimal minutes
+$lat_sec,
+$long_deg, #needs to be made negative
+$long_min,
+$long_sec,
+$locality,
+$UTMZ,
+$UTMN,
+$UTME,
+$habitat,
+$elev,
+$elev_range, #Assumed it meant "max elevation if a range", but usually there is a value in $elev or $elev_range but not both
+$elev_units, #almost always feet, so when blank assume feet
+$assoc_species,
+$management_authority,
+$specimen_notes,
+$parent_rock,
+$geologic_format,
+$soil_type,
+$phenology,
+$abundance,
+$impacts, #impacted by e.g. fire, soil disturbance, threatened by solar energy, etc.
+$annotation_notes, # = previous determinations
+$CCH_current_det, #NEED TO ASK TASHA ABOUT THIS VS THE TAXONOMY FIELDS
+$BLANK_FIELD #...at the end of their Excel sheet
+) = @fields;
+
+
+####ACCESSION ID####
+if ($id=~/^ *$/){
+	&skip("Record with no accession id $_");
+	++$skipped{one};
+	next Record;
+		}
+#Remove duplicates
+	if($seen{$id}++){
+		++$skipped{one};
+		warn "Duplicate number: $id<\n";
+		print ERR<<EOP;
+Duplicate accession number, skipped: $id
 EOP
 		next Record;
 	}
-	$fields[10]= ucfirst( $fields[10]);
-	if(length($fields[10]) < 3){
-		++$skipped{one};
-		print OUT<<EOP;
-
-No generic name, skipped: $_
-EOP
-		next;
-	}
-	if($seen{$fields[0]}++){
-		++$skipped{one};
-		warn "Duplicate number: $fields[0]<\n";
-		print OUT<<EOP;
-
-Duplicate accession number, skipped: $fields[0]
-EOP
-		next;
-	}
-foreach $i (0 .. $#fields){     
-                $fields[$i]=&prune_fields($fields[$i]); #from CCH.pm
-        }
 
 
-	################collector numbers
-	$fields[3]=~s/ *$//;
-	$fields[3]=~s/^ *//;
-	if($fields[3]=~s/-$//){
-		$fields[4]="-$fields[4]";
-	}
-	if($fields[3]=~s/^-//){
-		$fields[2].="-";
-	}
-	if($fields[3]=~s/^([0-9]+)(-[0-9]+)$/$2/){
-		$fields[2].=$1;
-	}
-	if($fields[3]=~s/^([0-9]+)(\.[0-9]+)$/$1/){
-		$fields[4]=$2 . $fields[4];
-	}
-	if($fields[3]=~s/^([0-9]+)([A-Za-z]+)$/$1/){
-		$fields[4]=$2 . $fields[4];
-	}
-	if($fields[3]=~s/^([0-9]+)([^0-9])$/$1/){
-		$fields[4]=$2 . $fields[4];
-	}
-	if($fields[3]=~s/^(S\.N\.|s\.n\.)$//){
-		$fields[4]=$1 . $fields[4];
-	}
-	if($fields[3]=~s/^([0-9]+-)([0-9]+)([A-Za-z]+)$/$2/){
-		$fields[4]=$3 . $fields[4];
-		$fields[2].=$1;
-	}
-	if($fields[3]=~m/[^\d]/){
-		$fields[3]=~s/(.*)//;
-		$fields[4]=$1 . $fields[4];
-	}
+##########Scientific Name
+if ($infra_type eq "cf\."){ #one case
+	$idQualifier = $infra_type;
+	$infra_type="";
+}
+foreach ($Species){
+	s/cf\. nova//;
+	s/sp\. nova//;
+	s/sp\. nov\.//;
+	s/sp\.//;
+}
+foreach ($infra_type){
+	s/ //;
+	s/ssp\./subsp./;
+}
 
- foreach($fields[31]){
-                unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)$/){
-                        $v_county= &verify_co($_);
-                        if($v_county=~/SKIP/){
-                                &log("NON-CA county? $_");
-                                ++$skipped{one};
-                                next Record;
-                        }
+if ($Genus && $Species && $infra_type && $infra_epithet){
+	$ScientificName = "$Genus $Species $infra_type $infra_epithet";
+}
+elsif ($Genus && $Species && $infra_type){
+	$ScientificName = "$Genus $Species";
+	&log("$ScientificName $infra_type truncated to $ScientificName: $id");
+}
+elsif ($Genus && $Species){
+	$ScientificName = "$Genus $Species";
+}
+elsif ($Genus){
+	$ScientificName = $Genus;
+}
+else {
+	&skip("no generic name: $id");
+	++$skipped{one};
+	next Record;
+}
 
-                        unless($v_county eq $_){
-                                &log("$fields[0] $_ -> $v_county");
-                                $_=$v_county;
-                        }
+foreach ($ScientificName){
+	s/"//g;
+	s/\?//g;
+	s/cf\.//;
+	s/c\.f//;
+	s/^ *//;
+	s/ *$//;
+	s/  */ /g;
+}
 
-
-                }
-                $county{$_}++;
-        }
+$ScientificName = &validate_scientific_name($ScientificName, $id);
 
 
-		foreach($fields[6]){
-			s/August/Aug/;
-			s/July/Jul/;
-			s/April/Apr/;
-			s/\.//;
+####IDENTIFICATION QUALIFIER
+#I'm not actually doing anything with it right now
+#Since it's covered in the annotations
+foreach ($idQualifier) {
+	s/^ined$/ined./;
+}
+
+##########HYBRID NAME
+if ($hybrid_orig_det){
+	$hybrid_annotation = "$ScientificName X $genus_hybrid_OD $species_hybrid_OD";
+}
+else {
+	$hybrid_annotation = "";
+}
+
+
+########DETERMINER AND DATE, FOR ANNOTATIONS
+#parse out year from determiner, then clear it out
+if ($identified_by =~ /(\d\d\d\d)/){
+	$ID_year = $1;
+	}
+foreach ($identified_by){
+	s/,.*//;
+	s/ \d\d\d\d$//;
+}
+
+#months are strings, which is okay as det date is just a string
+if ($ID_year && $ID_month && $ID_day){
+	$determined_date = "$ID_month ID_day, $ID_year";
+}
+elsif ($ID_year && $ID_month){
+	$determined_date = "$ID_month $ID_year";
+}
+elsif ($ID_year){
+	$determined_date = "$ID_year";
+}
+else {
+	$determined_date = "";
+}
+
+
+######STATE AND COUNTY
+unless ($state =~ /^California$/){
+	&skip("State not California: $state");
+	next Record;
+}
+
+foreach ($county){
+	s/"//;
+	unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown|Unknown)$/){
+		$v_county= &verify_co($_);	#Unless $county matches one of the county names from the above list, create a value $v_county for that value using the &verify_co function
+		if($v_county=~/SKIP/){		#If $v_county is "/SKIP/" (i.e. &verify_co cannot recognize it)
+			&skip("NON-CA COUNTY? $_");	#run the &skip function, printing the following message to the error log
+			++$skipped{one};
+			next Record;
 		}
-	
-
-(
-$Label_ID_no,
-$collector,
-$Coll_no_prefix,
-$Coll_no,
-$Coll_no_suffix,
-$year,
-$month,
-$day,
-$Associated_collectors,
-$family,
-$genus,
-$genus_doubted,
-$species,
-$sp_doubted,
-$subtype,
-$subtaxon,
-$subsp_doubted,
-$hybrid_category,
-$Snd_genus,
-$Snd_genusDoubted,
-$Snd_species,
-$Snd_species_doubted,
-$Snd_subtype,
-$Snd_subtaxon,
-$Snd_subtaxon_doubted,
-$determiner,
-$det_year,
-$det_mo,
-$det_day,
-$country,
-$state,
-$county_mpio,
-$physiographic_region,
-$topo_quad,
-$locality,
-$lat_degrees,
-$lat_minutes,
-$lat_seconds,
-$N_or_S,
-$decimal_lat,
-$lat_uncertainty,
-$long_degrees,
-$long_minutes,
-$long_seconds,
-$E_or_W,
-$decimal_long,
-$long_uncertainty,
-$Township,
-$Range,
-$section,
-$Fraction_of_section,
-$Snd_township,
-$Snd_Range,
-$Snd_section,
-$Snd_Fraction_of_section,
-$UTM_grid_zone,
-$UTM_grid_cell,
-$UTM_E,
-$UTM_N,
-$name_of_UTM_cell,
-$low_range_m,
-$top_range_m,
-$low_range_f,
-$top_range_f,
-$ecol_notes,
-$Plant_description,
-$plant,
-$phenology,
-$culture,
-$origin,
-) = @fields;
-if($long_uncertainty || $lat_uncertainty){
-$extent= ($long_uncertainty || $lat_uncertainty);
-$ExtUnits="m";
-}
-else{
-$extent= "";
-$ExtUnits="";
-}
-$lat_degrees= $lat_minutes= $lat_seconds= $N_or_S= $long_degrees= $long_minutes= $long_seconds= "";
-#print "$UTM_E, $UTM_N $UTM_grid_zone, $UTM_grid_cell, $name_of_UTM_cell\n" if $UTM_E;
-#print "DLT: $decimal_lat DLG: $decimal_long\n";
-$Plant_description{$Plant_description}++;
-$plant{$plant}++;
-$phenology{$phenology}++;
-$culture{$culture}++;
-$origin{$origin}++;
-$Label_ID_no=~s/-//;
-$orig_lat_min=$lat_minutes;
-$orig_long_min=$long_minutes;
-$decimal_lat="" if $decimal_lat eq 0;
-$decimal_long="" if $decimal_long eq 0;
-$name=$genus ." " .  $species . " ".  $subtype . " ".  $subtaxon;
-#print "\nTEST $name<\n";
-$name=ucfirst(lc($name));
-#$name=~s/'//g;
-$name=~s/`//g;
-$name=~s/\?//g;
-$name=~s/ *$//;
-$name=~s/  +/ /g;
-$name=~s/ssp\./subsp./;
-$name=~s/ [Xx] / × /;
-#print "TEST $name<\n";
-
-if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
-                 $hybrid_annotation=$name;
-                 warn "$1 from $name\n";
-                 print OUT "$1 from $name\n";
-                 $name=$1;
-             }
-	     else{
-                 $hybrid_annotation="";
-	     }
-
-
-if($exclude{$genus}){
-        &log("Excluded, not a vascular plant: $name");
-        ++$skipped{one};
-        next Record;
-}
-
-%infra=( 'var.','subsp.','subsp.','var.');
-
-$test_name=&strip_name($name);
-#print "TN>$test_name<\n";
-
-if($TID{$test_name}){
-        $name=$test_name;
-}
-elsif($alter{$test_name}){
-        &log("$name altered to $alter{$test_name}");
-                $name=$alter{$test_name};
-}
-elsif($test_name=~s/(var\.|subsp\.)/$infra{$1}/){
-        if($TID{$test_name}){
-                &log("$name not in SMASCH  altered to $test_name");
-                $name=$test_name;
-        }
-        elsif($alter{$test_name}){
-                &log("$name not in smasch  altered to $alter{$test_name}");
-                $name=$alter{$test_name};
-        }
-        else{
-                &log ("$name is not yet in the master list: skipped");
-                ++$skipped{one};
-                next Record;
-        }
-}
-else{
-        &log ("$name is not yet in the master list: skipped");
-        ++$skipped{one};
-        next Record;
+		unless($v_county eq $_){	#unless $v_county is exactly equal to what was input into the &verify_co function (i.e. if &verify_co successfully changed the county)
+			&log("COUNTY $_ -> $v_county: $id");		#call the &log function to print this log message into the change log...
+			$_=$v_county;	#and then set $county to whatever the verified $v_county is.
+		}
+	}
 }
 
 
-$name{$name}++;
 
-########################COLLECTORS from CCH.pm
-	$Collector_full_name=$collector;
-	($Collector_full_name,$Associated_collectors)=&munge_collectors ($Collector_full_name,$Associated_collectors);
 
-if($low_range_m){
-	if($top_range_m){
-		$elevation="$low_range_m - $top_range_m m";
+#####COLLECTORS AND NUMBER
+unless ($coll_first_name && $coll_last_name){
+	&log("collector name missing or incomplete: $coll_first_name $coll_last_name: $AccessionID")
+}
+if ($coll_first_name && $coll_last_name){
+	$main_collector = "$coll_first_name $coll_last_name"
+}
+elsif ($coll_last_name){
+	$main_collector = $coll_last_name;
+}
+else {
+	$main_collector = "unknown";
+}
+
+foreach ($other_coll) {
+	s/^ *//;
+	s/ *$//;
+	s/  */ /;
+}
+
+if ($main_collecter && $other_coll){
+	$combined_coll = "$main_collector, $other_coll";
+}
+else {
+	$combined_coll = $main_collector;
+}
+
+#Collector numbers are all perfectly numerical, so no processing needs to be done
+#still, check if numerical in case something comes in in the future
+unless ($coll_num =~ /^(\d+)$/){
+	&skip("Collector number non-numerical; loading script needs to be updated: $coll_num $id");
+	next Record;
+}
+
+
+#########COLLECTION DATE
+if ($coll_day eq "0"){
+	$coll_day = "";
+}
+
+#if ($coll_day = /^0$/){
+#	$coll_day = "";
+#}
+
+#make verbatim dates
+if ($coll_year && $coll_month && $coll_day){
+	$verbatimEventDate = "$coll_month $coll_day, $coll_year";
+}
+elsif ($coll_year && $coll_month){
+	$verbatimEventDate = "$coll_month $coll_year"
+}
+elsif ($coll_year){
+	$verbatimEventDate = $coll_year;
+}
+else {
+	$verbatimEventDate = "unknown";
+	&log("No collection date: $id");
+}
+
+#translate month strings to numbers
+$coll_month = &get_month_number($coll_month, $id, %month_hash);
+
+#then assemble Julian days
+($EJD, $LJD)=&make_julian_days($coll_year, $coll_month, $coll_day, $id);
+($EJD, $LJD)=&check_julian_days($EJD, $LJD, $today_JD, $id);
+
+
+#######TOWNSHIP RANGE SECTION
+if ($T){
+	$TRS = "$T $R $S $Quarter; $T2 $R2 $S2 $Quarter2";
+}
+foreach ($TRS){
+	s/ *$//;
+	s/^ *//;
+	s/  *//g;
+	s/;$//;
+}
+
+##########TOPO, DATUM AND COORDINATES
+#no processing needed for topo, just concatenation
+if ($topo_quad){
+	$usgs_quad = "$topo_quad $topo scale";
+}
+else {
+	$topo_quad = "";
+}
+
+#datums are all NAD27, NAD83, and WGS84 for now
+foreach ($datum){
+	s/ *//g;
+}
+if ($datum){
+	unless ($datum =~ /^WGS84$|^NAD83$|^NAD27$/){
+		&log("Datum format unrecognized: $datum $id");
+	}
+}
+
+#If DMS, use DMS, otherwise use UTM
+if ($lat_deg && $long_deg){
+	#Convert DMS coordinates to decimal degrees
+	$decimal_lat = $lat_deg + $lat_min/60 + $lat_sec/3600;
+	$decimal_long = $long_deg + $long_min/60 + $long_sec/3600;
+	$decimal_long = "-$decimal_long" if $decimal_long > 0;
+	$error_radius="30";
+	$ER_units="m";
+	$coord_source="Collector GPS (converted from DMS)";
+}
+
+elsif ($UTME && $UTMN){
+#convert UTM to decimal, 
+	$easting = $UTME;
+	$northing = $UTMN;
+	$easting=~s/[^0-9]*$//;
+	$northing=~s/[^0-9]*$//;
+	$zone = "11S"; #UTMZ is rarely recorded, but can be assumed to be 11S for GM's extent
+	$ellipsoid=23;
+	if($zone=~/9|10|11|12/ && $easting=~/^\d\d\d\d\d\d/ && $northing=~/^\d\d\d\d\d/){
+		($decimal_lat,$decimal_long)=utm_to_latlon($ellipsoid,$zone,$easting,$northing);
+		&log("decimal degrees derived from UTM $decimal_lat, $decimal_long; $id\n");
+		$error_radius="30";
+		$ER_units="m";
+		$coord_source="GPS (converted from UTM)";
 	}
 	else{
-		$elevation="$low_range_m m";
+		&log("$CCH_Specimen_ID UTM problem $zone $easting $northing\n");
+		$error_radius="";
+		$ER_units="";
+		$coord_source="";
 	}
+}
+else {
+	$decimal_lat=$decimal_long=$error_radius=$ER_units=$coord_source="";
+}
+########LOCALITY, HABITAT, AND ASSOCIATES
+#Locality has lots of extra junk in it, like USGS Quad, DMS coords, and elevation, but I can't really parse them out
+#still, locality is concatenated with "$physiographic_locality", which is the general area
+#$locality
+if ($physiographic_locality && $locality){
+	$locality = "$physiographic_locality, $locality";
+}
+elsif ($physiographic_locality){
+	$locality = $physiographic_locality;
+}
+elsif ($locality){
+	$locality = $locality;
+}
+else {
+	$locality = "";
+}
+
+#Habitat also has some weird stuff in it, like USGS Quads, that I can't really do anything about
+if ($soil_type){
+	$habitat = "$habitat; soil type: $soil_type";
+	$habitat =~ s/^; //;
+}
+
+#Associated Species is fine as is
+#$assoc_species
+
+
+
+#####ELEVATION
+foreach ($elev_range){
+	s/^0$//;
+}
+foreach ($elev_units){
+	s/Feet/ft/;
+	s/Meters/m/;
+}
+
+#if there is elevation but no units, assume feet
+unless ($elev_units){
+	if ($elev || $elev_range){
+		$elev_units = "ft";
 	}
-elsif($low_range_f){
-	#these incorrectly labelled "m" first loading!
-	if($top_range_f){
-		$elevation="$low_range_f - $top_range_f ft";
+	else {
+		$elev_units = "";
 	}
-	else{
-		$elevation="$low_range_f ft";
+}
+
+#if there's units but no elevations, log then null units
+unless ($elev || $elev_range){
+	if ($elev_units){
+		&log("Elevation units but no measurement: $id");
+		$elev_units = "";
 	}
-	}
-$elev_test=$elevation;
-		$elev_test=~s/.*- *//;
-		$elev_test=~s/ *\(.*//;
-		$elev_test=~s/ca\.? *//;
-		if($elev_test=~s/ (meters?|m)//i){
-			$metric="(${elev_test} m)";
-			$elev_test=$elev_test * $meters_to_feet;
-			$elev_test= " feet";
-		}
-		else{
-			$metric="";
-		}
-		if($elev_test=~s/ +(ft|feet)//i){
+}
 
-			if($elev_test > $max_elev{$fields[31]}){
-				print OUT "$Label_ID_no\t$fields[31]\t ELEV: $elevation $metric greater than max: $max_elev{$fields[31]} discrepancy=", $elev_test-$max_elev{$fields[31]},"\n";
-			}
-		}
-
-if($ecol_notes=~s/[;.] +([Aa]ssoc.*)//){
-$assoc=$1;
+if ($elev && $elev_range){
+	$elevation = "$elev-$elev_range";
+}
+elsif ($elev){
+	$elevation = $elev;
+}
+elsif ($elev_range){
+	$elevation = $elev_range;
+}
+else {
+	$elevation = "";
 }
 
 
-$long_minutes=~ s/['`]//g;
-$lat_minutes=~ s/['`]//g;
-$lat_degrees=~ s/^(\d\d)[^\d]$/$1/g;
-$long_degrees=~ s/^(\d\d\d)[^\d]$/$1/g;
-if($long_minutes=~ s/^(\d*)(\.\d+)$/$1/){
-	$long_minutes="00" if $long_minutes eq "";
-$minute_decimal=$2;
-$long_seconds= int($minute_decimal * 60);
+############SPECIMEN NOTES
+#Phenology is added as a separate voucher information type
+#Abundance is under population biology
+#Specimen Notes and Impacts concatenated as "Notes"
+#$phenology
+#$abundance
+if ($specimen_notes && $impacts){
+	$notes = "$specimen_notes; Impacts: $impacts";
 }
-if($lat_minutes=~ s/^(\d*)(\.\d+)$/$1/){
-	$lat_minutes="00" if $lat_minutes eq "";
-$minute_decimal=$2;
-$lat_seconds= int($minute_decimal * 60);
+elsif ($specimen_notes){
+	$notes = $specimen_notes;
 }
-
-if($lat_seconds=~/(\d+)\.[01234].*/){
-$lat_seconds=$1;
+elsif ($impacts){
+	$notes = "Impacts: $impacts";
 }
-elsif($lat_seconds=~/(\d+)\.[56789].*/){
-$lat_seconds=${1}+1;
-}
-if($long_seconds=~/(\d+)\.[01234].*/){
-$long_seconds=$1;
-}
-elsif($long_seconds=~/(\d+)\.[56789].*/){
-	$long_seconds=${1}+1;
-}
-	if($lat_seconds==60){
-		$lat_seconds="00";
-		$lat_minutes +=1;
-		if($lat_minutes==60){
-			$lat_minutes="00";
-			$lat_degrees +=1;
-		}
-	}
-	if($long_seconds==60){
-		$long_seconds="00";
-		$long_minutes +=1;
-		if($long_minutes==60){
-			$long_minutes="00";
-			$long_degrees +=1;
-		}
-	}
-$lat_minutes=~ s/^ *(\d)\./0$1./;
-$lat_seconds=~ s/^ *(\d)\./0$1./;
-$long_minutes=~ s/^ *(\d)\./0$1./;
-$long_seconds=~ s/^ *(\d)\./0$1./;
-$lat_minutes=~ s/^ *(\d) *$/0$1/;
-$lat_seconds=~ s/^ *(\d) *$/0$1/;
-$long_minutes=~ s/^ *(\d) *$/0$1/;
-$long_seconds=~ s/^ *(\d) *$/0$1/;
-unless($lat_minutes eq $orig_lat_min){
-$coord_alter{"$orig_lat_min -> $lat_minutes $lat_seconds"}++;
-}
-unless($long_minutes eq $orig_long_min){
-$coord_alter{"$orig_long_min -> $long_minutes $long_seconds"}++;
+else {
+	$notes = "";
 }
 
-($lat= "${lat_degrees} ${lat_minutes} ${lat_seconds}$N_or_S")=~s/ ([EWNS])/$1/;
-($long= "${long_degrees} ${long_minutes} ${long_seconds}$E_or_W")=~s/ ([EWNS])/$1/;
-$lat=~s/^ *([EWNS])//;
-$long=~s/^ *([EWNS])//;
-$lat=~s/^ *//;
-$long=~s/^ *//;
-
-if($long){
-unless ($long=~/\d\d\d \d\d? \d\d?W/ || $long=~/\d\d\d \d\d?W/ || $long=~/\d\d\d \d\d? \d\d?\.\dW/){
-print OUT "$Label_ID_no: Longitude $long config problem; lat and long nulled\n";
-$long="";
-$lat="";
+#############ANNOTATIONS
+#$annotation_notes represents previous determinations
+#right now it only ever contains one determination, so I don't process them.
+#if it did, I'd need to write a loop to print multiple "Annotation:" lines
+#$CCH_current_det is the current determination. It contains the same info as in the taxonomy fields, plus the determination info.
+#both are in the format "[scientific name]; [determiner] [date string], which works fine
+#I don't think it matters what order these go in in the print OUT, since CCH seems to just shuffle them up
+foreach ($CCH_current_det) {
+	s/ ssp\. / subsp. /g;
 }
-#if ($decimal_lat){
-#if ($decimal_lat < 32.5 || $decimal_lat > 42.1){
-#print OUT "$Label_ID_no: Latitude $decimal_lat outside CA box; lat and long nulled\n";
-#$decimal_lat="";
-#$decimal_long="";
-#}
-#}
-#if ($decimal_long){
-#if ($decimal_long > -114.0 || $decimal_long < -124.5){
-#print OUT "$Label_ID_no: Longitude $decimal_long outside CA box; lat and long nulled\n";
-#$decimal_long="";
-#$decimal_lat="";
-#}
-#}
-unless($lat =~ /\d/){
-	$long="";
-		print OUT<<EOP;
-$Label_ID_no: Longitude no latitude config problem; long nulled
-
-EOP
-}
-}
-if($lat){
-unless ($lat=~/\d\d \d\d? \d\d?N/ || $lat=~/\d\d \d\d?N/ || $lat=~/\d\d \d\d? \d\d?\.\dN/){
-print OUT "$Label_ID_no: Latitude $lat config problem; Lat and long nulled\n";
-$lat="";
-$long="";
-}
-unless($long=~/\d/){
-	$lat="";
-		print OUT<<EOP;
-$Label_ID_no: Latitude no longitude config problem; lat nulled
-EOP
-}
-}
-$year=~s/ ?\?$//;
-$year=~s/^['`]+//;
-$year=~s/['`]+$//;
-unless($year=~/^(1[789]\d\d|20\d\d)$/){
-		print OUT<<EOP;
-$Label_ID_no: Date config problem $year $month $day: date nulled
-EOP
-	$year=$month=$day="";
-}
-unless($day=~/(^[0-3]?[0-9]$)|(^[0-3]?[0-9]-[0-3]?[0-9]$)|(^$)/){
-		print OUT<<EOP;
-$Label_ID_no: Date config problem $year $month $day: date nulled
-EOP
-	$year=$month=$day="";
-}
-$Unified_TRS="$Township$Range$section";
-$country="USA" if $country=~/U\.?S\.?/;
-if($annotation=~/Pectocarya anisocarpa/){
-	$annotation="$annotation; Ron Kelly; 2012 March 30";
-}
-elsif($determiner){
-	$annotation="$name; $determiner; $det_year $det_mo $det_day";
-}
-else{
-	$annotation="";
-}
-$zone=$UTM_grid_zone;
-$zone=uc($zone);
-#$UTM_grid_cell,
-#$UTM_E,
-#$UTM_N,
-#$name_of_UTM_cell,
-unless(($decimal_lat || $decimal_long)){
-	if($zone){
-		use Geo::Coordinates::UTM;
-		$easting=$UTM_E;
-		$northing=$UTM_N;
-		$ellipsoid=23;
-		if($zone=~/(9|10|11|12)S/ && $easting=~/\d\d\d\d\d\d/ && $northing=~/\d\d\d\d\d/){
-			print "$ellipsoid,$zone,$easting,$northing\n";
-			($decimal_lat,$decimal_long)=utm_to_latlon($ellipsoid,$zone,$easting,$northing);
-			print "$Label_ID_no UTM $decimal_lat, $decimal_long\n";
-		}
-		else{
-			print "$Label_ID_no UTM problem $zone $easting $northing\n";
-		}
-
-
-		$decimal_long="-$decimal_long" if $decimal_long > 0;
-	}  
-}
-	if($decimal_lat){
-	if($decimal_lat > 42.1 || $decimal_lat < 32.5 || $decimal_long > -114 || $decimal_long < -124.5){
-		if($zone){
-			print OUT "$Label_ID_no coordinates set to null, Outside California: $accession_id: UTM is $zone $easting $northing --> $decimal_lat $decimal_long\n";
-		}
-		else{
-			print OUT "$Label_ID_no coordinates set to null, Outside California: D_lat is $decimal_lat D_long is $decimal_long lat is $lat long is $long\n";
-		}
-	$decimal_lat =$decimal_long="";
-}   
+foreach ($annotation_notes) {
+	s/ ssp\. / subsp. /g;
 }
 
+if ($annotation_notes =~ /;.*;/){
+	&log("Check AnnotationNotes format: $id")
+}
 
-
-
-
-print TABFILE <<EOP;
-Date: $month $day $year
-CNUM_prefix: ${Coll_no_prefix}
-CNUM: ${Coll_no}
-CNUM_suffix: ${Coll_no_suffix}
-Name: $name
-Accession_id: $Label_ID_no
-Family_Abbreviation: $family
-Country: $country
+print OUT <<EOP;
+Accession_id: $id
+Name: $ScientificName
+Collector: $main_collector
+Date: $verbatimEventDate
+EJD: $EJD
+LJD: $LJD
+CNUM: $coll_num
+CNUM_prefix: 
+CNUM_suffix: 
+Country: USA
 State: $state
-County: $county_mpio
-Loc_other: $physiographic_region
+County: $county
 Location: $locality
-T/R/Section: $Unified_TRS
-USGS_Quadrangle: $topo_quad
-Elevation: $elevation
-Collector: $Collector_full_name
+T/R/Section: $TRS
+USGS_Quadrangle: $usgs_quad
+Elevation: $elevation $elev_units
 Other_coll: $other_coll
-Combined_collector: $combined_collectors
-Habitat: $ecol_notes
-Associated_species: $assoc
-Notes: $Plant_description
-Latitude: $lat
-Longitude: $long
+Combined_coll: $combined_coll
 Decimal_latitude: $decimal_lat
 Decimal_longitude: $decimal_long
-Max_error_distance: $extent
-Max_error_units: $ExtUnits
-Annotation: $annotation
+Lat_long_ref_source: $coord_source
+Datum: $datum
+Max_error_distance: $error_radius
+Max_error_units: $ER_units
 Hybrid_annotation: $hybrid_annotation
+Habitat: $habitat
+Notes: $notes
+Phenology: $phenology
+Population_biology: $abundance
+Associated_species: $assoc_species
+Annotation: $CCH_current_det
+Annotation: $annotation_notes
 
 EOP
-++$included;
-}
-open(COLL,">missing_coll");
-foreach(sort(keys(%collector))){
-#print "$_\n" if $coll_comm{$_};
-	$key=$_;
-#s/\./. /g;
-s/\. ,/., /;
-s/  +/ /g;
-s/ *$//;
-next if $coll_comm{$_};
-print COLL "$_\t$collector{$key}\n";
 }
 
-foreach(sort(keys(%name))){
-	#print "$_\n" unless $taxon{$_};
-}
-print <<EOP;
-INCL: $included
-EXCL: $skipped{one};
-EOP
 
-foreach(sort(keys(%coord_alter))){
-	#print "$_\n";
+
+sub skip {	#for each skipped item...
+	print ERR "skipping: @_\n"	#print into the ERR file "skipping: "+[item from skip array]+new line
 }
-open(OUT,">new_names_needed") || die;
-foreach(sort {$needed_name{$a} <=> $needed_name{$b}}(keys(%needed_name))){
-print OUT "$_ $needed_name{$_}\n";
+sub log {	#for each logged change...
+	print ERR "logging: @_\n";	#print into the ERR file "logging: "+[item from log array]+new line
 }
-open(OUT,">ucr_field_check") || die;
-foreach(sort(keys(%Plant_description))){
-	print OUT "PD: $_\n";
-}
-foreach(sort(keys(%plant))){
-	print OUT "P: $_\n";
-}
-foreach(sort(keys(%phenology))){
-	print OUT "Phen: $_\n";
-}
-foreach(sort(keys(%culture))){
-	print OUT "C: $_\n";
-}
-foreach(sort(keys(%origin))){
-	print OUT "O: $_\n";
-}
-sub log {
-print ERR "@_\n";
-}
-__END__
