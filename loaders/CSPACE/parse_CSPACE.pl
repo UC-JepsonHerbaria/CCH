@@ -39,10 +39,10 @@ my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
 
 ####INSERT NAMES OF CSPACE FILES and assign variables
-my $date_dir = "FEB22_2018"; #directory date of the unzipped file, change when new upload is unzipped
+my $date_dir = "MAR19_2018"; #directory date of the unzipped file, change when new upload is unzipped
 
-my $extract_dir= "data_files/$date_dir/";
-my $home_dir= "data_files/$date_dir/home/app_webapps/extracts/cch/current";
+my $extract_dir= "/JEPS-master/CCH/Loaders/CSPACE/data_files/$date_dir/";
+my $home_dir= "/JEPS-master/CCH/Loaders/CSPACE/data_files/$date_dir/home/app_webapps/extracts/cch/current";
 
 my $hybrid_file="${home_dir}/cch_hybridparents.txt";
 my $other_vouchers="${home_dir}/cch_othervouchers.txt";
@@ -2974,7 +2974,7 @@ warn "$count_record\n" unless $count_record % 10000;
 print CSID "$id\t$csid\n";
 		print OUT <<EOP;
 Accession_id: $id
-Other_label_numbers: $csid
+Other_label_numbers:
 Name: $scientificName
 Date: $verbatimEventDate
 EJD: $EJD
@@ -3094,7 +3094,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'CSPACE_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/CSPACE/CSPACE_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
