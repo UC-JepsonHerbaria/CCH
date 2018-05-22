@@ -2,7 +2,7 @@
 use Geo::Coordinates::UTM;
 use strict;
 #use warnings;
-use lib '/Users/davidbaxter/DATA';
+use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH; #load non-vascular hash %exclude, alter_names hash %alter, and max county elevation hash %max_elev
 my $today_JD;
 
@@ -14,7 +14,7 @@ $today_JD = &get_today_julian_day;
 my %month_hash = &month_hash;
 
 
-open(OUT,">GMDRC_out.txt") || die;
+open(OUT,">/JEPS-master/CCH/Loaders/GMDRC/GMDRC_out.txt") || die;
 
 
 my $included;
@@ -26,7 +26,7 @@ my %seen;
 my $det_string;
 my %ANNO;
 
-my $file = 'CCHexport03FEB2017b.txt';
+my $file = '/JEPS-master/CCH/Loaders/GMDRC/CCHexport25FEB2018.txt';
 
 
 #log.txt is used by logging subroutines in CCH.pm
@@ -44,14 +44,24 @@ Record: while(<IN>){
 	$line_store=$_;
 	++$count;
 
+#file comes with line breaks in middle of determinations field
+#search and replace \nPast with |Past
+#\n" with "
+#\t" with \t
+#"\t with \t
+
+#add CULTIVATED field by replacing \nGMDRC with \nN\tGMDRC
+#There are at elast 40 other in field line breaks in these data which create short erroneous records
+
 
 #fix some data quality and formatting problems that make import of fields of certain records impossible
 
 	s/\0//g;
 	s/\x00//g; #remove null bytes	
-	s/var\. c\.f elongatum/var. elongatum/g; #fix a badly formatted name
+	#s/var\. c\.f elongatum/var. elongatum/g; #fix a badly formatted name
 	s/°/ deg. /g;
 	s/…/, /g;
+	s/é/e/g;
 	s/“/'/g;
 	s/’/'/g;
 	s/“/'/g;
@@ -59,9 +69,9 @@ Record: while(<IN>){
 	s/  +/ /g;
 
 
-#        if ($. == 1){#activate if need to skip header lines
-#			next;
-#		}	
+        if ($. == 1){#activate if need to skip header lines
+			next;
+		}	
 			
 my $id;
 my $country;
@@ -175,7 +185,9 @@ my $det_prev;
 			next Record;
 		}
 
-
+#GMDRC Accession	speciesname	Qualifier	CCH Annotations	Identified By	Ident Year	State	Collection #	Collector First Name	Collector Last Name	County	
+#GeoreferenceResources	Collection Month	Collection Day	Collection Year	TRS Comb	Associated collectors	Datum	SEINet Locality	Latitude	Latitude2	Latitude3	Longitude	Longitude2	Longitude3	
+#UTM Zone	UTM N	UTM E	Habitat	Elevation in meters	Assoc Spec	SEINet occurrenceremarks	SEINet substrate	Phenology
 
 #then process the full records
 ($cultivated,
@@ -183,7 +195,7 @@ $id,
 $name, # species name
 $identificationQualifier, # Qualifier
 $previousDeterminations, # AnnotationNotes
-$TRS, # TRS Comb
+#$TRS, # TRS Comb deleted in 2017
 $identifiedBy, #Identified By
 $dateIdentified, #Ident Year
 $stateProvince, #State
@@ -195,6 +207,7 @@ $topo_quad, #GeoreferenceResources
 $coll_month,
 $coll_day,
 $coll_year,
+$TRS, # TRS Comb added here in 2018
 $other_coll, 
 $datum, #Datum
 $locality, #SEINet Locality
@@ -208,9 +221,10 @@ $zone, #UTM Zone
 $UTMN,
 $UTME,
 $habitat,
+$elev_meters, #Elevation in meters added here in 2018
 $associatedTaxa, #Assoc Spec   #30
-$elev_meters, #Elevation in meters
-$notes, #usually abundance, but sometimes "Other Notes")
+#$elev_meters, #Elevation in meters deleted here
+$occurrenceRemarks, #usually abundance, but sometimes "Other Notes" or "SEINet occurrenceremarks"
 $substrate, #SEINet substrate
 $phenology
 ) = @fields;
@@ -251,32 +265,34 @@ my $det_name = $name;
 my $det_determiner = $identifiedBy;
 my $det_date = $dateIdentified;
 my $det_stet = $identificationQualifier;	
+
+
 	
 	if ((length($det_name) >=1) && (length($det_determiner) == 0) && (length($det_stet) == 0) && (length($det_date) == 0)){
-		$det_string="$det_rank: $det_name";
+		$det_string="current determination:  $det_name";
 	}
 	elsif ((length($det_name) >=1) && (length($det_determiner) >=1) && (length($det_stet) == 0) && (length($det_date) == 0)){
-		$det_string="$det_rank: $det_name, $det_determiner";
+		$det_string="current determination:  $det_name, $det_determiner";
 	}
 	elsif ((length($det_name) >=1) && (length($det_determiner) == 0) && (length($det_stet) >=1) && (length($det_date) == 0)){
-		$det_string="$det_rank: $det_name $det_stet";
-		print "$det_string\n";
+		$det_string="current determination:  $det_name $det_stet";
+		#print "$det_string\n";
 	}	
 	elsif ((length($det_name) >=1) && (length($det_determiner) >=1) && (length($det_stet) >=1) && (length($det_date) == 0)){
-		$det_string="$det_rank: $det_name $det_stet, $det_determiner";
+		$det_string="current determination:  $det_name $det_stet, $det_determiner";
 	}	
 	elsif ((length($det_name) >=1) && (length($det_determiner) >=1) && (length($det_stet) == 0) && (length($det_date) >=1)){
-		$det_string="$det_rank: $det_name, $det_determiner, $det_date";
+		$det_string="current determination:  $det_name, $det_determiner, $det_date";
 	}
 	elsif ((length($det_name) >=1) && (length($det_determiner) == 0) && (length($det_stet) == 0) && (length($det_date) >=1)){
-		$det_string="$det_rank: $det_name, $det_date";
+		$det_string="current determination:  $det_name, $det_date";
 	}
 	else{
-		$det_string="$det_rank: $det_name $det_stet, $det_determiner,  $det_date";
+		$det_string="current determination:  $det_name $det_stet, $det_determiner,  $det_date";
 	}
 
 	if (length($previousDeterminations) >= 1){
-		$det_prev="1: $previousDeterminations";
+		$det_prev="$previousDeterminations";
 	}
 	else{
 		$det_prev="";
@@ -318,23 +334,26 @@ else{
 
 #Fix records with unpublished or problematic name determination that should not be fixed in AlterNames
 #allows name to pass through to CCH; the name is only corrected herein and not global in case name is published
-if (($id =~ m/^GMDRC3802$/) && ($name =~ m/Aliciella monoensis subsp. brecciarum/)){ 
-	$name =~ s/Aliciella monoensis subsp. brecciarum/Aliciella monoensis/;
+if (($id =~ m/^GMDRC3802$/) && ($name =~ m/Aliciella monoensis subsp\. brecciarum/)){ 
+	$name =~ s/Aliciella monoensis subsp\. brecciarum/Aliciella monoensis/;
 	&log_change("Scientific name not published: Aliciella monoensis subsp. brecciarum, modified to just species:\t$name\t--\t$id\n");
 }
-if (($id =~ m/^GMDRC3382$/) && ($name =~ m/Penstemon albomarginatus var. floridus/)){ 
-	$name =~ s/Penstemon albomarginatus var. floridus/Penstemon floridus var. floridus/;
+if (($id =~ m/^GMDRC3382$/) && ($name =~ m/Penstemon albomarginatus var\. floridus/)){ 
+	$name =~ s/Penstemon albomarginatus var\. floridus/Penstemon floridus var\. floridus/;
 	&log_change("Scientific name not published: Penstemon albomarginatus var. floridus, probably a typo, species assumed to be P. floridus and not P. albomarginatus:\t$name\t--\t$id\n");
 }
-if (($id =~ m/^GMDRC4730$/) && ($name =~ m/Tauschia parishii var. californicus/)){ 
-	$name =~ s/Tauschia parishii var. californicus/Tauschia parishii/;
+if (($id =~ m/^GMDRC4730$/) && ($name =~ m/Tauschia parishii var\. californicus/)){ 
+	$name =~ s/Tauschia parishii var\. californicus/Tauschia parishii/;
 	&log_change("Scientific name not published: Tauschia parishii var. californicus, modified to just species:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(GMDRC6862|GMDRC6877)$/) && ($name =~ m/Cryptantha lepida/)){ 
 	$name =~ s/Cryptantha lepida/Cryptantha/;
 	&log_change("Scientific name not published: Cryptantha lepida, modified to just genus:\t$name\t--\t$id\n");
 }
-
+if (($id =~ m/^(GMDRC10554)$/) && ($name =~ m/Erigeron eatoni subsp\. sonnei/)){ 
+	$name =~ s/Erigeron eatoni subsp\. sonnei/Erigeron eatonii var. sonnei/;
+	&log_change("Scientific name not published: Erigeron eatoni subsp. sonnei not a published combination, modified to:\t$name\t--\t$id\n");
+}
 
 #####process taxon names
 
@@ -390,9 +409,9 @@ foreach ($coll_day){
 
 }
 
+$verbatimEventDate = $coll_month." ".$coll_day. " ".$coll_year;
 
-
-$eventDateAlt = $coll_day."-".$coll_month."-".$coll_year ;
+$eventDateAlt = $coll_year."-".$coll_month."-".$coll_day;
 
 foreach ($eventDateAlt){
 	s/`//g;	
@@ -414,6 +433,23 @@ foreach ($eventDateAlt){
 		$DD2 = "";
 	warn "(1)$eventDateAlt\t$id";
 	}
+	elsif($eventDateAlt=~/^([0-9]{4})-(\d\d?)-(\d\d)/){	#if eventDate is in the format ####-##-##
+		$YYYY=$1; 
+		$MM=$2; 
+		$DD=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
+		$MM2 = "";
+		$DD2 = "";
+	warn "(1a)$eventDateAlt\t$id";
+	}
+	elsif($eventDateAlt=~/^([0-9]{4})-([A-Za-z]+)-(\d\d?)/){	#if eventDate is in the format ####-AAA-##
+		$YYYY=$1; 
+		$MM=$2; 
+		$DD=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
+		$MM2 = "";
+		$DD2 = "";
+	#warn "(1b)$eventDateAlt\t$id";
+	}
+	
 	elsif($eventDateAlt=~/^(\d\d)-(\d\d)-([0-9]{4})/){	#added to SDSU, if eventDate is in the format ##-##-####, most appear that first ## is month
 		$YYYY=$3; 
 		$MM=$1; 
@@ -1053,7 +1089,7 @@ if((length($latitude) >= 2)  && (length($longitude) >= 3)){
 					#print "2a) $lat_degrees\t-\t$lat_minutes\t-\t$latitude\n";
 					$lat_decimal= $lat_degrees+($lat_minutes/60);
 					$decimalLatitude=sprintf ("%.6f",$lat_decimal);
-					print "2d) $decimalLatitude\t--\t$id\n";
+					#print "2d) $decimalLatitude\t--\t$id\n";
 					$georeferenceSource = "DMS conversion by CCH loading script";
 				}
 		}
@@ -1131,7 +1167,7 @@ if((length($latitude) >= 2)  && (length($longitude) >= 3)){
 			else{
 				$long_decimal= $long_degrees+($long_minutes/60);
 				$decimalLongitude = sprintf ("%.6f",$long_decimal);
-				print "6d) $decimalLongitude\t--\t$id\n";
+				#print "6d) $decimalLongitude\t--\t$id\n";
 				$georeferenceSource = "DMS conversion by CCH loading script";
 			}
 		}
@@ -1310,30 +1346,6 @@ foreach ($associatedTaxa){
 
 ###ABUNDANCE FROM NOTES
 
-	if($notes =~ m/^([aA]bundance:.*)[;,.] +([oO]ther [nN]otes:.* +[iI]mpacts:.*)/){
-		$occurrenceRemarks = $2;
-		$abundance = $1;
-	}
-	elsif($notes =~ m/^([aA]bundance:.*)[;,.] +([oO]ther [nN]otes:.*)/){
-		$occurrenceRemarks = $2;
-		$abundance = $1;
-	}
-	elsif($notes =~ m/^([aA]bundance:.*)[;,.] +([iI]mpacts:.*)/){
-		$occurrenceRemarks = $2;
-		$abundance = $1;
-	}
-	elsif($notes =~ m/^([iI]mpacts:.*)/){
-		$occurrenceRemarks = $1;
-		$abundance = "";
-	}
-	elsif($notes =~ m/^([oO]ther [nN]otes:.*)/){
-		$occurrenceRemarks = $1;
-		$abundance = "";
-	}
-	else {
-		$occurrenceRemarks = "";
-		$abundance = "";
-	}
 
 foreach ($occurrenceRemarks){
 	s/"/'/g;
@@ -1341,12 +1353,6 @@ foreach ($occurrenceRemarks){
 	s/^'//g;
 	s/^ *//g;
 	s/  +/ /g;
-}
-foreach ($abundance){
-		s/"/'/g;
-		s/'$//g;
-		s/^'//g;
-		s/  +/ /g;
 }
 
 foreach ($substrate){
@@ -1386,15 +1392,14 @@ Datum: $datum
 Max_error_distance: $coordinateUncertaintyInMeters
 Max_error_units: $coordinateUncertaintyUnits
 Elevation: $CCH_elevationInMeters
-Verbatim_elevation: $verbatimElevation
-Verbatim_county: $tempCounty
+Verbatim_elevation:
+Verbatim_county:
 Physical_environment: $substrate
 Phenology: $phenology
-Population_biology: $abundance
+Population_biology:
 Notes: $occurrenceRemarks
 Hybrid_annotation: $hybrid_annotation
 Cultivated: $cultivated
-Annotation: $det_string
 Annotation: $det_prev
 
 EOP
@@ -1430,7 +1435,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'GMDRC_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/GMDRC/GMDRC_out.txt';	#the file this script will act upon is called 'CATA.out'
 
 open(IN,"$file_in" ) || die;
 
