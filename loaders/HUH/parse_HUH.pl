@@ -1,5 +1,7 @@
 use Time::JulianDay;
 use Time::ParseDate;
+use lib '/Users/richardmoe/4_data/CDL';
+use CCH;
 
 sub log {
 print ERR "logging: @_\n";
@@ -19,25 +21,31 @@ while(<IN>){
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
 	$alter{$riv}=$smasch;
 }
-open(IN,"/users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
+open(IN,"/Users/richardmoe/4_data/taxon_ids/smasch_taxon_ids.txt") || die;
 while(<IN>){
 	chomp;
-	($id,$name)=split(/\t/);
-	$taxon{$name}=$id;
+($code,$name,@rest)=split(/\t/);
+	$taxon{$name}++;
 }
+#open(IN,"/users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
+#while(<IN>){
+	#chomp;
+	#($id,$name)=split(/\t/);
+	#$taxon{$name}=$id;
+#}
 open(ERR,">HUH_error");
 
 %seen=();
 
-$file="HUH_dwc_california.csv";
+$file="huh_out.tab";
 open (CSV, $file) or die $!;
 
 while (<CSV>) {
 $elevation="";
 	chomp;
 	@fields=split(/\t/,$_, 1000);
-	unless($#fields == 48){
-		print "$.: $_\n";
+	unless($#fields == 49){
+		print "$.: $#fields $_\n";
 		die;
 	}
 	foreach(@fields){
@@ -45,7 +53,7 @@ $elevation="";
 		s/"$//;
 		s/""/"/g;
 	}
-	($institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers)=@fields;
+	($institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers,$update)=@fields;
 #print "$scientificname  ";
 #print "$scientificnameauthorship\n";
 #next;
@@ -67,6 +75,10 @@ $elevation="";
 	($Herbarium, $AccessionNo, $name,  $Collectors, $DATE, $CollNumber, $County, $Locality, $Habitat, $Description, $Latitude1, $Longitude1, $datum, $LatLong_Method, $Notes,$elev_min,$elev_max, $elev_units, $type_status, $determiner, $det_date, $verbatim_date)=
 	($collectioncode, $catalognumbernumeric, $scientificname, $collector, $eventdate, $collectornumber, $county, "$municipality $locality", $habitat, $datageneralizations, $decimallatitude, $decimallongitude, $geodeticdatum, "", "", $minimumelevationmeters, $maximumelevationmeters, "m", $typestatus, $identifiedby, $dateidentified, $eventdate);
 
+foreach($name){
+s/Rhus integrifolia \(Nuttall\) Bentham & Hooker f. ex W. H. Brewer & S. Watson/Rhus integrifolia/;
+}
+			$name=ucfirst($name);
 	$ACCESSNO="$Herbarium$AccessionNo$AccNoSuffix";
 	if($seen{$ACCESSNO}++){
 		&log("Duplicate $ACCESSNO");
@@ -124,6 +136,21 @@ $Collectors=~s/, Jr/ Jr/g;
 				next;
 			}
 			$name=ucfirst($name);
+$name=~s/st\.-nicolai/sancti-nicolai/ && do{
+				&log ("Spelling altered to sancti-nicolai: st.-nicolai");
+};
+foreach ($name){
+s/\303\227/X /g;
+#s/Ceanothus .*lobbianus Hooker/Ceanothus X lobbianus/;
+#s/Ceanothus .*lorenzenii \(Jepson\) McMinn/Ceanothus X lorenzii/;
+#s/Quercus ..ganderi/Quercus X ganderi/;
+#s/Quercus ..grandidentata/Quercus X grandidentata/;
+#s/Quercus ..macdonaldii/Quercus X macdonaldii/;
+#s/Quercus ..morehus/Quercus X morehus/;
+#s/Elymus ..hansenii/Elymus X hansenii/;
+#s/Elymus ..saundersii/Elymus X saundersii/;
+#s/Spiraea ..nobleana/Spiraea X nobleana/;
+}
 $name=&strip_name($name);
 			if($name=~/  /){
 				if($name=~/^[A-Z][a-z]+ [a-z]+ +[a-z]+$/){
@@ -145,7 +172,7 @@ s/ sp\.?$//;
 				s/ var / var. /;
 				s/ ssp\. / subsp. /;
 				s/ f / f\. /;
-				s/ [xX] / × /;
+				#s/ [xX] / × /;
 			}
 			if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
 				$hybrid_annotation=$name;
@@ -198,6 +225,7 @@ next;
 	next;
 	}
 }
+#print "$name\t$family\t$scientificnameauthorship\n" unless $scientificnameauthorship=~m/\) /;
 
 #unless($taxon{$name}){
 #&skip("$name not in SMASCH, skipped: $ACCESSNO");
@@ -394,8 +422,9 @@ print ERR "skipping: @_\n"
 sub log {
 print ERR "logging: @_\n";
 }
-sub strip_name{
+sub _strip_name{
 local($_) = @_;
+print "$_\t" if m/Quercus/;
 s/^ *//;
 				s/ forma / f. /;
 				s/ ssp / subsp. /;
@@ -403,8 +432,8 @@ s/^ *//;
 				s/ var / var. /;
 				s/ ssp\. / subsp. /;
 				s/ f / f\. /;
-				s/ [xX] / × /;
-s/ x / × /;
+				#s/ [xX] / × /;
+s/ x / X /;
 s/Fragaria × ananassa Duchesne var. cuneifolia \(Nutt. ex Howell\) Staudt/Fragaria × ananassa var. cuneifolia/ ||
 s/Trifolium variegatum Nutt. phase (\d)/Trifolium variegatum phase $1/ ||
 s/^([A-Z][a-z]+) (X?[-a-z]+).*(subsp.) ([-a-z]+).*(var\.) ([-a-z]+).*/$1 $2 $3 $4 $5 $6/ ||
@@ -413,6 +442,7 @@ s/^([A-Z][a-z]+) (× [-a-z]+).*/$1 $2/ ||
 s/^([A-Z][a-z]+) (X?[-a-z]+).*(ssp\.|var\.|f\.|subsp.) ([-a-z]+).*/$1 $2 $3 $4/ ||
 s/^([A-Z][a-z]+) (X?[-a-z]+).*/$1 $2/||
 s/^([A-Z][a-z]+) [A-Z(].*/$1/;
+print "$_\n" if m/Quercus/;
 return ($_);
 }
 
