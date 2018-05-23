@@ -23,6 +23,9 @@ use strict;
 #use warnings;
 use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH; #load non-vascular hash %exclude, alter_names hash %alter, and max county elevation hash %max_elev
+use utf8; #use only when original has problems with odd character substitutions
+use Text::Unidecode;
+
 my $today_JD;
 
 $| = 1; #forces a flush after every write or print, so the output appears as soon as it's generated rather than being buffered.
@@ -39,7 +42,7 @@ my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
 
 ####INSERT NAMES OF CSPACE FILES and assign variables
-my $date_dir = "MAR19_2018"; #directory date of the unzipped file, change when new upload is unzipped
+my $date_dir = "MAY10_2018"; #directory date of the unzipped file, change when new upload is unzipped
 
 my $extract_dir= "/JEPS-master/CCH/Loaders/CSPACE/data_files/$date_dir/";
 my $home_dir= "/JEPS-master/CCH/Loaders/CSPACE/data_files/$date_dir/home/app_webapps/extracts/cch/current";
@@ -124,17 +127,20 @@ open(IN,"$hybrid_file") || die "couldnt open $hybrid_file $!";
 while(<IN>){
 	chomp;
 	#catalognumber	pos	hybridparentname	hybridparentqualifier
-#	&CCH::check_file;
-#		s/\cK/ /g;
+
         if ($. == 1){#activate if need to skip header lines
 			next;
 		}
 
+	s/×/X /g;  #this odd code may be correcting oddly using the unidecode
+
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
+
+
 #fix some data quality and formatting problems	
-s/mule.*s-ears/mules-ears/;
-s/clumps.*young/clumps young/; #JEPS108149
+
 		s/&apos;/'/g;			#UC1871063
-	s/¡/deg. /g;
+
 		s/«//g;
 		
 	s/ô/o/g;
@@ -174,24 +180,6 @@ s/clumps.*young/clumps young/; #JEPS108149
 		s/—/-/g;
 		s/’/'/g;
 		s/”/"/g;
-		
-		s///g;
-s///g;
-s/˜//g;
-		s/✕/X/g;
-		s/≡//g;
-		s///g;
-		s///g;
-		s///g;	
-		s///g;	
-		s// /g;	
-		s/ / /g;
-		s/�/ /g;
-		
-s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-		s/^ $//;
 
 
 	@hfields=split(/\t/);
@@ -265,17 +253,14 @@ while(<IN>){
 #			next;
 #		}
 
+	s/×/X /g;  #this odd code may be correcting oddly using the unidecode
+
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
+
+
+
 #fix some data quality and formatting problems	
-s/√//g;
-s/¬//g;
-s/‚//g;
-s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-		s/^ $//;
-	
-	
-	
+
 	
 	
 	($type_id,$t_csid,$tt,$bn,$ref)=split(/\t/);
@@ -349,48 +334,18 @@ my %VK;
 open(IN, "$anno_vouchers") || die;
 while(<IN>){
 	chomp;
-#		&CCH::check_file;
-#		s/\cK/ /g;
+
 #        if ($. == 1){	#activate if need to skip header lines
 #			next;
 #		}
 
+	s/×/X /g;  #this odd code may be correcting oddly using the unidecode
+
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
+
+
 #fix some data quality and formatting problems	
-s/√//g;
-s/¬//g;
-s/‚//g;
-s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-		s/^ $//;
-		
-		
-		
-		
-	
-#	($annid,$ann_csid,$type,$desc)=split(/\t/);
-											#next unless $id eq "JEPS2760";
-#	$desc="_" if $desc=~/^ *$/;
-#	if($type=~/Vegetation Type Map Project/){
-#		$store_voucher{$annid}{'VTM'}=$desc;
-#		$VK{$type}++;
-#	}
-#	elsif($type=~/population biology/){
-#		$store_voucher{$annid}{'Population_biology'}=$desc;
-#		$VK{$type}++;
-#	}
-#	elsif($type=~/type/){
-#		$store_voucher{$annid}{'type'}=$desc;
-#		$VK{$type}++;
-#	}
-#	elsif($type=~/other number/){
-#		$store_voucher{$annid}{'Other_label_number'}=$desc;
-#		$VK{$type}++;
-#	}
-#}
-#close IN;
-#foreach $voucher (sort(keys(%VK))){
-#		warn "$voucher: $VK{$voucher}\n";
+
 }
 my %VK=();
 warn "=========\n";
@@ -428,20 +383,23 @@ while(<IN>){
 #			next;
 #		}
 
+	s/×/X /g;  #this odd code may be correcting oddly using the unidecode
+
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
+
+
+
 #fix some data quality and formatting problems	
-s/√//g;
-s/¬//g;
-s/‚//g;
 		s/♂/ male /g;	
 		s/♀/ female /g;	
 		s/…/./;
-	s/×/ X /g;
+
 	s/»/>>/g;
 		s/≤/<=/g;
 			s/≥/>=/g;
-		s/º/ deg. /g;	#masculine ordinal indicator used as a degree symbol
-		s/°/ deg. /g;
-		s/˚/ deg. /g;
+		#s/º/ deg. /g;	#masculine ordinal indicator used as a degree symbol
+		#s/°/ deg. /g;
+		#s/˚/ deg. /g;
 	s/ø/o/g;
 	s/ö/o/g;
 	s/õ/o/g;
@@ -474,10 +432,7 @@ s/‚//g;
 		s/¼/ 1\/4 /g;	
 		s/½/ 1\/2 /g;	
 		s/¾/ 3\/4 /g;	
-s/mule.*s-ears/mules-ears/;
-s/clumps.*young/clumps young/; #JEPS108149
-		s/&apos;/'/g;			#UC1871063
-	s/¡/deg. /g;
+
 		s/«//g;
 		
 	s/ô/o/g;
@@ -517,47 +472,6 @@ s/clumps.*young/clumps young/; #JEPS108149
 		s/—/-/g;
 		s/’/'/g;
 		s/”/"/g;
-		
-		s///g;
-s///g;
-s/˜//g;
-		s/✕/X/g;
-		s/≡//g;
-		s///g;
-		s///g;
-		s///g;	
-		s///g;	
-		s// /g;	
-		s/ / /g;
-		s/�/ /g;
-
-#s/±/+-/g;	#JEPS105676	JEPS102219UC1731225
-#s/¡/ deg. /g;	#UC125201
-#s/656900657200 E, 39890003989300/656900-657200 E, 3989000-3989300/;#JEPS102153
-#s/Tehama × C/Tehama X C/g;	#UC1971682
-#s/rs âlarge,â very/rs large, very/g;#JEPS108151
-#s/and âsalvageâ log/and salvage log/g;#JEPS102938	
-#s/stamens 5â€šÃ„Ã®8, seed/stamens 5-8, seed/g;#UC2029011	
-#s/to ñ 2/to 2/g;#JEPS112704	
-#s/ñ/n/g;
-#s/ated âplantationâ in/ated plantation in/g;#JEPS102943
-#s/bout ⅓ of/bout 1\/3 of/; #JEPS127022	JEPS127150
-#s/½/1\/2/g;#JEPS126540
-#s/¼/1\/4/g;	#JEPS127212
-#s/⅕/1\/5/g;	#JEPS127213
-#s/Service/Service/g;	#UC1871330
-#s/×ganderi/X ganderi/g;	#UC2027617
-#s/é/e/g;
-#s/Â//g;	#JEPS105609 JEPS105617
-#s/ü/u/g;
-#s/º/ deg. /g;	#JEPS102235
-#s/«/ /g;	#JEPS105135
-#s/Rhizomatous perennial herb. Common in a/Rhizomatous perennial herb. Common in a/g; #UC1922352
-s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-
-
 
 	($other_id,$other_csid,$notetype,$note)=split(/\t/);
 											#next unless $id eq "JEPS2760";
@@ -797,11 +711,13 @@ while(<IN>){
 #			next;
 #		}
 
+	s/×/X /g;  #this odd code may be correcting oddly using the unidecode
+
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
+
+
+
 #fix some data quality and formatting problems	
-s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-		s/^ $//;
 	 
 	@solr_fields=split(/\t/,$_,100);
 
@@ -811,7 +727,7 @@ s/  +/ /g;
     $solr_group=$solr_fields[5];
 	$solr_blob = $solr_fields[$#solr_fields];
 		next unless $solr_blob;
-		next if ($solr_group =~ /(Algae|Bryophytes)/);
+		next if ($solr_group =~ /(Algae|Bryophytes|Fungi|Lichen)/);
 
 if ($solr_blob =~ /(.*),(.*)/){
 	$solr_blob = $1
@@ -846,24 +762,30 @@ while(<IN>){
 next if m/bulkloaded from norris/;
 next if m/D\. *H\. Norris/;
 	chomp;
-#		&CCH::check_file;
+
 #		s/\cK/ /g;
 #        if ($. == 1){	#activate if need to skip header lines
 #			next;
 #		}
+
+	s/×/X /g;  #this odd code may be correcting oddly using the unidecode
+
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
+
+
 
 #fix some data quality and formatting problems	
 
 s/♀/female/g;#UC1980521
 s/♂/male/g;#UC1980521
 		s/…/./;
-	s/×/ X /g;
+
 	s/»/>>/g;
 		s/≤/<=/g;
 			s/≥/>=/g;
-		s/º/ deg. /g;	#masculine ordinal indicator used as a degree symbol
-		s/°/ deg. /g;
-		s/˚/ deg. /g;
+		#s/º/ deg. /g;	#masculine ordinal indicator used as a degree symbol
+		#s/°/ deg. /g;
+		#s/˚/ deg. /g;
 	s/ø/o/g;
 	s/ö/o/g;
 	s/õ/o/g;
@@ -891,14 +813,9 @@ s/♂/male/g;#UC1980521
 		s/”/'/g;
 		s/±/+-/g;	#JEPS105676	JEPS102219UC1731225
 		s/²/ squared /g;
-		s/¹/ /g;
-	
-	
-	
-	s/mule.*s-ears/mules-ears/;
-s/clumps.*young/clumps young/; #JEPS108149
+
 		s/&apos;/'/g;			#UC1871063
-	s/¡/deg. /g;
+
 		s/«//g;
 		
 	s/ô/o/g;
@@ -916,11 +833,7 @@ s/clumps.*young/clumps young/; #JEPS108149
 	s/ñ/n/g;
 
 	s/µ/u/g;
-		s/Á/ /g;
-		s/Â/ /g;
 
-		s/â€šÃ„Ã®/ /g;
-		s/â/ /g;
 		s/±/+-/g;	#JEPS105676	JEPS102219UC1731225	
 		s/¼/ 1\/4 /g;	
 		s/½/ 1\/2 /g;	
@@ -938,24 +851,6 @@ s/clumps.*young/clumps young/; #JEPS108149
 		s/—/-/g;
 		s/’/'/g;
 		s/”/"/g;
-
-		s///g;
-s///g;
-s/˜//g;
-		s/✕/X/g;
-		s/≡//g;
-		s///g;
-		s///g;
-		s///g;	
-		s///g;	
-		s// /g;	
-		s/ / /g;
-		s/�/ /g;	
-s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-		s/^ $//;
-
 
 	
 #UC179656	c023d60a-b0d1-4399-a016-a52e563ce56a	1	Calycadenia ciliosa Greene		unknown	 	original label determination	nocl
@@ -1080,10 +975,14 @@ while(<IN>){
 			next;
 		}
 
+	s/×/X /g;  #this odd code may be correcting oddly using the unidecode
+
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
+
+
+
 #fix some data quality and formatting problems	
-		s/coll.n /collection/g;	#JEPS102248
-s/Douglas. spiraea/Douglas spiraea/;
-s/Brewer.s oak/Brewer's oak/;
+
 s/°/ deg. /g;	#JEPS119456
 s/º/ deg. /g;	#JEPS126506
 s/½/ 1\/2 /g;	#JEPS126519
@@ -1091,10 +990,9 @@ s/¼/ 1\/4 /g;	#JEPS126530
 s/¾/ 3\/4 /g;	#JEPS127029
 s/⅛/ 1\/8 /g;	#JEPS127201
 s/⅝/5\/8/g; #JEPS127052 about 2 ⅝ miles 
-s/mule.*s-ears/mules-ears/;
-s/clumps.*young/clumps young/; #JEPS108149
+
 		s/&apos;/'/g;			#UC1871063
-	s/¡/deg. /g;
+
 		s/«//g;
 		
 	s/ô/o/g;
@@ -1112,11 +1010,7 @@ s/clumps.*young/clumps young/; #JEPS108149
 	s/ñ/n/g;
 
 	s/µ/u/g;
-		s/Á/ /g;
-		s/Â/ /g;
 
-		s/â€šÃ„Ã®/ /g;
-		s/â/ /g;
 		s/±/+-/g;	#JEPS105676	JEPS102219UC1731225	
 		s/¼/ 1\/4 /g;	
 		s/½/ 1\/2 /g;	
@@ -1134,23 +1028,6 @@ s/clumps.*young/clumps young/; #JEPS108149
 		s/—/-/g;
 		s/’/'/g;
 		s/”/"/g;
-s///g;
-s///g;
-s/˜//g;		
-		s/✕/X /g;
-		s/≡//g;
-		s///g;
-		s///g;
-		s///g;	
-		s///g;	
-		s// /g;	
-		s/ / /g;
-		s/�/ /g;
-		
-s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-		s/^ $//;
 
 
 	 
@@ -1169,7 +1046,7 @@ s/  +/ /g;
         
 		#next unless ($solr_country =~ /Mexico/);
 		#next unless ((length($solr_county) == 0) || 
-		next if ($solr_group =~ /(Algae|Bryophytes)/);
+		next if ($solr_group =~ /(Algae|Bryophytes|Fungi|Lichen)/);
 }
 
 $COUNTRY{$pub_csid}=$solr_country;
@@ -1208,7 +1085,13 @@ open(OUT, ">CSPACE_out.txt") || die;
 #		}
 #fix some data quality and formatting problems	
 
-		s/coll.n /collection/g;	#JEPS102248
+	s/×/X /g;  #this odd code may be correcting oddly using the unidecode
+
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
+
+
+
+s/coll.n /collection/g;	#JEPS102248
 s/Douglas. spiraea/Douglas spiraea/;
 s/Brewer.s oak/Brewer's oak/;
 s/°/ deg. /g;	#JEPS119456
@@ -1219,14 +1102,8 @@ s/¾/ 3\/4 /g;	#JEPS127029
 s/⅛/ 1\/8 /g;	#JEPS127201
 s/⅝/5\/8/g; #JEPS127052 about 2 ⅝ miles 
 
-#s/13/1-3/;	#JEPS95332
-#s/ño/no/g;	#UC1393306
-#s/Cataviñá/Catavina/g;	#UC915831
-#s/Cataviñ/Catavin/g;	#UC1086507
-s/mule.*s-ears/mules-ears/;
-s/clumps.*young/clumps young/; #JEPS108149
+
 		s/&apos;/'/g;			#UC1871063
-	s/¡/deg. /g;
 		s/«//g;
 		
 	s/ô/o/g;
@@ -1247,7 +1124,6 @@ s/clumps.*young/clumps young/; #JEPS108149
 		s/Á/ /g;
 		s/Â/ /g;
 
-		s/â€šÃ„Ã®/ /g;
 		s/â/ /g;
 		s/±/+-/g;	#JEPS105676	JEPS102219UC1731225	
 		s/¼/ 1\/4 /g;	
@@ -1261,23 +1137,7 @@ s/clumps.*young/clumps young/; #JEPS108149
 		s/⅙/ 1\/6 /g;
 		s/⅛/ 1\/8 /g;
 		s/⅜/ 3\/8 /g;
-		
-		
-		s/—/-/g;
-		s/’/'/g;
-		s/”/"/g;
-		s///g;
-		s///g;
-		s/˜//g;
-		s/✕/X /g;
-		s/≡//g;
-		s///g;
-		s///g;
-		s///g;	
-		s///g;	
-		s// /g;	
-		s/ / /g;
-		s/�/ /g;
+
 #skipping: problem character detected: s/\xc2\x92/    /g    ---> (colln	Douglas	colln	elegans?--colln	Brewers	
 #skipping: problem character detected: s/\xc2\x93/    /g    ---> Service	
 #skipping: problem character detected: s/\xc2\x94/    /g    ---> Service	
@@ -1322,14 +1182,7 @@ s/clumps.*young/clumps young/; #JEPS108149
 #skipping: problem character detected: s/\xc2\x80\xc2\x9c/    /g    ---> salvage	plantation	
 #skipping: problem character detected: s/\xc2\x80\xc2\x9d/    /g    ---> 	
 #skipping: problem character detected: s/\xcb\x9c/    /g   ˜ ---> ˜	
-s///g;
-s///g;
-s/˜//g;
 
-s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-		s/^ $//;
 
 
 		$line_store=$_;
@@ -1575,7 +1428,7 @@ my $collectorsFormatted;
 			next Record;
 	}
 
-		next unless ($major =~ /Spermatophytes/);
+		#next unless ($major =~ /Spermatophytes|Pteridophytes/);
 		next unless ($country =~ /^USA|Mexico/);
 		#next unless ((length($solr_county) == 0) || 
 
@@ -1605,8 +1458,8 @@ foreach($id){
 
 ###########REMOVE FIELD STATION IDs for now
 #	if ($id =~/(BFRS|HREC|SCFS)/){  #unblocking all but Sagehen, which is in Symbiota
-	if ($id =~/SCFS/){
-		&log_skip("Field Station specimen, skipped:\t$id");
+	if ($id =~/(SCFS|JOMU)/){
+		&log_skip("John Muir Herbarium or Field Station Herbarium specimen, skipped:\t$id");
 		++$skipped{one};
 		next Record;
 	}
@@ -1658,72 +1511,26 @@ if ($id =~ m/^(JEPS16877|JEPS74548|UC73411|UC5084|UC5083|UC367200|UC35805|UC3379
 foreach ($temp_name){
 	s/;$//g;
 	s/cf.//g;
+	s/A-- Elymordeum/X Elymordeum/;
+	s/A-- ?ganderi/A-- ganderi/;
+	s/ A-- / X /g;
+	s/Pelargonium L.H.+/Pelargonium/g;
+	s/Eucalyptus L.H.+/Eucalyptus/g;
+	s/Salvinia S.+guier/Salvinia/g;
+	s/^[nN]one$//g;
 	s/  +/ /g;
 	s/^ $//g;
-	s/^. Elymordeum/X Elymordeum/;
-	s/^Quercus .* subconvexa .*/Quercus X subconvexa/;
-	s/^Quercus .* moreh[aus]+ .*/Quercus X morehus/;
-	s/^Quercus .* macdonaldii .*/Quercus X macdonaldii/;
-	s/^Quercus .* howellii .*/Quercus X howellii/;
-	s/^Quercus .* eplingii .*/Quercus X eplingii/;
-	s/^Quercus .* chasei .*/Quercus X chasei/;
-	s/^Quercus .* alvordiana .*/Quercus X alvordiana/;
-	s/^Quercus .* acutidens .*/Quercus X acutidens/;
-	s/^Opuntia .* vaseyi .*/Opuntia X vaseyi/;
-	s/^Opuntia .* occidentalis .*/Opuntia X occidentalis/;
-	s/^Navarretia .* helleri .*/Navarretia X helleri/;
-	s/^Mentha .* rotundifolia .*/Mentha X rotundifolia/;
-	s/^Mentha .* piperita .*/Mentha X piperita/;
-	s/^Mentha .* gracilis .*/Mentha X gracilis/;
-	s/^Leymus .* vancouverensis .*/Leymus X vancouverensis/;
-	s/^Leymus .* multiflorus .*/Leymus X multiflorus/;
-	s/^Limnophila .* ludoviciana .*/Limnophila X ludoviciana/;
-	s/^Eriogonum .* blissianum .*/Eriogonum X blissianum/;
-	s/^Elymus .* saxicola .*/Elymus X saxicola/;
-	s/^Elymus .* saundersii .*/Elymus X saundersii/;
-	s/^Elymus .* macounii .*/Elymus X macounii/;
-	s/^Elymus .* hansenii .*/Elymus X hansenii/;
-	s/^Elymus .* aristatus .*/Elymus X aristatus/;
-	s/^Drosera .* obovata .*/Drosera X obovata/;
-	s/^Dichelostemma .* venustum .*/Dichelostemma X venustum/;
-	s/^Crocosmia .* crocosmiiflora .*/Crocosmia X crocosmiiflora/;
-	s/^Centaurea .* moncktonii .*/Centaurea X moncktonii/;
-	s/^Centaurea .* pouzinii .*/Centaurea X pouzinii/;
-	s/^Ceanothus .* rugosus .*/Ceanothus X rugosus/;
-	s/^Ceanothus .* flexilis .*/Ceanothus X flexilis/;
-	s/^Ceanothus .* connivens .*/Ceanothus X connivens/;
-		s/^Ceanothus .* mendocinensis .*/Ceanothus X mendocinensis/;
-	s/^Castilleja .* montigena .*/Castilleja X montigena/;
-	s/^Arctostaphylos .* repens .*/Arctostaphylos X repens/;
-	s/^Arctostaphylos .* media .*/Arctostaphylos X media/;
-	s/^Arctostaphylos .* knightii .*/Arctostaphylos X knightii/;
-	s/^Arctostaphylos .* helleri .*/Arctostaphylos X helleri/;
-	s/^Arctostaphylos .* cinerea .*/Arctostaphylos X cinerea/;
-	s/^Arctostaphylos .* candidissima .*/Arctostaphylos X candidissima/;
-	s/^Arctostaphylos .* campbelliae .*/Arctostaphylos X campbelliae/;
-	s/^Arctostaphylos .* acutifolia .*/Arctostaphylos X acutifolia/;
-	s/^Ambrosia .* platyspina .*/Ambrosia X platyspina/;
-	s/^Agoseris .* dasycarpa .*/Agoseris X dasycarpa/;
-	s/^Achnatherum .* bloomeri .*/Achnatherum X bloomeri/;
-	s/^Abelia .* grandiflora .*/Abelia X grandiflora/;
-		s/^Pinus .* attenuradiata .*/Pinus X attenuradiata/;
-		s/^Pinus .* murraybanksiana .*/Pinus X murraybanksiana/;
-s/^Poa .* fibrata .*/Poa X fibrata/;
-s/^Populus .* canadensis .*/Populus X canadensis/;
-
-s/^Penstemon .* parishii .*/Penstemon X parishii/;
-s/^Penstemon .* dubius .*/Penstemon X dubius/;
-s/^Pelargonium .* hortorum .*/Pelargonium X hortorum/;
-s/^Salvia .* palmeri .*/Salvia X palmeri/;
-s/^Salix .* rubens .*/Salix X rubens/;
-s/^Salix .* sepulcralis .*/Salix X sepulcralis/;
-s/^Salix .* bernardina .*/Salix X bernardina/;
+	s/^Boechera .+ L.ve . D. L.ve/Boechera/;
+	s/^Packera .+ L.ve.*/Packera/;
 	s/^ +//g;
 	s/ +$//g;
 }
 
-$temp_name =~ s/([A-Z][a-z]+) [A-Z]\..*/$1/; #fix specimens determined only as Genus but has an type 1 authority abbreviation==> L.
-$temp_name =~ s/([A-Z][a-z]+) [A-Z][a-z]+\..*/$1/; #fix specimens determined only as Genus but has an type 2 authority==> Dougl.
+$temp_name =~ s/([A-Z][a-z]+) [A-Z]\..*/$1/; #fix specimens determined only as Genus but has a type 1 authority abbreviation==> L.
+$temp_name =~ s/([A-Z][a-z]+) [A-Z][a-z]+\..*/$1/; #fix specimens determined only as Genus but has a type 2 authority==> Dougl.
+$temp_name =~ s/([A-Z][a-z]+) [A-Z][a-z]+ ..*/$1/; #fix specimens determined only as Genus but has a type 3 authority==> Webb & Bert
+$temp_name =~ s/([A-Z][a-z]+) \([A-Z].*/$1/; #fix specimens determined only as Genus but has a type 4 authority==> (Nutt. ex Hook.) Copel.
+$temp_name =~ s/^([A-Z][a-z]+) [A-Z][a-z]+$/$1/; #fix specimens determined only as Genus but has a type 5 authority==> Webb
 
 #Fix records with unpublished or problematic name determination that should not be fixed in AlterNames
 #allows name to pass through to CCH; the name is only corrected herein and not global in case name is published
@@ -1734,21 +1541,24 @@ $temp_name =~ s/([A-Z][a-z]+) [A-Z][a-z]+\..*/$1/; #fix specimens determined onl
 #}
 if (($id =~ m/^(UC1430154|UC81765)$/) && (length($TID{$temp_name}) == 0)){ 
 	$temp_name =~ s/Lathyrus vestitus Nutt\. subsp\. barbarae/Lathyrus vestitus/;
-	&log_change("Scientific name error - Lathyrus vestitus Nutt. subsp. barbarae not a published name,  modified to\t$temp_name\t--\t$id\n");
+	&log_change("Scientific name error - Lathyrus vestitus Nutt. subsp. barbarae not a published name,  modified to: $temp_name\t--\t$id\n");
 }
 if (($id =~ m/^(UC1094724|UC1174399|UC1174400|UC1223895|UC1787425|UC1787432|UC517425|UC80753|UC80754)$/) && (length($TID{$temp_name}) == 0)){ 
 	$temp_name =~ s/Acmispon argophyllus \(A\. Gray\) Greene var\. ornithopus/Acmispon argophyllus/;
-	&log_change("Scientific name error - Acmispon argophyllus (A. Gray) Greene var. ornithopus not a published name, modified to\t$temp_name\t--\t$id\n");
+	&log_change("Scientific name error - Acmispon argophyllus (A. Gray) Greene var. ornithopus not a published name, modified to: $temp_name\t--\t$id\n");
 }
 if (($id =~ m/^(UC1235779|UC1235780|UC770351|UC792416|UC80739|UC80745|UC935988)$/) && (length($TID{$temp_name}) == 0)){ 
-	$temp_name =~ s/Acmispon watsonii/Acmispon/;
-	&log_change("Scientific name error - Acmispon watsonii not a published combination, modified to\t$temp_name\t--\t$id\n");
+	$temp_name =~ s/Acmispon watsoni.*/Acmispon/;
+	&log_change("Scientific name error - Acmispon watsonii not a published combination, modified to: $temp_name\t--\t$id\n");
 }
 if (($id =~ m/^(UC764800|UC764583|UC708724|UC676887|UC64919|UC16059|UC155289|UC1542855|UC1542856|UC1542857|UC1542851|UC1542852|UC1129254)$/) && (length($TID{$temp_name}) == 0)){ 
 	$temp_name =~ s/Lupinus andersonii S. Watson var\. mariposanus \(Eastwood\) M\. L\. Conrad/Lupinus andersonii/;
-	&log_change("Scientific name error - Lupinus andersonii S. Watson var. mariposanus (Eastwood) M. L. Conrad not a published name, modified to\t$temp_name\t--\t$id\n");
+	&log_change("Scientific name error - Lupinus andersonii S. Watson var. mariposanus (Eastwood) M. L. Conrad not a published name, modified to: $temp_name\t--\t$id\n");
 }
-
+if (($id =~ m/^(UC2062861)$/) && (length($TID{$temp_name}) == 0)){ 
+	$temp_name =~ s/Lupinus formosus Greene subsp\. proximus Conrad/Lupinus formosus/;
+	&log_change("Scientific name not published: Lupinus formosus subsp. proximus modified to: $temp_name\t==>\t$id\n");
+}
 
 
 
@@ -1772,7 +1582,7 @@ else{
 
 #fix a problem hybrid genus name
 if($temp_name=~m/Elymordeum/){
-	$temp_name =~ s/^([^A-Z]+)Elymordeum/X Elymordeum/;
+	$temp_name =~ s/^([^A-Z- ]+)Elymordeum/X Elymordeum/;
 	warn "Problem Taxon: $1 removed from $temp_name\n";
 }
 
@@ -1861,25 +1671,25 @@ if(length($EarlyCollectionDate) >=2 ){
 		$YYYY="19$1";  #for some reason some, but not all CSpace  dates like 6-9-53 is converted to 0053-06-09 and trips a gregorian calendar date error
 		$MM=$2; 
 		$DD=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
-		warn "Date Changed:(1)$EarlyCollectionDate\t$id";
+		#warn "Date Changed:(1)$EarlyCollectionDate\t$id";
 	}
 	elsif($EarlyCollectionDate=~/^(19\d\d)-(\d\d)-(\d\d)/){	#if eventDate is in the format 19##-##-##, keep year as 19##
 		$YYYY=$1;
 		$MM=$2; 
 		$DD=$3;
-	warn "(2)$EarlyCollectionDate\t$id";
+	#warn "(2)$EarlyCollectionDate\t$id";
 	}
 	elsif($EarlyCollectionDate=~/^(20\d\d)-(\d\d)-(\d\d)/){	#if eventDate is in the format 20##-##-##, keep year as 20##
 		$YYYY=$1;
 		$MM=$2; 
 		$DD=$3;
-	warn "(3)$EarlyCollectionDate\t$id";
+	#warn "(3)$EarlyCollectionDate\t$id";
 	}	
 	elsif($EarlyCollectionDate=~/^(1[0-9]{3})-(\d\d)-(\d\d)/){	#if eventDate is in the format ####-##-##, keep year as 1####, dont allow other odd year combinations
 		$YYYY=$1;
 		$MM=$2; 
 		$DD=$3;
-	warn "(4)$EarlyCollectionDate\t$id";
+	#warn "(4)$EarlyCollectionDate\t$id";
 	}
 	elsif($EarlyCollectionDate=~/^(10[0-9]{2})-(\d\d)-(\d\d)/){	#if eventDate is in the format 10##-##-##, keep year as 19###, dont allow other odd year combinations
 		$YYYY="19$1";
@@ -1909,23 +1719,23 @@ if(length($LateCollectionDate) >=2 ){
 	if($LateCollectionDate=~/^00(\d\d)-(\d\d)-(\d\d)/){	#if eventDate is in the format 00##-##-##, change year to 19##
 		$MM2=$2; 
 		$DD2=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
-	warn "Date Changed: (5)$LateCollectionDate\t$id";
+	#warn "Date Changed: (5)$LateCollectionDate\t$id";
 	}
 	elsif($LateCollectionDate=~/^(19\d\d)-(\d\d)-(\d\d)/){	#if eventDate is in the format 19##-##-##, keep year as 19##
 		$MM2=$2; 
 		$DD2=$3;
-	warn "(6)$LateCollectionDate\t$id";
+	#warn "(6)$LateCollectionDate\t$id";
 	}
 	elsif($LateCollectionDate=~/^(20\d\d)-(\d\d)-(\d\d)/){	#if eventDate is in the format 20##-##-##, keep year as 20##
 		$YYYY=$1;
 		$MM2=$2; 
 		$DD2=$3;
-	warn "(7)$LateCollectionDate\t$id";
+	#warn "(7)$LateCollectionDate\t$id";
 	}	
 	elsif($LateCollectionDate=~/^(1[0-9]{3})-(\d\d)-(\d\d)/){	#if eventDate is in the format ####-##-##, keep year as 1####, dont allow other odd year combinations
 		$MM2=$2; 
 		$DD2=$3;
-	warn "(8)$LateCollectionDate\t$id";
+	#warn "(8)$LateCollectionDate\t$id";
 	}
 	else{
 		$MM2 = "";
@@ -1990,7 +1800,7 @@ foreach ($verbatimCollectors){
 	s/\[//g;
 	s/\]//g;
 	s/\?//g;
-	s/s\. n\. / /g;
+	s/s\. n\. ?/ /g;
 	s/, with/ with/;
 	s/ w\/ ?/ with /g;
 	s/, M\. ?D\.//g;
@@ -1998,6 +1808,8 @@ foreach ($verbatimCollectors){
 	s/, Jr/ Jr./g;
 	s/, Esq./ Esq./g;
 	s/, Sr\./ Sr./g;
+	s/Jim AndrA.c., /Jim Andre, /g;
+	s/ZAoA+-iga/Zuniga/g;
 	s/^'//g;
 	s/  +/ /;
 	s/^ +//;

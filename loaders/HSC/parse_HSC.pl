@@ -4,7 +4,7 @@ use Geo::Coordinates::UTM;
 use strict;
 #use warnings;
 use Data::GUID;
-use lib '/Users/davidbaxter/DATA';
+use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH;
 my $today_JD;
 
@@ -26,7 +26,7 @@ my $det_string;
 my $tempCounty;
 my $count_record;
 
-open(OUT, ">HSC_out.txt") || die;
+open(OUT, ">/JEPS-master/CCH/Loaders/HSC/HSC_out.txt") || die;
 
 
 #use this command in terminal to add the cultivated field with text N at beginning of each line
@@ -39,7 +39,7 @@ my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
 
 
-	my $file = 'HSC_Sep2017_MOD.txt';
+	my $file = '/JEPS-master/CCH/Loaders/HSC/HSC_Sep2017_MOD.txt';
 
 
  open (IN, "<", $file) or die $!;
@@ -355,10 +355,30 @@ else{
 #the name is only corrected herein and not global; allows name to pass through to CCH if name is ever published
 #the original determination is preserved in the $det_string process above so users can see what name is on original label
 
-#if (($id =~ m/^(SDSU10277|SDSU17281|SDSU17572|SDSU18628|SDSU19533|SDSU19612|SDSU20490|SDSU20529|SDSU20530|SDSU21209|SDSU21243|SDSU21767|SDSU5388|SDSU5406|SDSU5412|SDSU5418|SDSU5431)$/) && (length($TID{$name}) == 0)){ 
-#	$name =~ s/Cryptantha lepida/Cryptantha/;
-#	&log_change("Scientific name not published: Cryptantha lepida, modified to just genus:\t$name\t--\t$id\n");
-
+if (($id =~ m/^(HSC103150|HSC103168|HSC103169|HSC103269|HSC103724|HSC103726|HSC103727|HSC103728|HSC103729|HSC103730|HSC103731|HSC103732|HSC103755|HSC103758|HSC103759|HSC103760|HSC103761|HSC103762|HSC103765|HSC103776|HSC103778|HSC22032|HSC32302|HSC34255|HSC34559|HSC34682|HSC34837|HSC35096|HSC35208|HSC35252|HSC4193|HSC4194|HSC4195|HSC4196|HSC42299|HSC44400|HSC45617|HSC46986|HSC47570|HSC62966|HSC65903|HSC66144|HSC67250|HSC67330|HSC67332|HSC67384|HSC67544|HSC68117|HSC68813|HSC71205|HSC71665|HSC71702|HSC71746|HSC73460|HSC73819|HSC81879|HSC84049|HSC85432|HSC85907|HSC91342|HSC95383|HSC97675)$/) && (length($TID{$name}) == 0)){ 
+	$name =~ s/Silene nelsonii/Silene/;
+	&log_change("Scientific name not published: Silene nelsonii, modified to just genus:\t$name\t--\t$id\n");
+}
+if (($id =~ m/^HSC100654$/) && (length($TID{$name}) == 0)){ 
+	$name =~ s/Tellima bolanderi/Lithophragma bolanderi/;
+	&log_change("Scientific name not published: Tellima bolanderi, not a published combination, modified to basionym:\t$name\t--\t$id\n");
+}
+if (($id =~ m/^HSC100465$/) && (length($TID{$name}) == 0)){ 
+	$name =~ s/Echinocystis mara/Marah/;
+	&log_change("Scientific name not published: Tellima bolanderi, not a published combination, modified to basionym:\t$name\t--\t$id\n");
+}
+if (($id =~ m/^HSC100427$/) && (length($TID{$name}) == 0)){ 
+	$name =~ s/Cnicus carlinoides/Cirsium/;
+	&log_change("Scientific name not in CA: Cnicus carlinoides is a synonym of Cirsium clavatum, a species not found in CA, modified to genus:\t$name\t--\t$id\n");
+}
+if (($id =~ m/^(HSC43420|HSC43421)$/) && (length($TID{$name}) == 0)){ 
+	$name =~ s/Ceanothus X smithii/Ceanothus/;
+	&log_change("Scientific name not published: Ceanothus X smithii, not a published hybrid combination, modified to genus:\t$name\t--\t$id\n");
+}
+if (($id =~ m/^HSC100465$/) && (length($TID{$name}) == 0)){ 
+	$name =~ s/Aspidium nevadense/Nephrodium nevadense/;
+	&log_change("Scientific name illegitimate: Aspidium nevadense D.C. Eaton is an illegitimate name, modified to the legitimate basionym:\t$name\t--\t$id\n");
+}
 
 ## finish validating names
 
@@ -1500,7 +1520,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'HSC_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/HSC/HSC_out.txt';	#the file this script will act upon is called 'CATA.out'
 
 open(IN,"$file_in" ) || die;
 
