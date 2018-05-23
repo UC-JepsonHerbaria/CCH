@@ -1,38 +1,33 @@
 use Time::JulianDay;
 use Time::ParseDate;
-use lib '/Users/richardmoe/4_data/CDL';
+use lib '/Users/davidbaxter/DATA';
 use CCH;
 
 sub log {
 print ERR "logging: @_\n";
 }
 
-open(IN,"../CDL/riv_non_vasc") || die;
+open(IN,"/Users/davidbaxter/DATA/mosses") || die;
 while(<IN>){
         chomp;
         $exclude{$_}++;
 }
 
 
-open(OUT, ">new_HUH") || die;
-open(IN,"../CDL/alter_names") || warn "no alternative name file\n";
+open(OUT, ">HUH.out") || die;
+open(IN,"/Users/davidbaxter/DATA/alter_names") || warn "no alternative name file\n";
 while(<IN>){
 	chomp;
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
 	$alter{$riv}=$smasch;
 }
-open(IN,"/Users/richardmoe/4_data/taxon_ids/smasch_taxon_ids.txt") || die;
+open(IN,"/Users/davidbaxter/DATA/smasch_taxon_ids.txt") || die;
 while(<IN>){
 	chomp;
 ($code,$name,@rest)=split(/\t/);
 	$taxon{$name}++;
 }
-#open(IN,"/users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
-#while(<IN>){
-	#chomp;
-	#($id,$name)=split(/\t/);
-	#$taxon{$name}=$id;
-#}
+
 open(ERR,">HUH_error");
 
 %seen=();
@@ -75,9 +70,12 @@ $elevation="";
 	($Herbarium, $AccessionNo, $name,  $Collectors, $DATE, $CollNumber, $County, $Locality, $Habitat, $Description, $Latitude1, $Longitude1, $datum, $LatLong_Method, $Notes,$elev_min,$elev_max, $elev_units, $type_status, $determiner, $det_date, $verbatim_date)=
 	($collectioncode, $catalognumbernumeric, $scientificname, $collector, $eventdate, $collectornumber, $county, "$municipality $locality", $habitat, $datageneralizations, $decimallatitude, $decimallongitude, $geodeticdatum, "", "", $minimumelevationmeters, $maximumelevationmeters, "m", $typestatus, $identifiedby, $dateidentified, $eventdate);
 
-foreach($name){
-s/Rhus integrifolia \(Nuttall\) Bentham & Hooker f. ex W. H. Brewer & S. Watson/Rhus integrifolia/;
-}
+#foreach($name){
+#s/Rhus integrifolia \(Nuttall\) Bentham & Hooker f. ex W. H. Brewer & S. Watson/Rhus integrifolia/;
+#s/Hierochloë occidentalis Buckley/Hierochloe occidentalis/;
+#s/Hierochloë macrophylla Thurber ex Bolander/Hierochloe macrophylla/;
+#}
+
 			$name=ucfirst($name);
 	$ACCESSNO="$Herbarium$AccessionNo$AccNoSuffix";
 	if($seen{$ACCESSNO}++){
@@ -119,7 +117,7 @@ $Collectors=~s/, Jr/ Jr/g;
 		elsif ($County=~/N\/?A/i){
 			#print "$ACCESSNO $County\n";
 		}
-		unless($County=~/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|unknown)/i){
+		unless($County=~/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown)/i){
 			unless ($County=~/^ *$/){
 			&log("County set to unknown: $ACCESSNO $County");
 			}
@@ -131,10 +129,12 @@ $Collectors=~s/, Jr/ Jr/g;
 				next;
 			}
 			($genus=$name)=~s/ .*//;
-			if($exclude{$genus}){
-				&skip("Non-vascular plant: $ACCESSNO", @fields);
-				next;
-			}
+			unless ($name=~/Cryptopleura californica/){ # okay to kluge since HUH is probably the only one using this name
+				if($exclude{$genus}){
+					&skip("Non-vascular plant: $ACCESSNO", @fields);
+					next;
+				}
+			}	
 			$name=ucfirst($name);
 $name=~s/st\.-nicolai/sancti-nicolai/ && do{
 				&log ("Spelling altered to sancti-nicolai: st.-nicolai");
