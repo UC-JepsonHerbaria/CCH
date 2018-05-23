@@ -1,101 +1,39 @@
-#0 accn #	herbarium #family
-#genus
-#species
-#subtype
-#subtaxon
-#collector
-#coll. prefix
-#coll #
-#coll. suffix
-#assoc colls
-#day
-#month
-#year
-#type
-#type of type
-#determiner
-#det. Day
-#det. Month
-#det. Year
-#fr/ft
-#coll. source
-#notes
-#lat deg
-#lat min
-#lat sec
-#n/s
-#lat accuracy
-#long deg
-#long min
-#long sec
-#w/e
-#long accuracy
-#country
-#state
-#county
-#primary physiographic area
-#topo quad
-#location
-#utm zone
-#utme
-#utmn
-#utm accuracy
-#meters
-#meters top
-#feet
-#feet top
-#vegetation
-#township
-#range
-#section
-#quarter
-#georef determination
-open(IN,"../collectors_id") || die;
-#open(IN,"../all_collectors_2005") || die;
+#use BerkeleyDB;
+#tie %f_contents, "BerkeleyDB::Hash",
+                #-Filename => "/Users/rlmoe/CDL_buffer/buffer/CDL_DBM",
+                #-Flags => DB_CREATE
+        #or die "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
+#
+##0 accn	herbarium	family	genus	species	subtype	subtaxon	collector	coll._____prefix	coll_no	coll. suffix	assoc___________colls	day	month	year	type	type of type	determiner	detDay	det. Month	det. Year	fr/ft	coll. source	notes	lat deg	lat min	lat sec	n/s	lat accuracy	long deg	long min	long sec	w/e	long accuracy	country	state	county	primary physiographic area	topo quad	location	utm zone	utme	utmn	utm accuracy	meters	meters top	feet	feet top	vegetation	township	range	section	quarter	georef determination
+##(acc	herbarium	Family	Genus	species	subtype	subtaxon	collector	collector_prefix	Coll_no	coll_Suffix	associated_collectors	day	month	year	Type	type_of_type	determiner	det_Day	det_month	det_year	fr_ft	coll_source	notes	lat_deg	lat_min	lat_sec	n_s	lat_accuuracy	long_deg	long_min	long_sec	w_e	long_accuracy	country	state	County	primary_physiograpic_area	Topo_quad	location	utm_zone	utme	utmn	utm_accuracy	meters	meter_top	feet	feet_top	vegetation	township	range	section	quarter	geref_determination)=split(/\t/,_,100);
+#
+open(IN,"/Users/rlmoe/CDL_buffer/buffer/CDL/IRVC_new.out") || die;
+$/="";
+while(<IN>){
+if(m/Accession_id: (.*)/){
+$store{$1}=$_;
+}
+}
+$/="\n";
+open(IN,"/Users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
 while(<IN>){
 chomp;
-s/\t.*//;
-$coll_comm{$_}++;
+($code,$name)=split(/\t/);
+$TNOAN{$code}=$name;
+$taxon{$name}++;
 }
-open(IN,"irv_alter_coll") || die;
-while(<IN>){
-	chomp;
-s/\cJ//;
-s/\cM//;
-	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-	$alter_coll{$rsa}=$smasch;
-}
-open(IN,"../tnoan.out") || die;
-while(<IN>){
-chomp;
-s/^.*\t//;
-$taxon{$_}++;
-}
-open(IN,"../riv_non_vasc") || die;
+open(IN,"../../CDL/riv_non_vasc") || die;
 while(<IN>){
 	chomp;
 	$exclude{$_}++;
 }
-open(IN,"../riv_alter_names") || die;
+open(IN,"../../CDL/alter_names") || die;
 while(<IN>){
 	chomp;
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
 	$alter{$riv}=$smasch;
 }
-open(IN,"alter_irvine") || die;
-@alters=<IN>;
-chomp(@alters);
-foreach $i (0 .. $#alters){
-	unless($i % 2){
-		if($alters[$i]=~s/ \d+//){
-			$alter{$alters[$i]}=$alters[$i+1];
-		}
-		else{
-			die "misconfig: $i $alters[$i]";
-		}
-	}
-}
-open(TABFILE,">IRVC.out") || die;
+open(TABFILE,">parse_irvine.out") || die;
 open(OUT,">irvine_problems") || die;
 $date=localtime();
 print OUT <<EOP;
@@ -107,22 +45,15 @@ Genera to be excluded from riv_non_vasc
 
 EOP
 
-#open(IN,"parse_irvine.in") || die;
-open(IN,"irvc2ucfeb2007.tab") || die;
+open(IN,"IRVC.tab") || die;
 while(<IN>){
-$Label_ID_no= $collector= $Coll_no_prefix= $Coll_no= $Coll_no_suffix= $year= $month= $day= $other_coll= $family= $genus= $species= $subtype= $subtaxon= $hybrid_category= $Snd_genus= $Snd_species= $Snd_subtype= $Snd_subtaxon= $determiner= $det_year= $det_mo= $det_day= $country= $state= $county_mpio= $physiographic_region= $topo_quad= $locality= $lat_degrees= $lat_minutes= $lat_seconds= $N_or_S= $long_degrees= $long_minutes= $long_seconds= $E_or_W= $Township= $Range= $section= $Fraction_of_section= $Snd_township= $Snd_Range= $Snd_section= $Snd_Fraction_of_section= $something= $UTM_grid_zone= $UTM_grid_cell= $UTM_E= $UTM_N= $name_of_UTM_cell= $low_range_m= $top_range_m= $low_range_f= $top_range_f= $ecol_notes= $Plant_description="";
+$vegetation=$elevation=$Label_ID_no= $collector= $Coll_no_prefix= $Coll_no= $Coll_no_suffix= $year= $month= $day= $other_coll= $family= $genus= $species= $subtype= $subtaxon= $hybrid_category= $Snd_genus= $Snd_species= $Snd_subtype= $Snd_subtaxon= $determiner= $det_year= $det_mo= $det_day= $country= $state= $county_mpio= $physiographic_region= $topo_quad= $locality= $lat_degrees= $lat_minutes= $lat_seconds= $N_or_S= $long_degrees= $long_minutes= $long_seconds= $E_or_W= $Township= $Range= $section= $Fraction_of_section= $Snd_township= $Snd_Range= $Snd_section= $Snd_Fraction_of_section= $something= $UTM_grid_zone= $UTM_grid_cell= $UTM_E= $UTM_N= $name_of_UTM_cell= $low_range_m= $top_range_m= $low_range_f= $top_range_f= $ecol_notes= $Plant_description="";
 
 	++$count;
 	s/\cK//g;
 	chomp;
 	$line_store=$_;
-	@fields=split(/\t/);
-	#splice(@fields,1,1);
-	#foreach $i (0 .. $#fields){
-	#print "$i: $fields[$i]\n" unless $seenfield{$fields[$i]}++;
-	#}
-	#next;
-	#$fields[0]=~s/UCI-/UCI/;
+	@fields=split(/\t/, $_,100);
 	if($fields[0]=~/^ *$/){
 		++$skipped{one};
 		print OUT<<EOP;
@@ -151,12 +82,14 @@ EOP
 		next;
 	}
 
-	unless($fields[16]=~/^(CA|Calif)/){
+$Label_ID_no="IRVC$fields[0]";
+
+	unless($fields[35]=~/^(CA|Calif)/){
 		++$skipped{one};
-		warn "Non-California record: $fields[0] $fields[16] $fields[15]<\n";
+		warn "Non-California record: $fields[0] $fields[35] $fields[36]<\n";
 		print OUT<<EOP;
 
-Non-California record: $Label_ID_no $fields[0] $fields[16] $fields[17]
+Non-California record: $Label_ID_no $fields[0] $fields[35] $fields[36]
 EOP
 		next;
 	}
@@ -169,48 +102,41 @@ EOP
 		s/ *$//;
 		s/^ *//;
 		s/^"(.*)"$/$1/;
-		if(length($_)>254){
-			$fields[$i]=substr($_, 0, 249) . " ...";
-			#print "$fields[$i]\n";
-		}
-		else{
-			$fields[$i]=$_;
-		}
 	}
 
 	################collector numbers
-	$fields[8]=~s/ *$//;
-	$fields[8]=~s/^ *//;
-	if($fields[8]=~s/-$//){
-		$fields[9]="-$fields[9]";
+	$fields[9]=~s/ *$//;
+	$fields[9]=~s/^ *//;
+	if($fields[9]=~s/-$//){
+		$fields[10]="-$fields[10]";
 	}
-	if($fields[8]=~s/^-//){
-		$fields[7].="-";
+	if($fields[9]=~s/^-//){
+		$fields[8].="-";
 	}
-	if($fields[8]=~s/^([0-9]+)(-[0-9]+)$/$2/){
-		$fields[7].=$1;
+	if($fields[9]=~s/^([0-10]+)(-[0-10]+)$/$2/){
+		$fields[8].=$1;
 	}
-	if($fields[8]=~s/^([0-9]+)(\.[0-9]+)$/$1/){
-		$fields[9]=$2 . $fields[9];
+	if($fields[9]=~s/^([0-10]+)(\.[0-10]+)$/$1/){
+		$fields[10]=$2 . $fields[10];
 	}
-	if($fields[8]=~s/^([0-9]+)([A-Za-z]+)$/$1/){
-		$fields[9]=$2 . $fields[9];
+	if($fields[9]=~s/^([0-10]+)([A-Za-z]+)$/$1/){
+		$fields[10]=$2 . $fields[10];
 	}
-	if($fields[8]=~s/^([0-9]+)([^0-9])$/$1/){
-		$fields[9]=$2 . $fields[9];
+	if($fields[9]=~s/^([0-10]+)([^0-10])$/$1/){
+		$fields[10]=$2 . $fields[10];
 	}
-	if($fields[8]=~s/^(S\.N\.|s\.n\.)$//){
-		$fields[9]=$1 . $fields[9];
+	if($fields[9]=~s/^(S\.N\.|s\.n\.)$//){
+		$fields[10]=$1 . $fields[10];
 	}
-	if($fields[8]=~s/^([0-9]+-)([0-9]+)([A-Za-z]+)$/$2/){
-		$fields[9]=$3 . $fields[9];
-		$fields[7].=$1;
+	if($fields[9]=~s/^([0-10]+-)([0-10]+)([A-Za-z]+)$/$2/){
+		$fields[10]=$3 . $fields[10];
+		$fields[8].=$1;
 	}
-	if($fields[8]=~m/[^\d]/){
-	$fields[8]=~s/(.*)//;
-		$fields[9]=$1 . $fields[9];
+	if($fields[9]=~m/[^\d]/){
+	$fields[9]=~s/(.*)//;
+		$fields[10]=$1 . $fields[10];
 	}
-		foreach($fields[17]){
+		foreach($fields[36]){
 			s/\[//;
 			s/\]//;
 			s/  / /g;
@@ -245,7 +171,7 @@ EOP
 			s/Tulrae/Tulare/;
 			s/bernardino/Bernardino/;
 		}
-		$county{$fields[17]}++;
+		$county{$fields[36]}++;
 		foreach($fields[12]){
 			s/August/Aug/;
 			s/July/Jul/;
@@ -253,11 +179,13 @@ EOP
 			s/\.//;
 		}
 	
-		#$date{"$fields[6] $fields[7] $fields[5]"}++;
-		#$taxon{"$fields[10] $fields[11] $fields[12] $fields[13]"}++;
 $combined_collectors=$UTM_accuracy=$lat_accuracy=$long_accuracy=$type=$type_of_type=$assoc= $elevation= $name=$lat=$long="";
+#(acc	herbarium	Family	Genus	species	subtype	subtaxon	collector	collector_prefix	Coll_no	coll_Suffix	associated_collectors	day	month	year	Type	type_of_type	determiner	det_Day	det_month	det_year
+#fr_ft	coll_source	notes	lat_deg	lat_min	lat_sec	n_s	lat_accuuracy	long_deg	long_min	long_sec	w_e	long_accuracy	country	state	County	primary_physiograpic_area	Topo_quad	location	utm_zone
+#utme	utmn	utm_accuracy	meters	meter_top	feet	feet_top	vegetation	township	range	section	quarter	geref_determination)=split(/\t/,_,100);
 (
-$Label_ID_no,
+$null,
+$herbarium,
 $family,
 $genus,
 $species,
@@ -268,15 +196,18 @@ $Coll_no_prefix,
 $Coll_no,
 $Coll_no_suffix,
 $other_coll,
-$year,
-$month,
 $day,
-$Plant_description,
-$country,
-$state,
-$county_mpio,
-$locality,
-$physiographic_region,
+$month,
+$year,
+$type,
+$type_of_type,
+$determiner,
+$det_day,
+$det_month,
+$det_year,
+$phenology,
+$coll_source,
+$ecol_notes,
 $lat_degrees,
 $lat_minutes,
 $lat_seconds,
@@ -287,19 +218,37 @@ $long_minutes,
 $long_seconds,
 $E_or_W,
 $long_accuracy,
-$low_range_f,
-$top_range_f,
+$country,
+$state,
+$county_mpio,
+$physiographic_region,
+$Topo_quad,
+$locality,
+$utm_zone,
+$utme,
+$utmn,
+$utm_accuracy,
 $low_range_m,
 $top_range_m,
-$ecol_notes,
+$low_range_f,
+$top_range_f,
+$vegetation,
+$township,
+$range,
+$section,
+$quarter,
+$georef_det
 ) = @fields;
+@raw_fields=@fields;
+$raw_list=join("\n",@raw_fields);
+$raw_list=~s/\n+/\n/g;
 $collector=~s/"$//;
 $collector=~s/^"//;
 $locality=~s/"$//;
 $locality=~s/^"//;
 $other_coll=~s/"$//;
 $other_coll=~s/^"//;
-$Label_ID_no=~s/^/IRVC/;
+#$Label_ID_no=~s/^/IRVC/;
 $name=$genus ." " .  $species . " ".  $subtype . " ".  $subtaxon;
 $name=ucfirst(lc($name));
 $name=~s/'//g;
@@ -467,37 +416,42 @@ if(length($other_coll) > 2){
 	($assig=$coll_comm)=~s/,.*//;
 	$collector{$assig}=$line_store;
 }
-if($low_range_m || ($low_range_m eq 0)){
+if($low_range_m =~/\d/){
 	if($top_range_m){
 		$elevation="$low_range_m - $top_range_m m";
-if($low_range_m - $top_range_m > 0){
-	print OUT <<EOP;
+		if($low_range_m - $top_range_m > 0){
+			print OUT <<EOP;
 $Label_ID_no elevation range problem: LF: $low_range_m, TF: $top_range_m,
 EOP
-}
+$elevation="";
+		}
 	}
 	else{
 		$elevation="$low_range_m m";
 	}
-	}
-elsif($low_range_f || ($low_range_f eq 0)){
+}
+elsif($low_range_f =~/\d/){
 	if($top_range_f){
 		$elevation="$low_range_f - $top_range_f f";
-if($low_range_f - $top_range_f > 0){
-	print OUT <<EOP;
+		if($low_range_f - $top_range_f > 0){
+					print OUT <<EOP;
 $Label_ID_no elevation range problem LF: $low_range_f, TF: $top_range_f, 
 EOP
-}
+$elevation="";
+		}
 	}
 	else{
 		$elevation="$low_range_f f";
 	}
-	}
-elsif($top_range_m || $top_range_m==0){
+}
+elsif($top_range_m =~/\d/){
 		$elevation="$top_range_m m";
 }
-elsif($top_range_f ||$top_range_f==0){
+elsif($top_range_f =~/\d/){
 		$elevation="$top_range_f f";
+}
+else{
+$elevation="";
 }
 
 if($ecol_notes=~s/[;.] +([Aa]ssoc.*)//){
@@ -571,9 +525,16 @@ EOP
 		$decimal_lat="";
 }
 }
-$Unified_TRS="$Township$Range$section";
+$Unified_TRS="$township$range$section";
 $country="USA" if $country=~/U\.?S\.?/;
+#IRVC35 50163	R. H. Whittaker, W. A. Niering	SJ	6		2438177	2438177	May 27 1963	Riverside	1250 - 1265 m	  Hemet Hwy, between Hemet and Mtn Center. Peninsular Ranges, San Jacinto Mountains							
+if($store{$Label_ID_no}){
+@CDL_fields=split(/\t/,$f_contents{$Label_ID_no}, 100);
 print TABFILE <<EOP;
+Raw
+$raw_list
+
+New
 Date: $month $day $year
 CNUM_prefix: ${Coll_no_prefix}
 CNUM: ${Coll_no}
@@ -591,17 +552,23 @@ USGS_Quadrangle: $topo_quad
 Elevation: $elevation
 Collector: $collector
 Other_coll: $other_coll
-Combined_coll: $combined_collectors
-Habitat: $Plant_description
-Associated_with: $assoc
+Combined_collector: $combined_collectors
+Habitat: $vegetation
+Associated_species: $assoc
 Notes: $ecol_notes
 Latitude: $lat
 Longitude: $long
 Decimal_latitude: $decimal_lat
 Decimal_longitude: $decimal_long
+Datum: $datum
+
+from CCH
+$store{$Label_ID_no}
+==================================================================
 
 EOP
 ++$included;
+}
 }
 foreach(sort(keys(%collector))){
 #print "$_\n" if $coll_comm{$_};
@@ -619,5 +586,5 @@ foreach(sort(keys(%name))){
 
 print <<EOP;
 INCL: $included
-EXCL: $skipped{one}
+EXCL: $skipped{one};
 EOP
