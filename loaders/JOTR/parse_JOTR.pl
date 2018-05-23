@@ -1,4 +1,19 @@
-use lib '/Users/rlmoe/data/CDL';
+#######Changes I did to the input file in vi, which would probably be better to do in-script
+#######Extra steps were taken since JOTR excel file contained hundreds of within-cell carriage returns
+#Add column at the end of xlsx file containing a unique string (e.g. "Unique String~~~"
+#Save xlsx to txt
+#open file in vi
+#%s/[Ctrl+v][Ctrl+m]//g
+#%s/\tUnique String\~\~\~/[Ctrl+v][Ctrl+m]/g
+####As an alternative to the above, I tried exporting from Excel to UTF-16, but the parser didn't seem to like that
+####Should double check
+
+#######Excel adds double-quotes around comma-containing fields, and turns double quotes into double-double quotes, which is annoying
+#%s/""/''''/g
+#%s/"//g
+#%s/''''/"/g
+
+use lib '/Users/davidbaxter/DATA';
 use CCH;
 $today=`date "+%Y-%m-%d"`;
 chomp($today);
@@ -8,15 +23,15 @@ chomp($today);
 $m_to_f="3.2808";
 		use Geo::Coordinates::UTM;
 open(COORDS,">JOTR_coord_issues") || die;
-open(IN,"../CDL/riv_non_vasc") || die;
+open(IN,"../../mosses") || die;
 while(<IN>){
 	chomp;
 	$exclude{$_}++;
 }
 
 
-open(ERR,">JOTR.err") || die;
-open(IN,"../CDL/alter_names") || die;
+open(ERR,">JOTR_err.out") || die;
+open(IN,"../../alter_names") || die;
 while(<IN>){
 	chomp;
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
@@ -29,7 +44,7 @@ Record: while(<>){
 	$line=$_;
 	chomp;
 	@fields= split(/\t/,$_,100);
-	print "$. $#fields $_\n" unless $#fields==37;
+	print "$. $#fields $_\n" unless $#fields==33;
 	#print "$#fields\n";
 #next;
 	foreach $i (0 .. $#fields){
@@ -37,7 +52,48 @@ Record: while(<>){
 		$fields[$i]=~s/[ "]*$//;
 		#print "$i $fields[$i]\n";
 	}
-	($AnnotationNotes,	$Assoc_Spec,	$Associated_collectors,	$CCH_current_det,	$CCH_Specimen_ID,	$Collection_no,	$Collection_Date,	$Collector,	$County,	$Datum,	$Description,	$Elev,	$Family,	$Genus,	$Habitat,	$Ident_Date,	$Identified_By,	$Latitude,	$Latitude2,	$Latitude3,	$Locality,	$Longitude,	$Longitude2,	$Longitude3,	$Park,	$Quarter,	$R,	$S,	$Species,	$Specimen_Notes,	$State,	$Subtaxon,	$subtype,	$T,	$Topo_Quad,	$Units,	$UTM_E,	$UTM_N,	$UTM_Zone)=@fields;
+# They removed the atomic name ranks (i.e. $Genus, $Species, $subtype, $Subtaxon)
+# So those fields are commented out of the fields list
+# and the name is now parsed out of CCH Determination ($CCH_current_det)
+	($AnnotationNotes,
+	$Assoc_Spec,
+	$Associated_collectors,
+	$CCH_current_det,
+	$Habitat, #They renamed the column "CCH Habitat", so it moved alphabetical order
+	$Locality, #They renamed the column "CCH Locality", so it moved alphabetical order
+	$CCH_Specimen_ID,
+	$Collection_no,
+	$Collection_Date,
+	$Collector,
+	$County,
+	$Datum,
+#	$Description, #This was concatenated into "Habitat" on the JOTR side
+	$Elev,
+	$Family,
+#	$Genus, #They removed the genus column, perhaps because it appeared redundant. Must change code to create 
+#	$Ident_Date,	#These are not present. Must parse values out of CCH_current_det
+#	$Identified_By,	#These are not present. Must parse values out of CCH_current_det
+	$Latitude,
+	$Latitude2,
+	$Latitude3,
+	$Longitude,
+	$Longitude2,
+	$Longitude3,
+	$Park,
+	$Quarter,
+	$R,
+	$S,
+#	$Species,
+#	$Specimen_Notes, #This was concatenated into "Habitat" on the JOTR side
+	$State,
+#	$Subtaxon,
+#	$subtype,
+	$T,
+	$Topo_Quad,
+	$Units,	#assumed to be elevation units
+	$UTM_E,
+	$UTM_N,
+	$UTM_Zone)=@fields;
 	if($T){
 		$TRS="$T$R$S";
 		if($Quarter){
@@ -48,13 +104,35 @@ Record: while(<>){
 		$TRS="";
 	}
 
-	$decimal_lat=  $Latitude +	$Latitude2/60 +	$Latitude3/3600;
-	$decimal_long=	$Longitude +	$Longitude2/60 +	$Longitude/3600;
-	$decimal_long="-$decimal_long" if $decimal_long > 0;
 
 
 
-	$name="$Genus $Species $subtype $Subtaxon";
+#	$name="$Genus $Species $subtype $Subtaxon";
+if ($CCH_current_det =~ /(.*); (.*)/){
+	$name = $1;
+	$determination = $2;
+	}
+
+if ($determination =~ /Det\. by: (.*)/){
+	$anno_string = $1;
+	}
+else {
+	$anno_string = $2;
+	}
+
+######This is how The determination line was handled before
+######Now it is not necessary, since $CCH_current_det is now filled out for all records 
+#if($CCH_current_det=~m/(^[A-Z][a-z. -]+) +([^\d]+) +(.*)/){
+#$anno_string="$1; $2; $3";
+#$anno_string=~s/ *;/;/g;
+# #If there is not a date/determiner in the CCH Current Det field, it means that it is assumed to be the collector and coll date
+#}
+#else{
+#$anno_string= "$name; $Collector; $Collection_Date";
+#}
+
+
+	
 	$name=ucfirst(lc($name));
 	foreach($name){
 		s/"//g;
@@ -72,6 +150,7 @@ Record: while(<>){
 		s/ var. $//;
 		s/ sp\..*//;
 		s/ sp .*//;
+		s/ sp$//;
 		s/ [Uu]ndet.*//;
 		s/ x / X /;
 		s/ × / X /;
@@ -90,11 +169,12 @@ Record: while(<>){
 	     }
 
 
-	if($exclude{$genus}){
-		&log("Excluded, not a vascular plant: $name");
-		++$skipped{one};
-		next Record;
-	}
+
+#	if($exclude{$genus}){
+#		&log("Excluded, not a vascular plant: $name");
+#		++$skipped{one};
+#		next Record;
+#	}
 
 	%infra=( 'var.','subsp.','subsp.','var.');
 
@@ -139,14 +219,6 @@ Record: while(<>){
 	$name{$name}++;
 
 
-if($CCH_current_det=~m/(^[A-Z][a-z. -]+) +([^\d]+) +(.*)/){
-$anno_string="$1; $2; $3";
-$anno_string=~s/ *;/;/g;
- #If there is not a date/determiner in the CCH Current Det field, it means that it is assumed to be the collector and coll date
-}
-else{
-$anno_string= "$name; $Collector; $Collection_Date";
-}
 
 
 	if($Collector=~s/ (AND|&|and) (.*)//){
@@ -173,13 +245,13 @@ $anno_string= "$name; $Collector; $Collection_Date";
 		$ellipsoid=23;
 		if($zone=~/9|10|11|12/ && $easting=~/^\d\d\d\d\d\d/ && $northing=~/^\d\d\d\d\d/){
 			($decimal_lat,$decimal_long)=utm_to_latlon($ellipsoid,$zone,$easting,$northing);
-			print COORDS "$Label_ID_no decimal derived from UTM $decimal_lat, $decimal_long\n";
+			print COORDS "$CCH_Specimen_ID decimal derived from UTM $decimal_lat, $decimal_long\n";
 $extent="10";
 $extent_units="m";
 $LatLong_Method="GPS (converted from UTM)";
 		}
 		else{
-			print COORDS "$Label_ID_no UTM problem $zone $easting $northing\n";
+			print COORDS "$CCH_Specimen_ID UTM problem $zone $easting $northing\n";
 $extent="";
 $extent_units="";
 $LatLong_Method="";
@@ -199,7 +271,7 @@ $LatLong_Method="";
 	}
 	if($decimal_lat){
 		if ($decimal_long > 0){
-			print ERR "$decimal_long made -$decimal_long $Label_ID_no\n";
+			print ERR "$decimal_long made -$decimal_long $CCH_Specimen_ID\n";
 		$decimal_long="-$decimal_long";
 		}
 	if($decimal_lat > 42.1 || $decimal_lat < 32.5 || $decimal_long > -114 || $decimal_long < -124.5){
@@ -215,7 +287,7 @@ $LatLong_Method="";
 
 $County="Unknown" unless $County;
 		foreach($County){
-		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)$/){
+		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown)$/){
 			$v_county= &verify_co($_);
 			if($v_county=~/SKIP/){
 				&log("NON-CA county? $_");
