@@ -505,11 +505,72 @@ $assoc=$1;
 }
 
 
+$long_minutes=~ s/['`]//g;
+$long_minutes=~ s/^[^\d](\d\d)/$1/g;
+$lat_minutes=~ s/['`]//g;
+$lat_degrees=~ s/(\d\d)[^\d]/$1/g;
+$long_degrees=~ s/(\d\d\d)[^\d]/$1/g;
+if($long_minutes=~ s/(\d*)\.(\d)\d?/$1/){
+	$long_minutes="00" if $long_minutes eq "";
+$minute_decimal=$2;
+$long_seconds= int(($minute_decimal * 60)/10);
+}
+if($lat_minutes=~ s/(\d*)\.(\d)\d?/$1/){
+	$lat_minutes="00" if $lat_minutes eq "";
+$minute_decimal=$2;
+$lat_seconds= int(($minute_decimal * 60)/10);
+}
 
 
+($lat= "${lat_degrees} ${lat_minutes} ${lat_seconds}$N_or_S")=~s/ ([EWNS])/$1/;
+($long= "${long_degrees} ${long_minutes} ${long_seconds}$E_or_W")=~s/ ([EWNS])/$1/;
+$lat=~s/^ *([EWNS])//;
+$long=~s/^ *([EWNS])//;
+$lat=~s/^ *$//;
+$long=~s/^ *$//;
 
+if($long){
+	unless ($long=~/^\d\d\d \d\d? \d\d?W/ || $long=~/^\d\d\d \d\d?W/ || $long=~/^\d\d\d \d\d? \d\d?\.\dW/){
+		warn "$Label_ID_no: Longitude $long config problem\n";
+		print OUT <<EOP;
 
+Longitude $decimal_long config problem: $Label_ID_no, nulled
+EOP
+	$long="";$lat="";
+	}
+}
+if($lat){
+	unless ($lat=~/^\d\d \d\d? \d\d?N/ || $lat=~/^\d\d \d\d?N/ || $lat=~/^\d\d \d\d? \d\d?\.\dN/){
+	warn "$Label_ID_no: Latitude $lat config problem\n";
+		print OUT <<EOP;
 
+Latitude $decimal_lat config problem: $Label_ID_no, nulled
+EOP
+	$long="";$lat="";
+	}
+}
+if($decimal_lat){
+	unless ($decimal_lat=~/^\d+[.0-9]*$/){
+		warn "$Label_ID_no: Decimal latitude $decimal_lat config problem\n";
+		print OUT <<EOP;
+
+Decimal latitude $decimal_lat config problem: $Label_ID_no, nulled
+EOP
+		$decimal_long="";
+		$decimal_lat="";
+	}
+}
+if($decimal_long=~/[^ ]/){
+	unless ($decimal_long=~/^-\d\d\d[.0-9]*$/){
+		warn "$Label_ID_no: Decimal longitude $decimal_long config problem\n";
+	print OUT <<EOP;
+
+Decimal longitude $decimal_long config problem: $Label_ID_no, nulled
+EOP
+		$decimal_long="";
+		$decimal_lat="";
+}
+}
 $Unified_TRS="$Township$Range$section";
 $country="USA" if $country=~/U\.?S\.?/;
 print TABFILE <<EOP;
