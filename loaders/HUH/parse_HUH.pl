@@ -3,7 +3,7 @@ use Geo::Coordinates::UTM;
 use strict;
 #use warnings;
 use Data::GUID;
-use lib '/Users/davidbaxter/DATA';
+use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH;
 my $today_JD;
 
@@ -14,7 +14,7 @@ $today_JD = &get_today_julian_day;
 
 my %month_hash = &month_hash;
 
-open(OUT,">HUH_out.txt") || die;
+open(OUT,">/JEPS-master/CCH/Loaders/HUH/HUH_out.txt") || die;
 
 my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
@@ -27,7 +27,7 @@ my $seen;
 my %seen;
 my $det_string;
 
-my $file = 'huh_apr2017.txt';
+my $file = '/JEPS-master/CCH/Loaders/HUH/huh_apr2017.txt';
 
 open(IN,$file) || die;	#open the file, die.
 Record: while(<IN>){	#while in the file, (Records...)
@@ -1647,7 +1647,8 @@ foreach ($reproductiveStatus){
 	}
 
 
-
+++$count_record;
+warn "$count_record\n" unless $count_record % 10000;
 
 
 
@@ -1714,7 +1715,7 @@ my %match;
 my %seen;
 %seen=();
 
-    my $file_out = 'HUH_out.txt';	#the file this script will act upon is called 'HUH_out'
+    my $file_out = '/JEPS-master/CCH/Loaders/HUH/HUH_out.txt';	#the file this script will act upon is called 'HUH_out'
 open(IN,"$file_out" ) || die;
 
 while(<IN>){
