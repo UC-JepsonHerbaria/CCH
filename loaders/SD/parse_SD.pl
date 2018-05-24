@@ -1,13 +1,16 @@
 #parse_sd.pl
 open(OUT, ">SD_out_new") || die;
-open(IN,"SD_non_vasc") || die;
+open(IN,"/Users/richardmoe/4_CDL_buffer/smasch/mosses") || die;
 while(<IN>){
 	chomp;
-	$ignore_name{$_}++;
+	if(m/\cM/){
+	die;
+	}
+	$exclude{$_}++;
 }
-foreach(sort(keys(%ignore_name))){
-print " ignore $_\n";
-}
+#foreach(sort(keys(%exclude))){
+#print " ignore $_\n";
+#}
 #open(IN,"SD_alter_coll") || die;
 #while(<IN>){
 	#chomp;
@@ -16,12 +19,12 @@ print " ignore $_\n";
 	#next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
 	#$alter_coll{$rsa}=$smasch;
 #}
-open(IN,"SD_alter_name") || die "SD alter names wont open\n";
-while(<IN>){
-	chomp;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
+#open(IN,"SD_alter_name") || die "SD alter names wont open\n";
+#while(<IN>){
+	#chomp;
+	#next unless ($riv,$smasch)=m/(.*)\t(.*)/;
+	#$alter{$riv}=$smasch;
+#}
 open(IN,"../CDL/alter_names") || die "CDL alter names wont open\n";
 while(<IN>){
 	chomp;
@@ -34,36 +37,71 @@ while(<IN>){
 	($name,$id)=split(/\t/);
 	$COLL{$name}=$id;
 }
-open(IN,"/Users/jfp04/CDL_buffer/buffer/tnoan.out") || die "tnoan wont open\n";
-while(<IN>){
-	chomp;
-	($id,$name)=split(/\t/);
-	$taxon{$name}=$id;
-}
+#open(IN,"/Users/rlmoe/CDL_buffer/buffer/tnoan.out") || die "tnoan wont open\n";
+#while(<IN>){
+	#chomp;
+	#($id,$name)=split(/\t/);
+	#$taxon{$name}=$id;
+#}
+$time= -C "/Users/rlmoe/data/taxon_ids/smasch_taxon_ids.txt";
+print "TNOAN file ", int($time)," days old\n";
+	open(IN,"/Users/richardmoe/4_data/taxon_ids/smasch_taxon_ids.txt") || die;
+	while(<IN>){
+		chomp;
+next if m/^#/;
+		($id,$name,@residue)=split(/\t/);
+next if $id==115;
+next if $id==12460;
+next if $id==134;
+next if $id==3746;
+next if $id==173;
+next if $id==26133;
+next if $id==26165;
+next if $id==34925;
+next if $id==48758;
+next if $id==50604;
+next if $id==51994;
+next if $id==62854;
+next if $id==58558;
+next if $id==76428;
+next if $id==77465;
+next if $id==77466;
+next if $id==77474;
+next if $id==77475;
+next if $id==77476;
+next if $id==77477;
+next if $id==78287;
+next if $id==78297;
+next if $id==78431;
+next if $id==78990;
+		$taxon{$name}=$id;
+	}
 open(ERR,">SD_error");
-    use Text::CSV;
+    #use Text::CSV;
     #my $file = 'UC_Consortium.txt';
-    my $file = 'data_in/test';
+    my $file = 'July_SD_got';
+    #$my $file = 'data_in/test';
     #my $file = 'data_in/SD.in';
     #my $csv = Text::CSV->new();
-	my $csv = Text::CSV->new({binary => 1});
+    #my $file="SD_2010_in";
+    #my $file="Oct_SD.tab";
+	#my $csv = Text::CSV->new({binary => 1});
     open (CSV, "<", $file) or die $!;
 #$/="\015\012";
 
     while (<CSV>) {
 		chomp;
 		s/\cK/ /g;
-		s/\t/ /g;
         if ($. == 1){
 			next;
 		}
-        if ($csv->parse($_)) {
-            my @columns = $csv->fields();
-            #my @columns = split(/\t/,$_,1000);
+        #if ($csv->parse($_)) {
+            #my @columns = $csv->fields();
+            my @columns = split(/\t/,$_,1000);
 			grep(s/ *$//,@columns);
 			grep(s/^N\/A$//,@columns);
-        	if ($#columns !=27){
-				&skip("Not 28 fields", @columns);
+        	if ($#columns !=28){
+				&skip("Not 29 fields", @columns);
 				warn "bad record $#columns not 28  $_\n";
 				next;
 			}
@@ -102,6 +140,7 @@ $UTM,
 $notes,
 $determiner
 )=@columns;
+next;
 $hybrid_annotation="";
 $annotation="";
 $extent="" unless $ExtUnits;
@@ -124,6 +163,10 @@ $extent="" unless $ExtUnits;
 			&log("County set to unknown: $ACCESSNO $DISTRICT");
 			$DISTRICT="Unknown";
 		}
+$name=~s/ × / X /;
+				$name=~s/Lupinus formosus .* proximus .*/Lupinus formosus/;
+				$name=~s/ sp\..*//;
+				$name=~s/ *$//;
 				if($name=~s/^([A-Z][a-z]+ [a-z]+) (ssp\.|subsp\.) [a-z]+ var\. ([a-z]+)/$1 var. $3/){
 					&log("$name: quadrinomial converted $ACCESSNO");
 				}
@@ -136,7 +179,7 @@ $extent="" unless $ExtUnits;
 				next;
 			}
 			($genus=$name)=~s/ .*//;
-			if($ignore_name{$genus}){
+			if($exclude{$genus}){
 				&skip("Non-vascular plant: $ACCESSNO", @columns);
 				next;
 			}
@@ -163,14 +206,18 @@ $extent="" unless $ExtUnits;
 				s/ var / var. /;
 				s/ ssp\. / subsp. /;
 				s/ f / f\. /;
-				s/ [xX] / × /;
+				#s/ [xX] / × /;
+				s/ [x] / X /;
+s/ *$//;
 			}
-			if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
+			#if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
+			if($name=~/([A-Z][a-z-]+ [a-z-]+) X /){
 				$hybrid_annotation=$name;
 				warn "$1 from $name\n";
 				$name=$1;
 			}
-			if($name=~/([A-Z][a-z-]+ [a-z-]+ var. [a-z-]+) × /){
+			if($name=~/([A-Z][a-z-]+ [a-z-]+ var. [a-z-]+) X /){
+			#if($name=~/([A-Z][a-z-]+ [a-z-]+ var. [a-z-]+) × /){
 				$hybrid_annotation=$name;
 				warn "$1 from $name\n";
 				$name=$1;
@@ -198,13 +245,13 @@ $extent="" unless $ExtUnits;
 		}
 		else{
 &skip("Not yet entered into SMASCH taxon name table: $on skipped");
-++$badname{$name};
+++$badname{$on};
 next;
 		}
 	}
 	else{
 &skip("Not yet entered into SMASCH taxon name table: $on skipped");
-++$badname{$name};
+++$badname{$on};
 	next;
 	}
 }
@@ -321,11 +368,13 @@ Annotation: $annotation
 Hybrid_annotation: $hybrid_annotation
 
 EOP
-        } else {
-            my $err = $csv->error_input;
-            print ERR "Failed to parse line: $err";
-        }
     }
+	   #else {
+	              #my $err = $csv->error_input;
+				              #print ERR "Failed to parse line: $err";
+							          #}
+									  #}
+
 warn "$count_record\n";
     close CSV;
 
