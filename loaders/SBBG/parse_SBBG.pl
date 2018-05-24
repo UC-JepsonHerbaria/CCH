@@ -64,7 +64,7 @@ $/=qq{<_x0033__x002F_31_x002F_2011export>};
 
 #open(IN,"SBBG3_31_2011export.xml") || die;
 $/="";
-open(IN,"new_sbbg_export") || die;
+open(IN,"SBBG_2014") || die;
 #open(IN,"SBBG8202009.xml") || die;
 while(<IN>){
 s/\cM/ /g;
