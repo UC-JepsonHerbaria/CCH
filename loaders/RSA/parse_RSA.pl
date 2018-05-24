@@ -1,3 +1,16 @@
+
+#useful one liners for debugging:
+#perl -lne '$a++ if /Accession_id: RSA\d+DUP/; END {print $a+0}' RSA_specify_out.txt
+#perl -lne '$a++ if /Accession_id: POM\d+DUP/; END {print $a+0}' RSA_specify_out.txt
+#perl -lne '$a++ if /Accession_id: RSA\d+/; END {print $a+0}' RSA_specify_out.txt
+#perl -lne '$a++ if /Accession_id: POM\d+/; END {print $a+0}' RSA_specify_out.txt
+#perl -lne '$a++ if /Accession_id:/; END {print $a+0}' RSA_specify_out.txt
+#perl -lne '$a++ if /Decimal_latitude: \d+/; END {print $a+0}' RSA_specify_out.txt
+#perl -lne '$a++ if /Decimal_longitude: -\d+/; END {print $a+0}' RSA_specify_out.txt
+#perl -lne '$a++ if /Accession_id: (POM|RSA)\d/; END {print $a+0}' RSA_fmp_out.txt
+#perl -lne '$a++ if /Combined_coll: $/; END {print $a+0}' RSA_specify_out.txt
+
+
 use Time::JulianDay;
 use Time::ParseDate;
 use lib '/Users/davidbaxter/DATA';
@@ -9,7 +22,12 @@ use CCH; #loads non-vascular plant names list ("mosses"), alter_names table, and
 &load_noauth_name; #loads taxon id master list (smasch_taxon_ids.txt) into an array
 $today_JD = &get_today_julian_day;
 
-open(OUT,">RSA_specify.out") || die;
+my %month_hash = &month_hash;
+
+open(OUT,">RSA_specify_out.txt") || die;
+open(OUT2,">exclude_FMP.txt") || die;
+open(OUT3, ">RSA_POM_ID.txt") || die;
+
 
 my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
@@ -17,39 +35,39 @@ unlink $error_log or warn "making new error log file $error_log";
 #############
 #Any notes about the input file go here
 #file appears to be un UTF-8
-#in the latest dump (2016-04), RSA sent Baja records in a separate file.
-#I concatenated the two files into RSA_latest_file.tab
+
+#RSA specify file has erroneous vertical tab codes that show up as red '?' in text files.  These need to be deleted because they are also in the accesion number field, making linking specimens impossible
+# or x{Ob} or \x0b
+#'Bryophyte packet - 1' specimens with this in the record should be skipped, some are without taxon names
+
+#in the dump (2016-04), RSA sent Baja records in a separate file.
+#David concatenated the two files into RSA_latest_file.tab
 #############
 
-#$current_file="2015.06.11_RSA_CCH.tab";
+#$current_file="2017.08.29_RSA_CCH.txt";
 #$current_file="2016.04.20_RSA_CCH.tab";
 $current_file="RSA_latest_file.tab";
 
-open(IN, "$current_file") || die;
 warn "reading from $current_file\n";
-
-while(<IN>){
-	chomp;
-	&CCH::check_file;
-	s/\t.*//;
-	if($seen_dup{$_}++){
-		++$duplicate{$_};
-	}
-}
-close(IN);
-
-
 
 open(IN, "$current_file") || die;
 Record: while(<IN>){
+
 	chomp;
-	@columns=split(/\t/,$_,100);
-	unless ($#columns==43){
-		print ERR "$#columns bad field number $_\n";
+
+
+my @columns=split(/\t/,$_,100);
+		unless($#columns==43){ #19 fields but first field is field 0 in perl
+		&log_skip("$#fields bad field number $_\n");
+		++$skipped{one};
+		next Record;
 	}
 
+
+s///g;
+
 ($cchId, #sequential number; I don't think is used for anything
-$Barcode, #different from Accession number. Maybe publish as an "other number"
+$barcode, #different from Accession number. Maybe publish as an "other number"
 $Herbarium, #RSA or POM
 $Accession_Number, #Numeric portion of accession number
 $Accession_Suffix, #A, B, etc.
@@ -57,8 +75,8 @@ $family, #CCH doesn't use, but is Darwin Core
 $genus,
 $specificEpithet,
 $subspecies,
-$variety, #subspecies and variety together make the infraspecificEpithet dwc term
-$scientificName, #full name, I'll use this instead of concatenating the previous fields. substitute subsp. for ssp.
+$variety, #10   subspecies and variety together make the infraspecificEpithet dwc term
+$tempName, #full name, I'll use this instead of concatenating the previous fields. substitute subsp. for ssp.
 $identificationQualifier,
 $Position, #as in, position of the id qualifier. Use this to make an annotation name
 $identifiedBy,
@@ -67,17 +85,17 @@ $typeStatus,
 $recordedBy, #collectors, comma delimited
 $recordNumber, #coll num
 $eventDate, #collection date in beautiful YYYY-MM-DD
-$verbatimEventDate,
+$verbatimEventDate, #20
 $country, #always United States, so no action required
 $stateProvince, #always California, no action required
-$county,
+$tempCounty,
 $Locality1,
 $Locality2, #i.e. "Locality Continued"
-$decimalLatitude,
-$decimalLongitude,
+$verbatimLatitude,
+$verbatimLongitude,
 $geodeticDatum,
 $Township,
-$Range,
+$Range,  #30
 $Section, #concatenate into a string but don't bother doing anything with converting
 $ErrorRadius,
 $ErrorRadiusUnits,
@@ -87,7 +105,7 @@ $maximumElevationInMeters,
 $verbatimElevation,
 $habitat,
 $reproductiveCondition, #i.e. phenology
-$occurrenceRemarks, #i.e. plant description, which goes into cch field "Notes"
+$occurrenceRemarks, #i.e. plant description
 $Culture, #what they call "Culture". Currently not a CCH field
 $establishmentMeans, #Native, Introduced, or cultivated
 $Preparations, #Herbarium sheet, etc. doesn't need to be published 
@@ -98,7 +116,8 @@ $GUID
 #######ACCESSION ID#########
 #concatenate values into $id
 $id = $Herbarium . $Accession_Number . $Accession_Suffix;
-$id =~ s/ //g;
+$id =~ s/ +//g;
+
 
 #check for nulls
 if ($id=~/^ *$/){
@@ -113,31 +132,28 @@ unless ($id=~/^(RSA|POM)(\d+)/){
 	next Record;
 }
 
+#add suffux for some duplicates
+#if($duplicate{$id}++){
+#$id=~s/^(RSA|POM)(\d+)$/$1$2DUP/g;
+#	warn "Duplicate accession modified: $id<\n";
+#	&log_change("Duplicate accession number, added a suffix, $id");
+#}
 #remove duplicates
-if($seen{$id}++){
-	++$skipped{one};
-	warn "Duplicate number: $id<\n";
-	&log_skip("Duplicate accession number, skipped: $id");
-	next;
+#if($seen{$id}++){
+#	++$skipped{one};
+#	warn "Duplicate number: $id<\n";
+#	&log_change("Duplicate accession number, skipped: $id");
+#	next;
+#}
+
+
+foreach ($id){
+		s/ +//g;
+		s/RSAw//g; #fix one record with a lower case "w"
+
+print OUT2 "$id\n";
+
 }
-
-
-##################Exclude known problematic specimens by id numbers, most from outside California and Baja California
-# if ($id =~/^(12651038|6786882|903063|5542516|5553080|5559939|5560204|5564409|5571451|5578463|5578464|5579706|881193|881194|946792|946795|958356|13936935|13951195|13184339|8482435|3145188|3165281|8551641|2063694|6010380|3143301|6010483|3288631|5999431|6009962|3828429|3128756|891892|947111|6901995|3236890|3349408|5556965|3920225|3920384|7358734|949278|947283|953299|1910899|960031|7887537|901900|950642|885247|2139875|3236890|7880474|7880475|3349409|3156500|955884|5578801|5578802|8111276|901887|10964957|10899737|10612927|523075|2139878|947426|949080|952106|3840903|10450011|7878637|3350112|5574540|2140016|206575|8094686|6919312|10587155|6059833|6053609|6078071|6084883|6038783|6080815|6092926|6077290|6084618|6090271|6067228|6078439|6062798|6061904|6053009|6048333|6081870|3831133|5578807|957986|948347|7987520|3156332|5585640|5585641|3828429|780313|947147|932794|4090498|5556964|10492513|756181|8892781|10476365|2030103|3131301|5554619|3127702|5578808|5547519|5556946|954279|10789840|892491|952443|4557750|4557751|4134703|8071906|7067885|10791260|8099704|10546522|1004641|7293869|3130961|3158166|8100447|10905080|4041567|7096710|7096711|10789688|7880493|7880446|5556963|10484529|8696461|7096697|7096696|7572142|7579661|6900851|5585639|10731649|5519952|10848658|8215883)$/){
-#	#print ("excluded problem record or record known to be not from California\t$locality\t--\t$id");
-#		++$temp_skipped{one};
-#		next Record;
-#	}
-
-	if(($id=~/^(RSA165454|RSA165651)$/) && ($county=~m/Mono/)){ #fix some really problematic county records
-		&log_skip("COUNTY: County/State problem: buffer coordinates (38.58529	-119.310417) indicate this is from Nevada; also Desert Creek (Sweetwater Mts) inside CA is above 8000 ft, elevations lower than 7000 feet are in Douglas County, Nevada ($id: $county, $Locality1, $Locality2)\n");	
-		next Record;
-	}
-
-	if(($id=~/^(RSA537260)$/) && ($county=~m/Riverside/)){ #fix some really problematic county records
-		&log_skip("COUNTY: County/State problem: '21 miles west of Tonopah along I-10' is in Arizona, not California ($id: $county, $Locality1, $Locality2)\n");	
-		next Record;
-	}
 
 ########Scientific Name#############
 #check for names to exclude
@@ -148,48 +164,62 @@ if($genus){ #this is done to accomodate vascular plants identified to family (ha
 	}
 }
 
-foreach ($scientificName){ 
-	s/ ssp\. / subsp. /;
-	s/\cK/ /g;
-	s/  */ /g;
-	s/ $//;
+
+#Annotations  (use to show verbatim scientific name (annotation 0) when a separate annotation file is present)
+	#format det_string correctly
+my $det_orig_rank = "current determination (uncorrected)";  #set to zero for original determination
+
+
+#Many of these don't apply to the original dataset
+#but it doesn't hurt to leave them in
+foreach ($tempName){
+	s/[uU]nknown/ /g; #added to try to remove the word "unknown" for some records
+	s/;$//g;
+	s/cf.//g;
+	s/ [xX×] / X /;	#change  " x " or " X " to the multiplication sign
+	s/[×] /X /;	#change  " x " in genus name to the multiplication sign
+	s/  +/ /g;
+	s/^ $//g;
+	s/^ +//g;
+	s/ +$//g;
+
 	
-}
+	s/[uU]nknown/ /g;
 
-#check alter_names table
-if($alter{$scientificName}){
-				&log_change ("Spelling altered to $alter{$scientificName}: $scientificName\t$id");
-				$scientificName=$alter{$scientificName};
-}
-
-unless($TID{$scientificName}){
-	$oldname=$scientificName;
-	if($scientificName=~s/subsp\./var./){
-		if($TID{$scientificName}){
-			&log_change("Not yet entered into SMASCH taxon name table: $oldname entered as $scientificName\t$id ");
-		}
-		else{
-			&log_skip("Not yet entered into SMASCH taxon name table: $oldname skipped\t$id");
-			++$badname{"$oldname"};
-			next Record;
-		}
-	}
-	elsif($scientificName=~s/var\./subsp./){
-		if($TID{$scientificName}){
-			&log_change("Not yet entered into SMASCH taxon name table: $oldname entered as $scientificName\t$id");
-		}
-		else{
-			&log_skip("Not yet entered into SMASCH taxon name table: $oldname skipped\t$id");
-			++$badname{"$oldname"};
-			next Record;
-		}
+	if (length($tempName) >=1){
+		$det_orig="$det_orig_rank: $tempName";
 	}
 	else{
-		&log_skip("Not yet entered into SMASCH taxon name table: $oldname skipped\t$id");
-		++$badname{"$oldname"};
-		next Record;
+		$det_orig="";
 	}
+
 }
+#Fix records with unpublished or problematic name determination that should not be fixed in AlterNames
+
+
+#format hybrid names
+if($tempName=~m/([A-Z][a-z-]+ [a-z-]+) X /){
+	$hybrid_annotation=$tempName;
+	warn "Hybrid Taxon: $1 removed from $tempName\n";
+	&log_change("Hybrid Taxon: $1 removed from $tempName");
+	$tempName=$1;
+}
+else{
+	$hybrid_annotation="";
+}
+
+#####process taxon names
+
+$scientificName=&strip_name($tempName);
+$scientificName=&validate_scientific_name($scientificName, $id);
+
+
+#####process cultivated specimens		
+
+
+
+
+
 
 
 ############Determination############
@@ -295,52 +325,253 @@ else{
 #since CCH currently only displays the verbatim event date
 
 #process JD from $eventDate
-$YYYY=$MM=$DD="";
-if ($eventDate) {
-	$verbatimEventDate=$eventDate;
-	($YYYY, $MM, $DD)=&atomize_ISO_8601_date($eventDate);
+
+	foreach ($eventDate){
+	s/ ?- ?/-/g;
+	s/  +/ /g;
+	s/ +$//g;
+	s/^ +//g;
+	s/NULL//g;
+
+	}	
+
+	if($eventDate=~/^([0-9]{4})-(\d\d)-(\d\d)/){	#if eventDate is in the format ####-##-##
+		$YYYY=$1; 
+		$MM=$2; 
+		$DD=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
+		$MM2 = "";
+		$DD2 = "";
+	#warn "Date (1)$eventDate\t$id";
+	}
+	elsif($eventDate=~/^(\d\d)-(\d\d)-([0-9]{4})/){	#added to SDSU, if eventDate is in the format ##-##-####, most appear that first ## is month
+		$YYYY=$3; 
+		$MM=$1; 
+		$DD=$2;
+		$MM2 = "";
+		$DD2 = "";
+	#warn "Date (2)$eventDate\t$id";
+	}
+	elsif($eventDate=~/^([0-9]{1})-([0-9]{1,2})-([0-9]{4})/){	#added to SDSU, if eventDate is in the format #-##?-####, most appear that first # is month 
+		$YYYY=$3; 
+		$MM=$1; 
+		$DD=$2;
+		$MM2 = "";
+		$DD2 = "";
+	#warn "Date (3)$eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([Ss][pP][rR][ing]*)[- ]([0-9]{4})/) {
+		$YYYY = $2;
+		$MM = "3";
+		$DD = "1";
+		$MM2 = "5";
+		$DD2 = "31";
+	#warn "Date (14)$eventDate\t$id";
+	}	
+	elsif ($eventDate=~/^([Ss][uU][Mm][mer]*)[- ]([0-9]{4})/) {
+		$YYYY = $2;
+		$MM = "6";
+		$DD = "1";
+		$MM2 = "8";
+		$DD2 = "31";
+	#warn "Date (16)$eventDate\t$id";
+	}	
+	elsif ($eventDate=~/^([fF][Aa][lL]+)[- ]([0-9]{4})/) {
+		$YYYY = $2;
+		$DD = "1";
+		$MM = "9";
+		$DD2 = "30";
+		$MM2 = "11";
+	#warn "Date (12)$eventDate\t$id";
+	}	
+	elsif ($eventDate=~/^([0-9]{1,2}) ([A-Za-z]+) ([0-9]{4})/){
+		$DD=$1;
+		$MM=$2;
+		$YYYY=$3;
+		$MM2 = "";
+		$DD2 = "";
+	#warn "(2)$eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([0-9]{1,2})[- ]+([0-9]{1,2})[- ]+([A-Z][a-z]+)[- ]([0-9]{4})/){
+		$DD=$1;
+		$DD2=$2;
+		$MM=$3;
+		$MM2=$3;
+		$YYYY=$4;
+	#warn "(4)$eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([A-Za-z]+)-([0-9]{2})$/){
+	warn "Date (6): $eventDate\t$id";
+		$eventDate = "";
+	}
+	elsif ($eventDate=~/^([0-9]{4})[- ]([A-Z][a-z]+)-(June?)[- ]$/){ #month, year, no day
+		$YYYY = $1;
+		$DD = "1";
+		$MM = $1;
+		$DD2 = "30";
+		$MM2 = $2;
+	warn "Date (7): $eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([A-Z][a-z]+)[- ](June?)[- ]([0-9]{4})$/){ #month, year, no day
+		$YYYY = $3;
+		$DD = "1";
+		$MM = $1;
+		$DD2 = "30";
+		$MM2 = $2;
+	#warn "Date (8): $eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([0-9]{4})[- ]([A-Z][a-z]+)[- ](Ma[rchy])[- ]$/){ #month, year, no day
+		$YYYY = $1;
+		$DD = "1";
+		$MM = $1;
+		$DD2 = "31";
+		$MM2 = $3;
+	warn "Date (9): $eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([A-Z][a-z]+)[- ](Ma[rchy])[- ]([0-9]{4})/) {#month, year, no day
+		$YYYY = $3;
+		$DD = "1";
+		$MM = $1;
+		$DD2 = "31";
+		$MM2 = $2;
+	#warn "Date (10): $eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([0-9]{4})[- ]([fF][Aa][lL]+)/) {
+		$YYYY = $1;
+		$DD = "1";
+		$MM = "9";
+		$DD2 = "30";
+		$MM2 = "11";
+	warn "Date (11)$eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([0-9]{4})[- ]([Ss][pP][rR][ing]*)/) {
+		$YYYY = $1;
+		$MM = "3";
+		$DD = "1";
+		$MM2 = "5";
+		$DD2 = "31";
+	warn "Date (13)$eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([0-9]{4})[- ]([Ss][pP][rR][ing]*)/) {
+		$YYYY = $1;
+		$MM = "3";
+		$DD = "1";
+		$MM2 = "5";
+		$DD2 = "31";
+	warn "Date (15)$eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([A-Za-z]+) ([0-9]{4})$/){
+		$DD = "";
+		$MM = $1;
+		$YYYY=$2;
+		$MM2 = "";
+		$DD2 = "";
+	#warn "(5)$eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([A-Za-z]+) ([0-9]{2})([0-9]{4})$/){
+		$DD = $2;
+		$MM = $1;
+		$YYYY= $3;
+		$MM2 = "";
+		$DD2 = "";
+	warn "Date (20)$eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([0-9]{4})[- ]([Ss][uU][Mm][mer]*)/) {
+		$YYYY = $1;
+		$MM = "3";
+		$DD = "1";
+		$MM2 = "5";
+		$DD2 = "31";
+	warn "Date (17)$eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([0-9]{4})[- ]*$/){
+		$YYYY=$1;
+		$MM2 = "";
+		$DD2 = "";
+		$DD = "";
+		$MM="";
+	#warn "Date (18)$eventDate\t$id";
+	}
+	elsif ($eventDate=~/^([0-9]{4})-([0-9]{1,2})[- ]*$/){
+		$MM=$2;
+		$YYYY=$1;
+		$MM2 = "";
+		$DD2 = "";
+		$DD = "";
+	#warn "Date (19)$eventDate\t$id";
+	}
+	elsif (length($eventDate) == 0){
+		$YYYY="";
+		$MM2 = "";
+		$DD2 = "";
+		$DD = "";
+		$MM="";
+		&log_change("Date: date NULL $id\n");
+	}
+	else{
+		&log_change("Date: date format not recognized: $eventDate==>($verbatimEventDate)\t$id\n");
+	}
+	
+	
+#convert to YYYY-MM-DD for eventDate and Julian Dates
+$MM = &get_month_number($MM, $id, %month_hash);
+$MM2 = &get_month_number($MM2, $id, %month_hash);
+
+if ($MM =~ m/^(\d)$/){ #see note above, JulianDate module needs leading zero's for single digit days and months
+	$MM = "0$1";
 }
-($EJD, $LJD)=&make_julian_days($YYYY, $MM, $DD, $id);
+if ($DD =~ m/^(\d)$/){
+	$DD = "0$1";
+}
+if ($MM2 =~ m/^(\d)$/){
+	$MM2 = "0$1";
+}
+if ($DD2 =~ m/^(\d)$/){
+	$DD2 = "0$1";
+}
+
+#$MM2= $DD2 = ""; #set late date to blank if only one date exists
+($EJD, $LJD)=&make_julian_days($YYYY, $MM, $DD, $MM2, $DD2, $id);
+#warn "$formatEventDate\t--\t$EJD, $LJD\t--\t$id";
 ($EJD, $LJD)=&check_julian_days($EJD, $LJD, $today_JD, $id);
 
+
 ############COUNTY########
-	foreach ($county){	#for each $county value
-		s/ County$//;
+	foreach ($tempCounty){	#for each $county value
+#		s/ County$//;
 #		s/[()]*//g;	#remove all instances of the literal characters "(" and ")"
 #		s/ +coun?ty.*//i;	#substitute a space followed by the word "county" with "" (case insensitive, with or without the letter n)
 #		s/ +co\.//i;	#substitute " co." with "" (case insensitive)
 #		s/ +co$//i;		#substitute " co" with "" (case insensitive)
-#		s/ *$//;		
-#		s/^$/Unknown/;	
-#		s/County Unknown/unknown/;	#"County unknown" => "unknown"
-#		s/County unk\./unknown/;	#"County unk." => "unknown"
+		s/^ +//;
+		s/ +$//;		
+		s/unknown/Unknown/;	
+		s/^$/Unknown/;	
+
+#		s/County Unknown/Unknown/;	#"County unknown" => "unknown"
+#		s/County unk\./Unknown/;	#"County unk." => "unknown"
 #		s/Unplaced/unknown/;	#"Unplaced" => "unknown"
 #		#print "$_\n";
+}
+
+$county=&CCH::format_county($tempCounty,$id);
 
 
-#fix additional problematic counties
+foreach($GUID){
+print OUT3 "$id\t$GUID\t$cchId\t$county\t$scientificName\t$GUIDx\n";
+}
 
+	foreach ($county){
 
-#	if(($id=~/^(3129414|3143225|4692151|951709)$/) && ($county=~m/(Pasadena|Pasadena County)/)){ #fix some really problematic county records
-#		$county=~s/^.*$/Los Angeles/;
-#		&log_change("COUNTY: County/Location problem modified to $county\t$id\n");
-#	}
-
-
-
-
-
-
-		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown|Unknown)$/){
+		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|Unknown)$/){
 			$v_county= &verify_co($_);	#Unless $county matches one of the county names from the above list, create a value $v_county for that value using the &verify_co function
 			if($v_county=~/SKIP/){		#If $v_county is "/SKIP/" (i.e. &verify_co cannot recognize it)
-				&log_skip("NON-CA COUNTY? $_: $id");	#run the &log_skip function, printing the following message to the error log
+				&log_skip("NON-CA COUNTY? $_\t==>$id");	#run the &log_skip function, printing the following message to the error log
 				++$skipped{one};
 				next Record;
 			}
 
 			unless($v_county eq $_){	#unless $v_county is exactly equal to what was input into the &verify_co function (i.e. if &verify_co successfully changed the county)
-				&log_change("COUNTY $_ -> $v_county: $id");		#call the &log function to print this log message into the change log...
+				&log_change("COUNTY $_ -> $v_county\t==>$id");		#call the &log function to print this log message into the change log...
 				$_=$v_county;	#and then set $county to whatever the verified $v_county is.
 			}
 		}
@@ -364,33 +595,358 @@ else {
 }
 
 
-#############LATITUDE AND LONGITUDE
+foreach ($verbatimLatitude){
+		s/ø/ /g;
+		s/'/ /g;
+		s/"/ /g;
+		s/,/ /g;
+		s/-//g; #remove negative latitudes, we dont map specimens from southern hemisphere, so if "-" is present, it is an error
+		s/deg\.?/ /;
+		s/ 17 1.218/ 17.5/;#fix a series of bad latitudes
+		s/ 35682/ 35.682/;
+		s/ 1213/ 12.5/;
+		s/ 4241/ 42 41/;
+		s/ 4750/ 47 50/;
+		s/ 47\.+50/ 47 50/;
+		s/ 4748/ 47 48/;
+		s/^32 7112/ 32.7112/;
+		s/ 5153.5\.5/ 52/; 
+		s/^3440/34 40/;
+		s/ 51\.+53\.5/ 52/;
+		s/ 910.5/ 10/;
+		s/ 5657/ 56.5/;
+
+	s/  +/ /;
+	s/^ $//;
+	s/^ +//;
+	s/ +$//;
+		
+}
+
+foreach ($verbatimLongitude){
+		s/ø/ /g;
+		s/'/ /g;
+		s/"/ /g;
+		s/,/ /g;
+		s/deg\.?/ /;
+		s/^-?12208983/122.08983/;#fix a series of bad longitudes
+		s/^-?11655/116 55/;
+		s/^-?12025/120 25/;
+		s/ 6\.5-7/ 6.75/;
+		s/ 51-52/ 51.5/;
+		s/ 55 3.4/55.5/;
+		s/ 53-54\.5/53.5/;
+		s/^-?17 /117 /;
+		s/^-?14 /114 /;
+		s/^-?118\.+119/118.5/;
+		s/ 53-54/ 53.5/;
+		s/ 52-54/ 53/;
+		s/ 35433/ 35 43.3/;
+		s/ 17-22/ 17 22/;
+		s/ 17\.+22/ 17 22/;
+	s/  +/ /;
+	s/^ $//;
+	s/^ +//;
+	s/ +$//;
+		
+}
+
+#check to see if lat and lon reversed
+	if (($verbatimLatitude =~ m/^-?1\d\d\./) && ($verbatimLongitude =~ m/^\d\d\./)){
+		$hold = $verbatimLatitude;
+		$latitude = $verbatimLongitude;
+		$longitude = $hold;
+		 print "COORDINATE 2 $id\n";
+		&log_change("COORDINATE decimals apparently reversed, switching latitude with longitude\t$id");
+	}
+	elsif (($verbatimLatitude =~ m/^-?1\d\d +\d/) && ($verbatimLongitude =~ m/^\d\d +\d/)){
+		$hold = $verbatimLatitude;
+		$latitude = $verbatimLongitude;
+		$longitude = $hold;
+		print "COORDINATE 3 $id\n"; 
+		&log_change("COORDINATE apparently reversed, switching latitude with longitude\t$id");
+	}	
+	elsif (($verbatimLatitude =~ m/^-?1\d\d$/) && ($verbatimLongitude =~ m/^\d\d/)){
+		$hold = $verbatimLatitude;
+		$latitude = sprintf ("%.3f",$verbatimLongitude); #convert to decimal, should report cf. 38.000
+		$longitude = $hold;
+		 print "COORDINATE 4 $id\n";
+		&log_change("COORDINATE latitude degree only (no decimal or seconds) and apparently reversed, switching latitude with longitude\t$id");
+	}
+	elsif (($verbatimLatitude =~ m/^-?1\d\d/) && ($verbatimLongitude =~ m/^\d\d$/)){
+		$hold = $verbatimLatitude;
+		$latitude = sprintf ("%.3f",$verbatimLongitude); #convert to decimal, should report cf. 38.000
+		$longitude = $hold;
+		print "COORDINATE 5 $id\n";
+		&log_change("COORDINATE longitude degree only (no decimal or seconds) and apparently reversed, switching latitude with longitude\t$id");
+	}
+	elsif (($verbatimLatitude =~ m/^\d\d\./) && ($verbatimLongitude =~ m/^-?1\d\d\./)){
+			$latitude = $verbatimLatitude;
+			$longitude = $verbatimLongitude;
+	#print "COORDINATE 6 $id\n";
+	}
+	elsif (($verbatimLatitude =~ m/^\d\d \d/) && ($verbatimLongitude =~ m/^-?1\d\d \d/)){
+			$latitude = $verbatimLatitude;
+			$longitude = $verbatimLongitude;
+	print "COORDINATE 7 $id\n";
+	}
+	elsif (($verbatimLatitude =~ m/^\d\d$/) && ($verbatimLongitude =~ m/^-?1\d\d/)){
+			$latitude = sprintf ("%.3f",$verbatimLatitude); #convert to decimal, should report cf. 38.000
+			$longitude = $verbatimLongitude; #parser below will catch variant of this one, except where both lat & long are degree only, 
+	print "COORDINATE 8 $id\n";
+			&log_change("COORDINATE latitude integer degree only: $verbatimLatitude converted to $latitude==>$id");
+	}
+	elsif (($verbatimLatitude =~ m/^\d\d/) && ($verbatimLongitude =~ m/^-?1\d\d$/)){
+			$latitude = $verbatimLatitude; #parser below will catch variant of this one, except where both lat & long are degree only, 
+			$longitude = sprintf ("%.3f",$verbatimLongitude); #convert to decimal, should report cf. 122.000
+	print "COORDINATE 9 $id\n";
+			&log_change("COORDINATE longitude integer degree only: $verbatimLongitude converted to $longitude==>$id");
+	}	
+	elsif ((length($verbatimLatitude) == 0) && (length($verbatimLongitude) == 0)){
+		$decimalLongitude = $decimalLatitude = $latitude = $longitude = "";
+	#print "COORDINATE NULL $id\n";
+	}
+	else {
+		&log_change("COORDINATE: Coordinate conversion problem for $id\t$verbatimLatitude\t--\t$verbatimLongitude\n");
+		$decimalLongitude = $decimalLatitude = $latitude = $longitude = "";
+	}
 
 
-		if(($decimalLatitude=~/\d/  || $decimalLongitude=~/\d/)){ #If decLat and decLong are both digits
-			if ($decimalLongitude > 0) {
-				$decimalLongitude="-$decimalLongitude";	#make decLong = -decLong if it is greater than zero
-			}	
-			if($decimalLatitude > 42.1 || $decimalLatitude < 30.0 || $decimalLongitude > -114 || $decimalLongitude < -124.5){ #if the coordinate range is not within the rough box of california...
-				&log_change("coordinates set to null, Outside California: >$decimalLatitude< >$decimalLongitude< $id");	#print this message in the error log...
-				$decimalLatitude =$decimalLongitude="";	#and set $decLat and $decLong to ""
+#NULL coordinates that are only integer degrees, these are highly inaccurate and not useful for mapping
+	if (($verbatimLatitude =~ m/^\d\d$/) && ($verbatimLongitude =~ m/^-?1\d\d$/)){
+		$decimalLatitude=$latitude = "";
+		$decimalLongitude=$longitude = "";
+		&log_change("COORDINATE verbatim Lat/Long only to degree, now NULL: $verbatimLatitude\t--\t$verbatimLongitude\n");
+	}
+
+
+
+#use combined Lat/Long field format for RSA
+
+	#convert to decimal degrees
+if((length($latitude) >= 2)  && (length($longitude) >= 3)){ 
+		if ($latitude =~ m/^(\d\d) +(\d\d?) +(\d\d?\.?\d*)/){ #if there are seconds
+				$lat_degrees = $1;
+				$lat_minutes = $2;
+				$lat_seconds = $3;
+				if($lat_seconds == 60){ #translating 60 seconds into +1 minute
+					$lat_seconds == 0;
+					$lat_minutes += 1;
+				}
+				if($lat_minutes == 60){
+					$lat_minutes == 0;
+					$lat_degrees += 1;
+				}
+				if(($lat_degrees > 90) || $lat_minutes > 60 || $lat_seconds > 60){
+					&log_change("COORDINATE 1) Latitude problem, set to null,\t$id\t$verbatimLatitude\n");
+					$lat_degrees=$lat_minutes=$lat_seconds=$decimalLatitude="";
+				}
+				else{
+					#print "1a) $lat_degrees\t-\t$lat_minutes\t-\t$lat_seconds\t-\t$latitude\n";
+	  				$lat_decimal = $lat_degrees + ($lat_minutes/60) + ($lat_seconds/3600);
+					$decimalLatitude = sprintf ("%.6f",$lat_decimal);
+					#print "1b)$decimalLatitude\t--\t$id\n";
+					$georeferenceSource = "DMS conversion by CCH loading script"; #only needed to be stated once, if lat id converted, so is long
+				}
+		}
+		elsif ($latitude =~ m/^(\d\d) +(\d\d?\.\d*)/){
+				$lat_degrees= $1;
+				$lat_minutes= $2;
+				if($lat_minutes == 60){
+					$lat_minutes == 0;
+					$lat_degrees += 1;
+				}
+				if(($lat_degrees > 90) || ($lat_minutes > 60) ){
+					&log_change("COORDINATE 2) Latitude problem, set to null,\t$id\t$latitude\n");
+					$lat_degrees=$lat_minutes=$decimalLatitude="";
+				}
+				else{
+					#print "2a) $lat_degrees\t-\t$lat_minutes\t-\t$latitude\n";
+					$lat_decimal= $lat_degrees+($lat_minutes/60);
+					$decimalLatitude=sprintf ("%.6f",$lat_decimal);
+					print "2b) $decimalLatitude\t--\t$id\n";
+					$georeferenceSource = "DMS conversion by CCH loading script";
+				}
+		}
+		elsif ($latitude =~ m/^(\d\d) +(\d\d?)/){
+				$lat_degrees= $1;
+				$lat_minutes= $2;
+				if($lat_minutes == 60){
+					$lat_minutes == 0;
+					$lat_degrees += 1;
+				}
+				if(($lat_degrees > 90) || ($lat_minutes > 60) ){
+					&log_change("COORDINATE 2c) Latitude problem, set to null,\t$id\t$latitude\n");
+					$lat_degrees=$lat_minutes=$decimalLatitude="";
+				}
+				else{
+					#print "2a) $lat_degrees\t-\t$lat_minutes\t-\t$latitude\n";
+					$lat_decimal= $lat_degrees+($lat_minutes/60);
+					$decimalLatitude=sprintf ("%.6f",$lat_decimal);
+					#print "2d) $decimalLatitude\t--\t$id\n";
+					$georeferenceSource = "DMS conversion by CCH loading script";
+				}
+		}
+		elsif ($latitude =~ m/^(\d\d\.\d+)/){
+				$lat_degrees = $1;
+				if($lat_degrees > 90){
+					&log_change("COORDINATE 3) Latitude problem, set to null,\t$id\t$lat_degrees\n");
+					$lat_degrees=$latitude=$decimalLatitude="";		
+				}
+				else{
+					$decimalLatitude=sprintf ("%.6f",$lat_degrees);
+					#print "3a) $decimalLatitude\t--\t$id\n";
+				}
+		}
+		elsif (length($latitude) == 0){
+			$decimalLatitude="";
+		}
+		else {
+			&log_change("check Latitude format: ($latitude) $id");	
+			$decimalLatitude="";
+		}
+		
+		if ($longitude =~ m/^(-?1\d\d) +(\d\d?) +(\d\d?\.?\d*)/){ #if there are seconds
+				$long_degrees = $1;
+				$long_minutes = $2;
+				$long_seconds = $3;
+				if($long_seconds == 60){ #translating 60 seconds into +1 minute
+					$long_seconds == 0;
+					$long_minutes += 1;
+				}
+				if($long_minutes == 60){
+					$long_minutes == 0;
+					$long_degrees += 1;
+				}
+				if(($long_degrees > 180) || $long_minutes > 60 || $long_seconds > 60){
+					&log_change("COORDINATE 5) Longitude problem, set to null,\t$id\t$longitude\n");
+					$long_degrees=$long_minutes=$long_seconds=$decimalLongitude="";
+				}
+				else{				
+					#print "5a) $long_degrees\t-\t$long_minutes\t-\t$long_seconds\t-\t$longitude\n";
+ 	 				$long_decimal = $long_degrees + ($long_minutes/60) + ($long_seconds/3600);
+					$decimalLongitude=sprintf ("%.6f",$long_decimal);
+					#print "5b) $decimalLongitude\t--\t$id\n";
+				}
+		}	
+		elsif ($longitude =~m /^(-?1\d\d) +(\d\d?\.\d*)/){
+				$long_degrees= $1;
+				$long_minutes= $2;
+				if($long_minutes == 60){
+					$long_minutes == 0;
+					$long_degrees += 1;
+				}
+				if(($long_degrees > 180) || ($long_minutes > 60) ){
+					&log_change("COORDINATE 6) Longitude problem, set to null,\t$id\t$longitude\n");
+					$long_degrees=$long_minutes=$decimalLongitude="";
+				}
+				else{
+					$long_decimal= $long_degrees+($long_minutes/60);
+					$decimalLongitude = sprintf ("%.6f",$long_decimal);
+					print "6a) $decimalLongitude\t--\t$id\n";
+					$georeferenceSource = "DMS conversion by CCH loading script";
+				}
+		}
+		elsif ($longitude =~m /^(-?1\d\d) +(\d\d?)/){
+			$long_degrees= $1;
+			$long_minutes= $2;
+			if($long_minutes == 60){
+				$long_minutes == 0;
+				$long_degrees += 1;
+			}
+			if(($long_degrees > 180) || ($long_minutes > 60) ){
+				&log_change("COORDINATE 6c) Longitude problem, set to null,\t$id\t$longitude\n");
+				$long_degrees=$long_minutes=$decimalLongitude="";
+			}
+			else{
+				$long_decimal= $long_degrees+($long_minutes/60);
+				$decimalLongitude = sprintf ("%.6f",$long_decimal);
+				#print "6d) $decimalLongitude\t--\t$id\n";
+				$georeferenceSource = "DMS conversion by CCH loading script";
 			}
 		}
-
-
-#######DATUM#######
-foreach ($geodeticDatum){
-	s/ConUS//;
-	s/ +//g;
-	s/1984/84/;
-	s/1983/83/;
-	s/1927/27/;
+		elsif ($longitude =~m /^(-?1\d\d\.\d+)/){
+				$long_decimal= $1;
+				if($long_decimal > 180){
+					&log_change("COORDINATE 7) Longitude problem, set to null,\t$id\t$long_degrees\n");
+					$long_decimal=$longitude=$decimalLongitude="";		
+				}
+				else{
+					$decimalLongitude=sprintf ("%.6f",$long_decimal);
+					#print "7a) $decimalLongitude\t--\t$id\n";
+				}
+		}
+		elsif (length($longitude == 0)) {
+			$decimalLongitude="";
+		}
+		else {
+			&log_change("COORDINATE check longitude format: $longitude $id");
+			$decimalLongitude="";
+		}
 }
-if ($geodeticDatum){
-	unless ($geodeticDatum =~ /^WGS84$|^NAD83$|^NAD27$|^NAD83\/WGS84$|^Unknown$/){
-		&log_change ("strange datum nulled: $geodeticDatum $id");
-		$geodeticDatum = "";
+elsif ((length($latitude) == 0) && (length($longitude) == 0)){
+#UTM is not present in these data, skipping conversion of UTM and reporting if there are cases where lat/long is problematic only
+		&log_change("COORDINATE No coordinates for $id\n");
+}
+elsif(($latitude==0 && $longitude==0)){
+	$datum = "";
+	$georeferenceSource = "";
+	$decimalLatitude =$decimalLongitude = "";
+		&log_change("COORDINATE coordinates entered as '0', changed to NULL $id\n");
+}
+
+else {
+		&log_change("COORDINATE poorly formatted or non-numeric coordinates for $id: ($verbatimLatitude) \t($verbatimLongitude)\n");
+		$decimalLatitude = $decimalLongitude = $datum = $georeferenceSource = "";
+}
+
+#check datum
+if(($verbatimLatitude=~/\d/  || $verbatimLongitude=~/\d/)){ #If decLat and decLong are both digits
+
+
+	if ($geodeticDatum =~ m /^([NADnadWGSwgs]+[ -19]*[23478]+)$/){ #report if true datum is present, toss out all erroneous data
+		s/19//g;
+		s/-//g;
+		s/ //g;
+		$datum = $1;
 	}
+	else {$datum = "not recorded"; #use this only if datum are blank, set it for records with coords
+	}
+}	
+
+
+foreach($georeferenceSource){
+		s/  +/ /g;
+		s/^ *//;
+		s/ *$//;
+		
+	
+}
+
+
+#final check of Longitude
+	if ($decimalLongitude > 0) {
+			$decimalLongitude="-$decimalLongitude";	#make decLong = -decLong if it is greater than zero
+			&log_change("COORDINATE Longitude made negative\t--\t$id");
+	}
+
+
+#final check for rough out-of-boundary coordinates
+if((length($decimalLatitude) >= 2)  && (length($decimalLongitude) >= 3)){ 
+	if($decimalLatitude > 42.1 || $decimalLatitude < 30.0 || $decimalLongitude > -114.0 || $decimalLongitude < -124.5){ #if the coordinate range is not within the rough box of california and northern Baja...
+	###was 32.5 for California, now 30.0 to include CFP-Baja
+		&log_change("coordinates set to null for $id, Outside California and CA-FP in Baja: >$decimalLatitude< >$decimalLongitude<\n");	#print this message in the error log...
+		$decimalLatitude = $decimalLongitude = $georeferenceSource = $datum="";	#and set $decLat and $decLong to ""  
+	}
+}
+else {
+		if((length($decimalLatitude) == 0)  && (length($decimalLongitude) == 0)){
+			#do nothing, NULL reported elsewhere above, this is done to shorten the error log
+		}
+		else{
+			&log_change("COORDINATE problems for $id: ($verbatimLatitude) \t($verbatimLongitude) \t(ZONE:$zone \t($UTME) \t($UTMN)\n");
+			$decimalLatitude = $decimalLongitude = $datum = $georeferenceSource = "";
+		}
 }
 
 ###########TRS########
@@ -438,24 +994,14 @@ if ($georeferenceSource =~ /^\(|^\[|^(\d+)$/){
 }
 
 
-#fix additional problematic coordinates
-
-
-	if(($id=~/^(RSA697083|RSA691538)$/) && ($county=~m/(unknown)/i)){ #fix some really problematic georeference records
-		&log_change("COORDINATE: georeference problem, yellow flag record, coordinates set to null, collector anonymous, locality inprecise, and county unknown, georeference maps problematically to San Bernardino County, San Gorgonio Mountain $county\t$id\n");
-		$decimalLatitude =$decimalLongitude="";	#and set $decLat and $decLong to ""
-	#Antennaria media (RSA416669) Artemisia californica (RSA417260) are found at this this location, a note on the Antennaria media label states this although there is no specific location; Asplenium vespertinum (RSA691538) and Psathyrotes ramosissima (RSA697083) are yellow flags for San Gorgonio Mountain and coordinates nulled herein"
-	}
-
-
 ############Elevation
 #The "Verbatim_Elev_ft" field sometimes includes units; sometimes doesn't
-#when it doesn't, the units is assumed to be feet
+#when it doesn't, do not include elevation
 #to make it darwin core verbatimElevation, I add units when it is just a number or range of numbers
 #then make a CCH elevation, preferring the meters over the verbatim elevation
 #I process it first so darwinCore verbatimElevation is available if needed
 if ($verbatimElevation =~ /^([ 0-9-]+)$/){
-	$verbatimElevation = "$verbatimElevation ft";
+	$verbatimElevation = "";
 }
 
 if ($minimumElevationInMeters && $maximumElevationInMeters){
@@ -484,20 +1030,20 @@ else {
 
 #########NOTES
 #CCH "Notes" includes DwC fields occurrenceRemarks and reproductiveCondition
-if ($occurrenceRemarks && $reproductiveCondition) {
-	$occurrenceRemarks = "$occurrenceRemarks\.";
-	$occurrenceRemarks =~ s/\.\.$/./; #add a period at the end, if there isn't one
-	$Notes = "$occurrenceRemarks Phenology = $reproductiveCondition";
-}
-elsif ($occurrenceRemarks){
-	$Notes = "$occurrenceRemarks";
-}
-elsif ($reproductiveCondition){
-	$Notes = "Phenology: $reproductiveCondition";
-}
-else {
-	$Notes = "";
-}
+#if ($occurrenceRemarks && $reproductiveCondition) {
+#	$occurrenceRemarks = "$occurrenceRemarks\.";
+#	$occurrenceRemarks =~ s/\.\.$/./; #add a period at the end, if there isn't one
+#	$Notes = "$occurrenceRemarks Phenology = $reproductiveCondition";
+#}
+#elsif ($occurrenceRemarks){
+#	$Notes = "$occurrenceRemarks";
+#}
+#elsif ($reproductiveCondition){
+#	$Notes = "Phenology: $reproductiveCondition";
+#}
+#else {
+#	$Notes = "";
+#}
 
 ############ESTABLISHMENTMEANS##########
 #$establishmentMeans, #Native, Introduced, or cultivated
@@ -511,11 +1057,12 @@ else {
 #write $GUID to a %GUID hash, keyed to the accession ID
 #CCH process concatenates separate AID/GUID files and puts them in the extract for GBIF
 #CCH itself does not publish GUIDs, yet
-$GUID{$id}=$GUID;
+#$GUID{$id}=$GUID;
 
 
 print OUT <<EOP;
 Accession_id: $id
+Other_label_numbers: $GUID
 Name: $scientificName
 Date: $verbatimEventDate
 EJD: $EJD
@@ -536,18 +1083,23 @@ Lat_long_ref_source: $georeferenceSource
 Datum: $geodeticDatum
 Max_error_distance: $errorRadius
 Max_error_units: $errorRadiusUnits
+Verbatim_elevation: $verbatimElevation
+Verbatim_county: $tempCounty
 Habitat: $habitat
-Notes: $Notes
-T/R/Section: $trs
-Type_status: $typeStatus
+Phenology: $reproductiveCondition
+Population_biology: $occurrenceRemarks
+Notes: $origin
+Hybrid_annotation: $hybrid_annotation
+Cultivated: $establishmentMeans
+Annotation: $det_orig
 Annotation: $Annotation
+Type_status: $typeStatus
 
 EOP
 }
 
-close OUT;
 
-open(OUT,">AID_GUID_RSA.txt") || die;
-foreach(keys(%GUID)){
-	print OUT "$_\t$GUID{$_}\n";
-}
+#open(OUT,">AID_GUID_RSA.txt") || die;
+#foreach(keys(%GUID)){
+#	print OUT "$_\t$GUID{$_}\n";
+#}
