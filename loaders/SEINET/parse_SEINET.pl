@@ -16,10 +16,10 @@ my %month_hash = &month_hash;
 
 ####INSERT NAMES OF SEINET FILES and assign variables
 
-my $images_file='SEINET_Downloads/images.tab';
-my $dets_file='SEINET_Downloads/identifications.tab';
-my $records_file='SEINET_Downloads/occurrences.tab';
-my $temp_file='SEINET_temp.txt'; #file without the large number of unwanted records filtered from step 1
+my $images_file='/JEPS-master/CCH/Loaders/SEINET/SEINET_Downloads/images.tab';
+my $dets_file='/JEPS-master/CCH/Loaders/SEINET/SEINET_Downloads/identifications.tab';
+my $records_file='/JEPS-master/CCH/Loaders/SEINET/SEINET_Downloads/occurrences.tab';
+my $temp_file='/JEPS-master/CCH/Loaders/SEINET/SEINET_temp.txt'; #file without the large number of unwanted records filtered from step 1
 
 my $included;
 my %skipped;
@@ -44,9 +44,9 @@ my $GUID;
 my %GUID;
 my $id_non;
 
-open(OUT,">SEINET_out.txt") || die;
-open(OUT3,">AID_GUID_SEINET.txt") || die; #text file for SEINET accession conversion 
-open(TEMP,">SEINET_temp.txt") || die;
+open(OUT,">/JEPS-master/CCH/Loaders/SEINET/SEINET_out.txt") || die;
+open(OUT3,">/JEPS-master/CCH/Loaders/SEINET/AID_GUID_SEINET.txt") || die; #text file for SEINET accession conversion 
+open(TEMP,">/JEPS-master/CCH/Loaders/SEINET/SEINET_temp.txt") || die;
 #log.txt is used by logging subroutines in CCH.pm
 my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
@@ -3363,7 +3363,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'SEINET_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/SEINET/SEINET_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
