@@ -159,10 +159,10 @@ my $det_orig;
 
 
 
-open(OUT, ">RSA_out.txt") || die;
-open(OUT2, ">RSA_ID.txt") || die;
-open(OUT3, ">RSA_GIS.txt") || die;
-open(OUT4, ">AID_GUID_RSA.txt") || die;
+open(OUT, ">/JEPS-master/CCH/Loaders/RSA/RSA_out.txt") || die;
+open(OUT2, ">/JEPS-master/CCH/Loaders/RSA/RSA_ID.txt") || die;
+open(OUT3, ">/JEPS-master/CCH/Loaders/RSA/RSA_GIS.txt") || die;
+open(OUT4, ">/JEPS-master/CCH/Loaders/RSA/AID_GUID_RSA.txt") || die;
 
 
 
@@ -189,7 +189,7 @@ open(OUT4, ">AID_GUID_RSA.txt") || die;
 #the new format within also concatenates into one, manually 
 ############
 
-my $file="data_files/2018.01.05_RSA_CCH_mod.txt";
+my $file="/JEPS-master/CCH/Loaders/RSA/data_files/2018.04.11_RSA_CCH.txt";
 
 
 
@@ -2077,7 +2077,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'RSA_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/RSA/RSA_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
