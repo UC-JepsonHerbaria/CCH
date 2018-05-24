@@ -143,6 +143,85 @@ sort -u log.txt > /JEPS-master/CCH/Loaders/RSA/RSA_log_sort.txt
 echo "$?                                          NEXT";
 
 
+echo "$?                                          parsing SBBG";
+perl /JEPS-master/CCH/Loaders/SBBG/parse_SBBG.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/SBBG/SBBG_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/SBBG/
+sort -u log.txt > /JEPS-master/CCH/Loaders/SBBG/SBBG_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing SCFS";
+perl /JEPS-master/CCH/Loaders/SCFS/parse_SCFS.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/SCFS/SCFS_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/SCFS/
+sort -u log.txt > /JEPS-master/CCH/Loaders/SCFS/SCFS_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing SD";
+perl /JEPS-master/CCH/Loaders/SD/parse_SD.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/SD/SD_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/SD/
+sort -u log.txt > /JEPS-master/CCH/Loaders/SD/SD_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing SDSU";
+perl /JEPS-master/CCH/Loaders/SDSU/parse_SDSU.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/SDSU/SDSU_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/SDSU/
+sort -u log.txt > /JEPS-master/CCH/Loaders/SDSU/SDSU_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing SJSU";
+perl /JEPS-master/CCH/Loaders/SJSU/parse_SJSU.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/SJSU/SJSU_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/SJSU/
+sort -u log.txt > /JEPS-master/CCH/Loaders/SJSU/SJSU_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing UCD";
+perl /JEPS-master/CCH/Loaders/UCD/parse_UCD.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/UCD/UCD_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/UCD/
+sort -u log.txt > /JEPS-master/CCH/Loaders/UCD/UCD_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing UCR";
+perl /JEPS-master/CCH/Loaders/UCR/parse_UCR.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/UCR/UCR_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/UCR/
+sort -u log.txt > /JEPS-master/CCH/Loaders/UCR/UCR_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing UCSB";
+perl /JEPS-master/CCH/Loaders/UCSB/parse_UCSB.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/UCSB/UCSB_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/UCSB/
+sort -u log.txt > /JEPS-master/CCH/Loaders/UCSB/UCSB_log_sort.txt
+
+echo "$?                                          NEXT";
+
 
 echo "$?                                          parsing UCSC";
 perl /JEPS-master/CCH/Loaders/UCSC/parse_UCSC.pl
@@ -150,6 +229,26 @@ echo "$?                                          sorting log file";
 cp /JEPS-master/CCH/Loaders/UCSC/UCSC_out.txt /JEPS-master/CCH/bulkload/input/new_files/
 cp log.txt /JEPS-master/CCH/Loaders/UCSC/
 sort -u log.txt > /JEPS-master/CCH/Loaders/UCSC/UCSC_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing VVC";
+perl /JEPS-master/CCH/Loaders/VVC/parse_VVC.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/VVC/VVC_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/VVC/
+sort -u log.txt > /JEPS-master/CCH/Loaders/VVC/VVC_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing YOSE";
+perl /JEPS-master/CCH/Loaders/YOSE/parse_YOSE.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/YOSE/YOSE_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/YOSE/
+sort -u log.txt > /JEPS-master/CCH/Loaders/YOSE/YOSE_log_sort.txt
 
 echo "$?                                          NEXT";
 
