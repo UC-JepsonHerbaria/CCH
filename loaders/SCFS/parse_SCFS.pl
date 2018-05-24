@@ -17,10 +17,10 @@ my %month_hash = &month_hash;
 
 ####INSERT NAMES OF SEINET FILES and assign variables
 
-my $images_file='SCFS_SymbiotaDownloads/images.tab';
-my $dets_file='SCFS_SymbiotaDownloads/identifications.tab';
-my $records_file='SCFS_SymbiotaDownloads/occurrences.tab';
-my $temp_file='SCFS_temp.txt'; #file without the large number of unwanted records filtered from step 1
+my $images_file='/JEPS-master/CCH/Loaders/SCFS/SCFS_SymbiotaDownloads/images.tab';
+my $dets_file='/JEPS-master/CCH/Loaders/SCFS/SCFS_SymbiotaDownloads/identifications.tab';
+my $records_file='/JEPS-master/CCH/Loaders/SCFS/SCFS_SymbiotaDownloads/occurrences.tab';
+my $temp_file='/JEPS-master/CCH/Loaders/SCFS/SCFS_temp.txt'; #file without the large number of unwanted records filtered from step 1
 
 my $included;
 my %skipped;
@@ -41,8 +41,8 @@ my %ANNO;
 my $tempCounty;
 my $GUID;
 
-open(OUT,">SCFS_out.txt") || die;
-open(TEMP,">SCFS_temp.txt") || die;
+open(OUT,">/JEPS-master/CCH/Loaders/SCFS/SCFS_out.txt") || die;
+open(TEMP,">/JEPS-master/CCH/Loaders/SCFS/SCFS_temp.txt") || die;
 #log.txt is used by logging subroutines in CCH.pm
 my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
@@ -2689,7 +2689,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'SCFS_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/SCFS/SCFS_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
