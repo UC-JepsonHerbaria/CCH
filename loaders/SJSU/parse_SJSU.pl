@@ -23,7 +23,7 @@ my %seen;
 my $det_string;
 my $tempCounty;
 
-open(OUT, ">SJSU_out.txt") || die;
+open(OUT, ">/JEPS-master/CCH/Loaders/SJSU/SJSU_out.txt") || die;
 
 
 #log.txt is used by logging subroutines in CCH.pm
@@ -41,7 +41,7 @@ unlink $error_log or warn "making new error log file $error_log";
 #	my $file = 'SJSU_Sharsmith_29jan2015_UTF8.txt';
 #	my $file = 'SJSU_Sharsmith_11sep2015_UTF8.txt';
 #	my $file = 'SJSU_Sharsmith_15sep2015_UTF8.csv';
-	my $file = 'SJSU_CCH_update_May2017.csv';
+	my $file = '/JEPS-master/CCH/Loaders/SJSU/SJSU_CCH_update_May2017.csv';
 
 
  open (IN, "<", $file) or die $!;
@@ -1378,7 +1378,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'SJSU_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/SJSU/SJSU_out.txt';	#the file this script will act upon is called 'CATA.out'
 
 open(IN,"$file_in" ) || die;
 
