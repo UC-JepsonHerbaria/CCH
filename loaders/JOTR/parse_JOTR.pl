@@ -19,8 +19,8 @@ $today_JD = &get_today_julian_day;
 
 my %month_hash = &month_hash;
 
-open(OUT,">JOTR_out.txt") || die;
-open(OUT2,">JOTR_dwc.txt") || die;
+open(OUT,">/JEPS-master/CCH/Loaders/JOTR/JOTR_out.txt") || die;
+open(OUT2,">/JEPS-master/CCH/Loaders/JOTR/JOTR_dwc.txt") || die;
 
 print OUT2 "Accession_id\tscientificName\tverbatimEventDate\tEJD\tLJD\trecordedBy\tother_coll\tverbatimCollectors\tCNUM\tCNUM_prefix\tCNUM_suffix\tcountry\tstateProvince\tcounty\tlocality\thabitat\tTRS\tdecimalLatitude\tdecimalLongitude\tdatum\tgeoreferenceSource\terrorRadius\terrorUnits\tCCH_elevationInMeters\tverbatimElevation\tverbatim_county\tMacromorphology\tNotes\tCultivated\tHybrid_annotation\tAnnotation\tGUID\n";
 
@@ -1537,7 +1537,7 @@ my %match;
 my %seen;
 %seen=();
 
-    my $file_out = 'JOTR_out.txt';	#the file this script will act upon is called 'BLMAR.out'
+    my $file_out = '/JEPS-master/CCH/Loaders/JOTR/JOTR_out.txt';	#the file this script will act upon is called 'BLMAR.out'
 open(IN,"$file_out" ) || die;
 
 while(<IN>){
