@@ -1,280 +1,295 @@
-open(OUT, ">SDSU_out_new") || die;
-open(IN,"../CDL/alter_names") || die;
-while(<IN>){
-	chomp;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
-open(IN,"../CDL/riv_non_vasc") || die;
-while(<IN>){
-	chomp;
-	if(m/\cM/){
-	die;
-	}
-	$exclude{$_}++;
-}
-open(IN,"/Users/richardmoe/4_data/taxon_ids/smasch_taxon_ids.txt") || die;
-while(<IN>){
-	chomp;
-	($id,$name,@residue)=split(/\t/);
-	$taxon{$name}=$id;
-}
-open(ERR,">SDSU_error");
-#open(IN,"Jepson_EXPORT_041708.tab") || die;
-use utf8;
-$file=
-"SDSU2013.txt";
-#"CCH_SDSU_Export-20120821.txt";
-open(IN,"$file") || die;
+#This script was a mess, and I only half cleaned it up.
+#My apologies
+use Time::JulianDay;
+use Time::ParseDate;
+use lib '/Users/davidbaxter/DATA';	
+use CCH; #loads non-vascular plant names list ("mosses"), alter_names table, and max_elev values
+&load_noauth_name; #loads taxon id master list (smasch_taxon_ids.txt) into an array %TID
+$today_JD = &get_today_julian_day;
+my %month_hash = &month_hash;
 
+open(OUT, ">SDSU.out") || die;
 
+my $error_log = "log.txt";
+unlink $error_log or warn "making new error log file $error_log";
+
+#SDSU sends file as an XLS file containing many smart quotes
+#Open in OpenOffice, save as UTF-8 tab-delimited CSV with no quotes around fields
+#Then open in TextWrangler and use "Straighten Quotes" Text option
+$current_file="CCH-SDSU-11Jan2016.txt";
+open(IN, $current_file) || die;
 while(<IN>){
 	chomp;
 	s/\cK/ /g;
-s/Õ/'/g;
-$hybrid_annotation=$annotation=$image="";
-	$determiner=$PREFIX=$SUFFIX=$PlantDescr="";
-
-#Accession ID    Determination   Collector       Collection Date Collection Number       County  Locality        Elevation in meters     Latitude        Longitude       Lat/Long Accuracy       Geology Community       Plant Description       Determinor      Determination Date      Specimen Notes
-
-#NEW Accession ID	CACounty	Coll. Number	Collect. Date	Collector	Community	Determination	Determination Date	Determinor	Elevation in m.	Geology	Image	Latitude	LatLong Accuracy meters	Local.	Longitude	Plant Descr.	Specimen Notes
-#OLD Accession ID    Determination   Collector   Collection Date Collection Number   County  Locality    Elevation in meters Latitude    Longitude   LatLong Accuracy    Geology Community   Plant Description   Determinor  Determination Date  Notes
-
-
-($ACCESSNO, $name, $collector, $DATE, $NUMBER, $DISTRICT, $LOCALITY, $elevation, $decimal_latitude, $decimal_longitude, $accuracy, $Geology, $Community, $PlantDescr, $determiner,$det_date, $notes, $image)=split(/\t/);
-@fields=split(/\t/);
-print "$#fields\n" unless $seen{$fields}++;
-	foreach
-	($ACCESSNO, $collector, $DATE, $NUMBER, $DISTRICT, $Family, $name, $decimal_latitude, $decimal_longitude, $elevation, $PlantDescr, $Geology, $Community, $LOCALITY, $notes, $image, $accuracy){
-		s/^"(.*)"$/$1/;
-	}
-foreach($accuracy){
-s!\+/-!!;
-s/'/ ft/;
-s/  / /g;
+	&CCH::check_file;
 }
-if($accuracy=~/([0-9.]+) (.*)/){
-$extent=$1; $ExtUnits=$2;
+close(IN);
+
+open(IN, $current_file) || die;
+Record: while(<IN>){
+	chomp;
+	(@fields)=split(/\t/,$_,100);
+	unless( $#fields==17){
+		&log_skip("$#fields Fields not 19 $_");
+		next;
+	}
+
+$hybrid_annotation=$annotation=$PREFIX=$SUFFIX="";
+
+($id, 
+$scientificName, 
+$collector, 
+$verbatimDate, 
+$NUMBER, 
+$county, 
+$LOCALITY, 
+$elevation, 
+$decimal_latitude, 
+$decimal_longitude, 
+$coordinate_accuracy, 
+$Geology, 
+$Community, 
+$PlantDescr, 
+$identifiedBy, 
+$dateIdentified, 
+$notes, 
+$image)=@fields;
+
+
+################ACCESSION_ID#############
+#check for nulls
+if ($id=~/^ *$/){
+	&log_skip("Record with no accession id $_");
+	++$skipped{one};
+	next Record;
+}
+
+#remove leading zeroes
+foreach($id){
+	s/^0+//g;
+}
+
+#Remove duplicates
+if($seen{$id}++){
+	++$skipped{one};
+	warn "Duplicate number: $id<\n";
+	&log_skip("Duplicate accession number, skipped:\t$id");
+	next Record;
+}
+
+
+###############SCIENTIFIC NAME
+$scientificName="" if $scientificName=~/^No name$/i;
+
+foreach($scientificName){
+	s/^ *//;
+	s/ *$//;
+	s/  */ /g;
+	s/ c\.?f\.//g;
+	s/ [Ss]sp / subsp. /;
+	s/ spp\.? / subsp. /;
+	s/ var / var. /;
+	s/ [Ss]sp\. / subsp. /;
+	s/ Subsp\. / subsp. /;
+	s/ f / f\. /;
+	s/ [xX] / X /;
+	s/ sp\.//;
+	s/\?//;
+	s/, nov\.$//;
+	s/ nov\.$//;
+	s/, nova$//;
+}
+
+unless($scientificName){
+	&log_skip("No name: $id", @columns);
+	next;
+}
+
+###Exclude non-vascular genera
+($genus=$scientificName)=~s/ .*//;
+if($exclude{$genus}){
+	&log_skip("Non-vascular plant: $id", @columns);
+	next;
+}
+
+####Make hybrid annotations
+if($scientificName=~/([A-Z][a-z-]+ [a-z-]+) X /){
+	$hybrid_annotation=$scientificName;
+	warn "$1 from $scientificName\n";
+	$scientificName=$1;
+}
+
+###validate names
+$scientificName=ucfirst($scientificName);
+$scientificName = &strip_name($scientificName);
+$scientificName = &validate_scientific_name($scientificName, $id);
+
+
+
+
+
+#########COLLECTION DATE
+if ($verbatimDate=~/([0-9]+)\/([0-9]+)\/([0-9]+)/){
+	$MM=$1;
+	$DD=$2;
+	$YYYY=$3;
+}
+elsif ($verbatimDate=~/([0-9]+)-([0-9]+)-([0-9]+)/){
+	$MM=$1;
+	$DD=$2;
+	$YYYY=$3;
+}
+
+$MM = &get_month_number($MM, $id, %month_hash);
+($EJD, $LJD)=&make_julian_days($YYYY, $MM, $DD, $id);
+($EJD, $LJD)=&check_julian_days($EJD, $LJD, $today_JD, $id);
+
+
+
+
+###########COUNTY###########
+$county=&CCH::format_county($county);
+foreach ($county){	#for each $county value
+	unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown|Unknown)$/){
+		$v_county= &verify_co($_);	#Unless $county matches one of the county names from the above list, create a value $v_county for that value using the &verify_co function
+		if($v_county=~/SKIP/){		#If $v_county is "/SKIP/" (i.e. &verify_co cannot recognize it)
+			&log_skip("$id NON-CA COUNTY? $_");	#run the &log_skip function, printing the following message to the error log
+			++$skipped{one};
+			next Record;
+		}
+		unless($v_county eq $_){	#unless $v_county is exactly equal to what was input into the &verify_co function (i.e. if &verify_co successfully changed the county)
+			&log_change("$id COUNTY $_ -> $v_county");		#call the &log_change function to print this log message into the change log...
+			$_=$v_county;	#and then set $county to whatever the verified $v_county is.
+		}
+	}
+}
+	
+	
+	
+	
+######ElEVATION
+$elevation="" if $elevation=~/N\/?A/i;
+
+if($elevation && ($elevation > 5000 || $elevation < -300)){
+	&log_change("Elevation set to null: $id: $elevation");
+	$elevation="";
+}
+$elevation .= " m" if $elevation;
+$elevation="" unless $elevation;
+
+
+#######COLLECTOR
+$collector= "" unless $collector;
+$collector= "" if $collector=~/^None$/i;
+$collector=~s/^ *//;
+$collector=~s/  +/ /g;
+$collector=~s/([A-Z]\.)([A-Z]\.)([A-Z][a-z])/$1 $2 $3/g;
+$collector=~s/([A-Z]\.)([A-Z]\.) ([A-Z][a-z])/$1 $2 $3/g;
+
+$combined_collector= $collector;
+unless($collector=~s/, .*// || $collector=~s/ and .*//){
+	$combined_collector="";
+}
+
+
+#COLLECTOR NUMBER
+if($NUMBER=~/^(\d+)$/){
+	$PREFIX=$SUFFIX="";
+}
+elsif($NUMBER=~/^(\d+)(\D+)$/){
+	$SUFFIX=$2; $NUMBER=$1;
+}
+elsif($NUMBER=~/^(\D+)(\d+)$/){
+	$PREFIX=$1; $NUMBER=$2;
+}
+elsif($NUMBER=~/^(\D+)(\d+)(.*)/){
+	$PREFIX=$1; $NUMBER=$2; $SUFFIX=$3;
 }
 else{
-$extent= $ExtUnits="";
+	$SUFFIX=$NUMBER;
+	$NUMBER="";
 }
-	unless($ACCESSNO){
-		&skip("No accession id", @columns);
-	}
-	if ($DISTRICT=~/^N\/?A$/i){
-		$DISTRICT="unknown"
-	}
-	elsif ($DISTRICT=~/N\/?A/i){
-		#print "$ACCESSNO $DISTRICT\n";
-	}
-	foreach($DISTRICT){
-s/, .*//;
-		s/Eldorado/El Dorado/;
-		s/Humbolt/Humboldt/;
-		s/Bernadino/Bernardino/;
-		s/East San Diego/San Diego/;
-	s/ Co\.? ?$//;
-	s/ County ?$//;
-	}
-	unless($DISTRICT=~/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|unknown)/i){
-		&log("County set to unknown: $ACCESSNO $DISTRICT");
-		$DISTRICT="Unknown";
-	}
-	$name="" if $name=~/^No name$/i;
-		$name=~s/ *$//;
-$name=~s/  */ /g;
-		$name=~s/ c\.?f\.//g;
-		unless($name){
-			&skip("No name: $ACCESSNO", @columns);
-			next;
-		}
-		$name=~s/^ *//;
-		($genus=$name)=~s/ .*//;
-		$orig_name=$name;
-		if($exclude{$genus}){
-			&skip("Non-vascular plant: $ACCESSNO", @columns);
-			next;
-		}
-		$name=ucfirst($name);
-		foreach($name){
-			s/ [Ss]sp / subsp. /;
-			s/ spp\.? / subsp. /;
-			s/ var / var. /;
-			s/ [Ss]sp\. / subsp. /;
-			s/ Subsp\. / subsp. /;
-			s/ f / f\. /;
-			s/ [xX] / X /;
-			s/ sp\.//;
-			s/\?//;
-		}
-		if($alter{$name}){
-			&log ("Spelling altered to $alter{$name}: $name");
-			$name=$alter{$name};
-		}
-		if($name=~/  /){
-			if($name=~/^[A-Z][a-z]+ [a-z]+ +[a-z]+$/){
-				&log("$name: var. added $ACCESSNO");
-				$name=~s/^([A-Z][a-z]+ [a-z]+) +([a-z]+)$/$1 var. $2/;
-			}
-			$name=~s/  */ /g;
-		}
-		if($name=~/CV\.? /i){
-			&skip("Can't deal with cultivars yet: $ACCESSNO", $name);
-			#$badname{$name}++;
-			next;
-		}
-		if($name=~/([A-Z][a-z-]+ [a-z-]+) X /){
-			$hybrid_annotation=$name;
-			warn "$1 from $name\n";
-			$name=$1;
-		}
-
-		if($alter{$name}){
-			&log ("Spelling altered to $alter{$name}: $name");
-			$name=$alter{$name};
-		}
-		unless($taxon{$name}){
-			$on=$name;
-			if($name=~s/subsp\./var./){
-				if($taxon{$name}){
-					&log("Not yet entered into SMASCH taxon name table: $on entered as $name");
-				}
-				else{
-					&skip("Not yet entered into SMASCH taxon name table: $on skipped");
-					++$badname{$orig_name};
-					next;
-				}
-			}
-			elsif($name=~s/var\./subsp./){
-				if($taxon{$name}){
-					&log("Not yet entered into SMASCH taxon name table: $on entered as $name");
-				}
-				else{
-					&skip("Not yet entered into SMASCH taxon name table: $on skipped");
-					++$badname{$orig_name};
-					next;
-				}
-			}
-			else{
-				&skip("Not yet entered into SMASCH taxon name table: $on skipped");
-				++$badname{$orig_name};
-				next;
-			}
-		}
-	
-		$elevation="" if $elevation=~/N\/?A/i;
-		$TRS="" if $TRS=~s/NoTRS//i;
-		$notes="" if $notes=~/^None$/;
-		if($elevation && ($elevation > 5000 || $elevation < -300)){
-			&log("Elevation set to null: $ACCESSNO: $elevation");
-			$elevation="";
-		}
-		$elevation .= " m" if $elevation;
-		$elevation="" unless $elevation;
-		$collector= "" unless $collector;
-		$collector= "" if $collector=~/^None$/i;
-		$collector=~s/^ *//;
-		$collector=~s/  +/ /g;
-		$collector=~s/([A-Z]\.)([A-Z]\.)([A-Z][a-z])/$1 $2 $3/g;
-		$collector=~s/([A-Z]\.)([A-Z]\.) ([A-Z][a-z])/$1 $2 $3/g;
-		#$collector= $alter_coll{$collector} if $alter_coll{$collector};
-		#if($combined_collector){
-			#$combined_collector=~s/et al$/et al./;
-			#$combined_collector=~s/([A-Z]\.)([A-Z]\.)([A-Z][a-z])/$1 $2 $3/g;
-			#$combined_collector=~s/([A-Z]\.)([A-Z]\.) ([A-Z][a-z])/$1 $2 $3/g;
-			#$combined_collector=~s/([A-Z]\.)([A-Z][a-z])/$1 $2/g;
-			#$combined_collector=~s/  +/ /g;
-			#$combined_collector= $alter_coll{$combined_collector} if $alter_coll{$combined_collector};
-			#if($collector){
-				#$combined_collector= "$collector, $combined_collector";
-			#}
-			#else{
-				#$collector=$combined_collector;
-				#$combined_collector= "";
-			#}
-		#}
-		#else{
-			#$combined_collector="";
-		#}
-				$combined_collector= $collector;
-unless($collector=~s/, .*// || $collector=~s/ and .*//){
-			$combined_collector="";
+if($NUMBER || $PREFIX || $SUFFIX){
+	$collector= "Anonymous" unless $collector;
 }
 
-		$badcoll{$collector}++ unless $COLL{$collector};
-		$badcoll{$combined_collector}++ unless $COLL{$combined_collector};
-		if($NUMBER=~/^(\d+)$/){
-			$PREFIX=$SUFFIX="";
-		}
-		elsif($NUMBER=~/^(\d+)(\D+)$/){
-			$SUFFIX=$2; $NUMBER=$1;
-		}
-		elsif($NUMBER=~/^(\D+)(\d+)$/){
-			$PREFIX=$1; $NUMBER=$2;
-		}
-		elsif($NUMBER=~/^(\D+)(\d+)(.*)/){
-			$PREFIX=$1; $NUMBER=$2; $SUFFIX=$3;
-		}
-		else{
-			$SUFFIX=$NUMBER;
-			$NUMBER="";
-		}
-		if($NUMBER || $PREFIX || $SUFFIX){
-			$collector= "Anonymous" unless $collector;
-		}
+
+
+#####COORDINATES, DATUM
 		if(($decimal_latitude==0  || $decimal_longitude==0)){
 			$decimal_latitude =$decimal_longitude="";
 		}
 		if(($decimal_latitude=~/\d/  || $decimal_longitude=~/\d/)){
 			$decimal_longitude="-$decimal_longitude" if $decimal_longitude > 0;
 			if($decimal_latitude > 42.1 || $decimal_latitude < 32.5 || $decimal_longitude > -114 || $decimal_longitude < -124.5){
-		&log("coordinates set to null, Outside California: $ACCESSNO: >$decimal_latitude< >$decimal_longitude< $latitude $longitude");
+		&log_change("coordinates set to null, Outside California: $id: >$decimal_latitude< >$decimal_longitude< $latitude $longitude");
 		$decimal_latitude =$decimal_longitude="";
 		}
 	}
-	$datum="" if $datum=~/^Unk$/i;
-	foreach($DATE){
-		s/-(0[0-9])$/-20$1/;
-		s/-(\d\d)$/-19$1/;
+#datum not recorded, so if there's coordinates, set datum to "Not Recorded
+if ($decimal_latitude && $decimal_longitude){
+	$geodeticDatum="Not recorded";
+}
+else { $geodeticDatum = ""; }
+
+
+#########COORDINATE UNCERTAINTY
+foreach($coordinate_accuracy){
+	s!\+/-!!;
+	s/'/ ft/;
+	s/  / /g;
+}
+if($coordinate_accuracy=~/([0-9.]+) (.*)/){
+	$extent=$1; $ExtUnits=$2;
+}
+else{
+	$extent=$ExtUnits="";
+}
+
+
+########ANNOTATION
+if($identifiedBy){
+    $annotation="$scientificName; $identifiedBy; $dateIdentified";
+}
+else{
+    $annotation="";
+}
+
+
+
+#####NOTES; COLOR AND MACROMORPHOLOGY FROM Plant Description
+$notes="" if $notes=~/^None$/;
+$color="";
+@descr=split(/\.  /,$PlantDescr);
+$PlantDescr="";
+foreach $i (0 .. $#descr){
+	if($descr[$i]=~m/\b(red|green|blue|yellow|orange|purple|cream|white|brown|violet|reddish|pink|pinkish)\b/){
+		$color .= "$descr[$i]. ";
 	}
+	else{
+		$PlantDescr .= "$descr[$i]. ";
+	}
+}	
+$PlantDescr=~s/[. ]+$//;
+$color=~s/[. ]+$//;
+
+
+###Count up
 ++$count_record;
 warn "$count_record\n" unless $count_record % 5000;
-		$color="";
-		@descr=split(/\.  /,$PlantDescr);
-		#print "$PlantDescr\n";
-		$PlantDescr="";
-		foreach $i (0 .. $#descr){
-			#print "$i $descr[$i]\n";
-			if($descr[$i]=~m/\b(red|green|blue|yellow|orange|purple|cream|white|brown|violet|reddish|pink|pinkish)\b/){
-				$color .= "$descr[$i]. ";
-			}
-			else{
-				$PlantDescr .= "$descr[$i]. ";
-			}
-		}	
-		$PlantDescr=~s/[. ]+$//;
-		$color=~s/[. ]+$//;
-		#print "$PlantDescr\n";
-		#print "$color\n";
-		if($determiner){
-		    $annotation="$name; $determiner; $det_date";
-			}
-			else{
-			    $annotation="";
-				}
+
+				
      print OUT <<EOP;
-Date: $DATE
+Date: $verbatimDate
 CNUM: $NUMBER
 CNUM_prefix: $PREFIX
 CNUM_suffix: $SUFFIX
-Name: $name
-Accession_id: $ACCESSNO
+Name: $scientificName
+Accession_id: $id
 Country: USA
 State: California
-County: $DISTRICT
+County: $county
 Location: $LOCALITY
-T/R/Section: $TRS
 Elevation: $elevation
 Collector: $collector
 Other_coll: 
@@ -287,9 +302,8 @@ Latitude: $latitude
 Longitude: $longitude
 Decimal_latitude: $decimal_latitude
 Decimal_longitude: $decimal_longitude
-UTM: $UTM
 Notes: $notes
-Datum: $datum
+Datum: $geodeticDatum
 Max_error_distance: $extent
 Max_error_units: $ExtUnits
 Annotation: $annotation
@@ -298,33 +312,5 @@ Image: $image
 
 EOP
 }
-warn "$count_record\n";
 
-open(OUT,">SDSU_badcoll") || die;
-foreach(sort(keys(%badcoll))){
-print OUT "$_: $badcoll{$_}\n";
-}
-open(OUT,">SDSU_badname") || die;
-foreach(sort(keys(%badname))){
-print OUT "$_: $badname{$_}\n";
-}
-sub skip {
-print ERR "skipping: @_\n"
-}
-sub log {
-print ERR "logging: @_\n";
-}
-__END__
-SDSU17322	"Michael G. Simpson, C. Matt Guilliams, Kristen Hasenstab, & Michael Silveira"	30-May-07	2841	Santa Cruz	Crassulaceae	Sedum spathulifolium 	37.14666667	-122.1986111	719	"Perennial herb.  Leaves succulent, lower reddish.  Flowers yellow.  Young fruits red-orange.  "	Silty loam on granitic rocks.	"Open, north-facing slope.  Adjacent to Pinus attenuata / mixed chaparral."	"Dirt service road to Eagle Rock, ca. 0.2 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17279	"Michael G. Simpson, C. Matt Guilliams, Kristen Hasenstab, & Michael Silveira"	30-May-07	2842	Santa Cruz	Lamiaceae	Monardella villosa subsp. franciscana	37.14666667	-122.1986111	719	"Subshrub, ca. 2 dm tall.  Corolla light purple."	"Gravelly, silt soil.  Open, north-facing slope."	Adjacent to Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.2 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17323	"Michael G. Simpson, C. Matt Guilliams, Kristen Hasenstab, & Michael Silveira"	30-May-07	2843	Santa Cruz	Orobanchaceae	Castilleja foliolosa 	37.14666667	-122.1986111	719	"Subshrub, 2-3 dm tall.  Bracts and corolla red."	"Gravel, silt soil.  Open, north-facing slope."	Adjacent to Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.2 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17324	"Michael G. Simpson, C. Matt Guilliams, Kristen Hasenstab, & Michael Silveira"	30-May-07	2844	Santa Cruz	Portulacaceae	Claytonia parviflora subsp. viridis	37.14666667	-122.1986111	719	Annual herb.  Vegetation pink.	"Gravel, silt soil.  Open, north-facing slope."	Adjacent to Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.2 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17325	"Michael G. Simpson, C. Matt Guilliams, Kristen Hasenstab, & Michael Silveira"	30-May-07	2845	Santa Cruz	Ranunculaceae	Delphinium cardinale 	37.14666667	-122.1986111	719	Perennial herb.  Perianth red.	"Gravel, silt soil.  Open, north-facing slope."	Adjacent to Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.2 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17326	"Michael G. Simpson, C. Matt Guilliams, Kristen Hasenstab, & Michael Silveira"	30-May-07	2846	Santa Cruz	Apiaceae	Lomatium dasycarpum subsp. dasycarpum	37.14666667	-122.1986111	719	Perennial herb.	"Gravel, silt soil.  Open, north-facing slope."	Adjacent to Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.2 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17320	"Michael G. Simpson, C. Matt Guilliams"	30-May-07	2847	Santa Cruz	Poaceae	Briza maxima 	37.14666667	-122.1986111	719	Annual herb.	"Gravel, silt soil.  Open, north-facing slope."	Adjacent to Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.2 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17319	"Michael G. Simpson, C. Matt Guilliams"	30-May-07	2848	Santa Cruz	Poaceae	Aira caryophyllea 	37.14666667	-122.1986111	719	Annual herb.	"Gravel, silt soil.  Open, north-facing slope."	Adjacent to Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.2 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17277	"Michael G. Simpson, C. Matt Guilliams"	30-May-07	2849	Santa Cruz	Pteridaceae	Pentagramma triangularis var. triangularis	37.14666667	-122.1986111	719	Perennial herb.	"Gravel, silt soil.  Open, north-facing slope."	Adjacent to Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.2 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17308	"Michael G. Simpson, C. Matt Guilliams"	30-May-07	2850	Santa Cruz	Garryaceae	Garrya elliptica 	37.14722222	-122.1980556	724	"Shrub, ca. 2 m tall."	"Gravel, silt soil."	Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.17 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17307	"Michael G. Simpson, C. Matt Guilliams"	30-May-07	2851	Santa Cruz	Phrymaceae	Mimulus aurantiacus var. aurantiacus	37.14722222	-122.1980556	724	"Shrub, ca. 1.5 m tall.  Corolla light orange."	"Gravel, silt soil.  Open, north-facing slope."	Pinus attenuata / mixed chaparral.	"Edge of dirt service road to Eagle Rock, ca. 0.17 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17306	"Michael G. Simpson, C. Matt Guilliams"	30-May-07	2852	Santa Cruz	Fabaceae	Pickeringia montana var. montana	37.14722222	-122.1980556	724	"Shrub, ca. 1-2 m tall.  Corolla red-purple with yellow spot at adaxial base of banner."	"Gravel, silt soil."	Edge of road.  Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.17 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
-SDSU17302	"Michael G. Simpson, C. Matt Guilliams"	31-May-07	2853	Santa Cruz	Hydrophyllaceae	Eriodictyon californicum 	37.14722222	-122.1980556	724	"Shrub, ca. 0.5 m tall.  Corolla violet."	"Gravel, silt soil."	Edge of road.  Pinus attenuata / mixed chaparral.	"Dirt service road to Eagle Rock, ca. 0.17 west-southwest of peak, ca. 0.1 mile west of Big Basin Redwood State Park boundary."
+warn "$count_record\n";
