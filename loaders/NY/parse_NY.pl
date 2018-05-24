@@ -1,4 +1,42 @@
 #parse_nybg.pl
+
+open(IN,"Users/rlmoe/data/CDL/riv_non_vasc") || die;
+while(<IN>){
+	chomp;
+	if(m/\cM/){
+	die;
+	}
+	$exclude{$_}++;
+}
+open(IN,"NY_AdditionalNames.csv") || die;
+while(<IN>){
+chomp;
+#print "\n$_\n";
+s/"//g;
+($irn,	$DeterminationDate,	$FiledAsName,	$Determinations)=split(/\t/);
+if($FiledAsName=~/^Yes$/){
+next;
+}
+else{
+@det_date=split(/;/,$DeterminationDate);
+@FA_name=split(/;/,$FiledAsName);
+@dets=split(/;/,$Determinations);
+foreach $det_no (1 .. $#dets){
+if($dets[$det_no] !~ $dets[$det_no -1]){
+foreach $i (0 .. $#FA_name){
+$store_anno{$irn}.="Annotation: $dets[$i];;$det_date[$i]\n";
+}
+#++$count;
+last;
+}
+}
+}
+}
+#foreach(sort(keys(%store_anno))){
+#print $store_anno{$_};
+#}
+#print "$count\n";
+
 open(OUT, ">nybg.out") || die;
 open(IN,"ny_alters") || die "SD alter names wont open\n";
 while(<IN>){
@@ -12,7 +50,7 @@ while(<IN>){
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
 	$alter{$riv}=$smasch;
 }
-open(IN,"/Users/jfp04/CDL_buffer/buffer/tnoan.out") || die "tnoan wont open\n";
+open(IN,"/Users/rlmoe/CDL_buffer/buffer/tnoan.out") || die "tnoan wont open\n";
 while(<IN>){
 	chomp;
 	($id,$name)=split(/\t/);
@@ -25,6 +63,7 @@ open(ERR,">NYBG_error");
     open (CSV, "<", $file) or die $!;
 
     while (<CSV>) {
+$DATE= $NUMBER= $PREFIX= $SUFFIX= $name= $ACCESSNO= $DISTRICT= $LOCALITY= $TRS= $elevation= $collector= $combined_collector= $HABDESCR= $Vegetation= $Description= $macromorphology= $latitude= $longitude= $decimal_latitude= $decimal_longitude= $UTM= $notes= $datum= $extent= $ExtUnits= $anno_string= $hybrid_annotation= $TypeStatus="";
 		chomp;
 		s/\cK/ /g;
 		s/\t/ /g;
@@ -123,7 +162,19 @@ $decimal_longitude=$Longitude;
 $datum="";
 $extent= $CoordinatePrecision;
 $notes=$Notes;
-$determiner="$IdentifiedBy $MonthIdentified/$DayIdentified/$YearIdentified";
+#$determiner="$IdentifiedBy $MonthIdentified/$DayIdentified/$YearIdentified";
+if($IdentifiedBy){
+	if($YearIdentified){
+		$id_date="$MonthIdentified-$DayIdentified-$YearIdentified";
+	}
+	else{
+		$id_date="";
+	}
+$determiner="$IdentifiedBy; $id_date";
+}
+else{
+$determiner="";
+}
 
 
 
@@ -181,7 +232,7 @@ $annotation="";
 				next;
 			}
 			($genus=$name)=~s/ .*//;
-			if($ignore_name{$genus}){
+			if($exclude{$genus}){
 				&skip("Non-vascular plant: $ACCESSNO", @columns);
 				next;
 			}
@@ -312,18 +363,29 @@ $datum="" if $datum=~/^Unk$/i;
 #$LOCALITY=~s/^"(.*)"$/$1/;
 #$HABDESCR=~s/^"(.*)"$/$1/;
 
+@anno=();
 if($determiner){
-if($determiner=~m/(.*), *(.*)/){
-    $annotation="$name; $1; $2";
-	}
-elsif($determiner=~m/(.+)/){
-    $annotation="$name; $1";
+	push(@anno,"Annotation: $name; $determiner");
 }
-	else{
-	    $annotation="";
-		}
-	}
+foreach(split(/ *\n+/,$store_anno{$irn})){
+	push(@anno,"$_") if length($_) > 4;
+}
 
+if(@anno){
+ $anno_string="";
+ #print "\n1 ", @anno, "\n";
+	foreach(@anno){
+	#print "2 $_\n";
+		s/^ *//;
+		s/ *\n//;
+		$anno_string.="$_\n";
+	}
+	$anno_string=~s/\n+$//;
+#print "3 $anno_string\n\n";
+}
+else{
+$anno_string="Annotation: ";
+}
 
 foreach($DATE){
 s/.*0000.*//;
@@ -363,7 +425,7 @@ Notes: $notes
 Datum: $datum
 Max_error_distance: $extent
 Max_error_units: $ExtUnits
-Annotation: $annotation
+$anno_string
 Hybrid_annotation: $hybrid_annotation
 Type_status: $TypeStatus
 
