@@ -37,9 +37,9 @@ my %ANNO;
 
 
 
-my $xml_file = 'UCConsortium_14Feb2018/UCConsortium.xml';
-my $tab_file= 'DAV_xml.txt';
-my $dets_file='ANNO_out.txt';
+my $xml_file = '/JEPS-master/CCH/Loaders/UCD/UCConsortium_14Feb2018/UCConsortium.xml';
+my $tab_file= '/JEPS-master/CCH/Loaders/UCD/DAV_xml.txt';
+my $dets_file='/JEPS-master/CCH/Loaders/UCD/ANNO_out.txt';
 
 #log.txt is used by logging subroutines in CCH.pm
 my $error_log = "log.txt";
@@ -159,7 +159,7 @@ my $eventDate;
 my $accession;
 my $catalogNumber;
 
-open(OUT, ">DAV_xml.txt") || die; 
+open(OUT, ">/JEPS-master/CCH/Loaders/UCD/DAV_xml.txt") || die; 
 
 #Stage 1, XML parsing
 
@@ -2175,7 +2175,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'UCD_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/UCD/UCD_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
