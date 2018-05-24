@@ -1,6 +1,6 @@
 open(ERR, ">sagehen_err.txt") || die;
-open(OUT, ">sagehen.txt") || die;
-open(IN,"Users/rlmoe/data/CDL/riv_non_vasc") || die;
+open(OUT, ">SCFS.txt") || die;
+open(IN,"Users/davidbaxter/DATA/mosses") || die;
 while(<IN>){
 	chomp;
 	if(m/\cM/){
@@ -8,13 +8,13 @@ while(<IN>){
 	}
 	$exclude{$_}++;
 }
-open(IN,"/Users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
+open(IN,"/Users/davidbaxter/DATA/smasch_taxon_ids.txt") || die;
 while(<IN>){
 chomp;
 s/^.*\t//;
 $taxon{$_}++;
 }
-open(IN,"../CDL/alter_names") || die;
+open(IN,"/Users/davidbaxter/DATA/alter_names") || die;
 while(<IN>){
 	chomp;
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
@@ -26,7 +26,16 @@ open(IN,"scfs.tab") || die;
 while(<IN>){
 chomp;
 s/\cK/ /g;
-($accession_id,$name,$collectors,$coll_number, $date, $unparsed_locality, $precise_locality, $elevation, $associated_species,$notes)=split(/\t/,$_,50);
+($accession_id,
+    $name,
+    $collectors,
+    $coll_number,
+    $date,
+    $unparsed_locality,
+    $precise_locality,
+    $elevation,
+    $associated_species,
+    $notes)=split(/\t/,$_,50);
 $accession_id=~s/ *$//;
 
 
