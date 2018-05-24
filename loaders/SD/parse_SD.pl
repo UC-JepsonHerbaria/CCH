@@ -23,7 +23,7 @@ my $seen;
 my %seen;
 my $det_string;
 
-open(OUT, ">SD_out.txt") || die;
+open(OUT, ">/JEPS-master/CCH/Loaders/SD/SD_out.txt") || die;
 
 #log.txt is used by logging subroutines in CCH.pm
 my $error_log = "log.txt";
@@ -35,7 +35,7 @@ unlink $error_log or warn "making new error log file $error_log";
 ###open the file in TextWrangler, Save As with Line Breaks: Unix and Encoding: UTF-8
 ###Then run it through this and it works
 
-    my $file = 'CCH_SD_Jan17_mod.txt';
+    my $file = '/JEPS-master/CCH/Loaders/SD/CCH_SD_Jan17_mod.txt';
 #    my $file = 'Oct2015_SD_original.txt';
 
     open (IN, "<", $file) or die $!;
@@ -1632,7 +1632,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'SD_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/SD/SD_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
