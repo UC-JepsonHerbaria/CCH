@@ -1,4 +1,12 @@
+use lib '/Users/richardmoe/4_data/CDL';
+use CCH;
+$today=`date "+%Y-%m-%d"`;
+chomp($today);
+($today_y,$today_m,$today_d)=split(/-/,$today);
+&load_noauth_name;
+
 $m_to_f="3.2808";
+open(COORDS_LOG, ">coords.log") || die;
 while(<DATA>){
 @fields=split(/\t/);
 $fields[3]=~s/\+//;
@@ -20,12 +28,6 @@ $max_elev{$fields[1]}=$fields[3];
 #s/\t.*//;
 	#$coll_comm{$_}++;
 #}
-open(IN,"/users/jfp04/CDL_buffer/buffer/tnoan.out") || die;
-while(<IN>){
-	chomp;
-	s/^.*\t//;
-	$taxon{$_}++;
-}
 open(IN,"../CDL/riv_non_vasc") || die;
 while(<IN>){
 	chomp;
@@ -37,12 +39,12 @@ while(<IN>){
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
 	$alter{$riv}=$smasch;
 }
-open(IN,"davis_alter_names") || die;
-while(<IN>){
-	chomp;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
+#open(IN,"davis_alter_names") || die;
+#while(<IN>){
+	#chomp;
+	#next unless ($riv,$smasch)=m/(.*)\t(.*)/;
+	#$alter{$riv}=$smasch;
+#}
 open(IN,"davis_exclude") || die;
 while(<IN>){
 	chomp;
@@ -62,8 +64,8 @@ while(<IN>){
 	#}
 #}
 use Geo::Coordinates::UTM;
-$/="<UCConsortium>";
-open(ERROR, ">Davis_problems") || die;
+$/="<qryUCConsortium>";
+open(ERR, ">Davis_problems") || die;
 open(OUT, ">parse_davis.out") || die;
 open(IN,"UCConsortium.xml") || die;
 #open(IN,"2009/UCConsortiumXML/UCConsortium.xml") || die;
@@ -108,21 +110,22 @@ warn "processing XML\n";
 Record: while(<IN>){
 warn "$.  " unless $.%10000;
 	($err_line=$_)=~s/\n/\t/g;
-	$combined_collector=$assignor=$genus=$LatitudeDirection=$LongitudeDirection=$date= $collnum= $coll_num_prefix= $coll_num_suffix= $name= $accession_id= $county= $locality= $Unified_TRS= $elevation= $collector= $other_coll= $ecology= $color= $lat= $long= $decimal_lat= $decimal_long=$zone="";
+	$hybrid_annotation=$source=$combined_collector=$assignor=$genus=$LatitudeDirection=$LongitudeDirection=$date= $collnum= $coll_num_prefix= $coll_num_suffix= $name= $accession_id= $county= $locality= $Unified_TRS= $elevation= $collector= $other_coll= $ecology= $color= $lat= $long= $decimal_lat= $decimal_long=$zone="";
 	s/&apos;/'/g;
 	s/&quot;/"/g;
 	s/&amp;/&/g;
+s/\cM/ /g;
 	unless(m/<GeoSecondaryDivision> *California *</){
 		($state)=m/<GeoSecondaryDivision>(.*)</;
-		print ERROR "Non-California record, skipped: $state $err_line\n";
+		print ERR "$accession_id Non-California record, skipped: $state $err_line\n";
 		next;
 	}
 	unless(m/<HerbID>\d+<\/HerbID>/){
-		print ERROR "No Id, skipped $err_line\n";
+		print ERR "No Id, skipped $err_line\n";
 		next;
 	}
 	if(m/<Locality>.*Arboretum.*<\/Locality>/s){
-		print ERROR "Arboretum plant: skipped $err_line\n";
+		print ERR "$accession_id Arboretum plant: skipped $err_line\n";
 		next;
 	}
 	($accession_id)=m/<HerbID>(.*)</;
@@ -133,21 +136,26 @@ warn "$.  " unless $.%10000;
 		$infra_tag="AInfraspecificName";
 		++$skipped{one};
 		warn "Duplicate number: $accession_id<\n";
-		print ERROR<<EOP;
+		print ERR<<EOP;
 
-Duplicate accession number $accession_id
+$accession_id Duplicate accession number 
 EOP
 		#next;
 	}
 
 	if(m|<Genus>(.+)</Genus>|s){
 		$name=$1;
-		$genus=$1;
+$name=~s/ *$//;
+		$genus=$name;
 			$genus=~s/^ *//;
 		unless($genus){
-			print ERROR "No generic name, skipped: $err_line\n";
+			print ERR "$accession_id No generic name, skipped: $err_line\n";
 			next;
 		}
+	}
+	else{
+		print ERR "$accession_id No generic name, skipped\n";
+		next Record;
 	}
 	if(m|<SpecificEpithet>(.+)</SpecificEpithet>|s){
 		$name.=" " . lc($1);
@@ -165,73 +173,92 @@ EOP
 	if(m|<InfraspecificName>(.+)</InfraspecificName>|s){
 		$name.=" " . lc($1);
 	}
-	$name=~s/\?//g;
-	$name=~s/s\. *l\.//g;
-	$name=~s/ var\. *$//;
-	$name=~s/ +/ /g;
-	$name=~s/ *$//g;
-	$name=~s/^ +//g;
-	$name=~s/ +\(.*//;
-	unless($name){
-		print ERROR "No name, skipped: $err_line\n";
-		next;
-	}
-	if($exclude{$genus}){
-		print ERROR <<EOP;
-Excluded, not a vascular plant: $name $err_line
-EOP
-	next;
-	}
-	if($alter{$name}){
-		print ERROR <<EOP;
-Spelling altered to $alter{$name}: $name 
-EOP
-		$name=$alter{$name};
-	}
+
+#print "\nTEST $name<\n";
+$name=ucfirst(lc($name));
+$name=~s/^X ([a-z])/X \u$1/;
+#$name=~s/'//g;
+$name=~s/`//g;
+$name=~s/\(*\?\)*//g;
+$name=~s/ *$//;
+$name=~s/  +/ /g;
+$name=~s/ spp\./ subsp./;
+$name=~s/ssp\./subsp./;
+$name=~s/ ssp / subsp. /;
+$name=~s/ subsp / subsp. /;
+$name=~s/ var / var. /;
+$name=~s/ var. $//;
+$name=~s/ sp\..*//;
+$name=~s/ sp .*//;
+$name=~s/ [Uu]ndet.*//;
+$name=~s/ x / X /;
+$name=~s/ × / X /;
+$name=~s/ *$//;
+#print "TEST $name<\n";
+
+if($name=~s/ (aff\.|cf\.)//){
+                 $hybrid_annotation=$name;
+                 warn "$1 deleted from $name\n";
+                 &log("$1 deleted $name");
+             }
+if($name=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
+                 $hybrid_annotation=$name;
+                 warn "$1 from $name\n";
+                 &log("$1 from $name");
+                 $name=$1;
+             }
+	     else{
+                 $hybrid_annotation="";
+	     }
 
 
-		$name=~s/ssp\./subsp./;
-		$name=~s/<!\[CDATA\[(.*)\]\]>/$1/i;
-		$name=~s/ cultivar\. .*//;
-		$name=~s/ (cf\.|affn?\.|sp\.)//;
-	$name=~s/ +/ /g;
-	$name=~s/ $//g;
-	$name=~s/^ +//g;
-		unless($taxon{$name}){
-			$name=~s/var\./subsp./;
-			if($alter{$name}){
-				print ERROR <<EOP;
-Spelling altered to $alter{$name}: $name 
-EOP
-				$name=$alter{$name};
-			}
-			unless($taxon{$name}){
-				$name=~s/subsp\./var./;
-				if($alter{$name}){
-					print ERROR <<EOP;
-Spelling altered to $alter{$name}: $name 
-EOP
-					$name=$alter{$name};
-				}
-				unless($taxon{$name}){
-					$noname{$name}++;
-					print ERROR <<EOP;
-Name not yet entered into smasch, skipped: $accession_id $name 
-EOP
-					next;
-				}
-			}
-		}
-	$name=~s/ *\?//;
-#if(($first_parent)=m|<Herbarium_x0020_Labels_hybridspp1>(.*)</Herbarium_x0020_Labels_hybridspp1>| &&
-#($second_parent)=m|<Herbarium_x0020_Labels_hybridspp2>(.*)</Herbarium_x0020_Labels_hybridspp2>|){
-                 #$hybrid_annotation="$name $first_parent X $name $second_parent";
-             #}
-	     #else{
-                 #$hybrid_annotation="";
-				#$first_parent=$second_parent="";
-	     #}
+if($exclude{$genus}){
+	&log("Excluded, not a vascular plant: $name");
+	++$skipped{one};
+	next Record;
+}
 
+%infra=( 'var.','subsp.','subsp.','var.');
+
+if($alter{$name}){
+        &log("$name altered to $alter{$name}");
+                $name=$alter{$name};
+}
+#print "N>$name<\n";
+$test_name=&strip_name($name);
+#print "TN>$test_name<\n";
+
+if($TID{$test_name}){
+        $name=$test_name;
+}
+elsif($alter{$test_name}){
+        &log("$name altered to $alter{$test_name}");
+                $name=$alter{$test_name};
+}
+elsif($test_name=~s/(var\.|subsp\.)/$infra{$1}/){
+        if($TID{$test_name}){
+                &log("$name not in SMASCH  altered to $test_name");
+                $name=$test_name;
+        }
+        elsif($alter{$test_name}){
+                &log("$name not in smasch  altered to $alter{$test_name}");
+                $name=$alter{$test_name};
+        }
+	else{
+        	&log ("$name is not yet in the master list: $accession_id skipped");
+$needed_name{$name}++;
+		++$skipped{one};
+		next Record;
+	}
+}
+else{
+        &log ("$name is not yet in the master list: $accession_id skipped");
+$needed_name{$name}++;
+	++$skipped{one};
+	next Record;
+}
+
+$name{$name}++;
 
 
 	if(m|<Elevation2>(.+)</Elevation2>|s){
@@ -311,19 +338,19 @@ $date = "$month $day $year";
 		}
 		elsif($date=~m|(\d+)[/ ]*([A-Za-z,.]+)[/ ]*([1-9]\d)$|){
 			$day=$1; $month=$2;$year="19$3";
-			print ERROR "Y2K problem, $date = $year?: $err_line\n";
+			print ERR "Y2K problem, $date = $year?: $err_line\n";
 		}
 		elsif($date=~m|(\d+)/(\d+)/([1-9]\d)$|){
 			$day=$1; $month=$2;$year="19$3";
-			print ERROR "Y2K problem, $date = $year?: $err_line\n";
+			print ERR "Y2K problem, $date = $year?: $err_line\n";
 		}
 		elsif($date=~m|(\d+)[/ ]*([A-Za-z,.]+)[/ ]*(0\d)$|){
 				$day=$1; $month=$2;$year="20$3";
-		print ERROR "Y2K problem, $date = $year?: $err_line\n";
+		print ERR "Y2K problem, $date = $year?: $err_line\n";
 		}
 		elsif($date=~m|(\d+)/(\d+)/(0\d)$|){
 				$day=$1; $month=$2;$year="20$3";
-		print ERROR "Y2K problem, $date = $year?: $err_line\n";
+		print ERR "Y2K problem, $date = $year?: $err_line\n";
 		}
 		elsif($date=~m|(\d+-\d+)[- ]+([A-Za-z.])+[ -]+(\d\d\d\d)|){
 				$day=$1; $month=$2;$year=$3;
@@ -334,8 +361,11 @@ $date = "$month $day $year";
 		elsif($date=~m|19__\?|){
 			$year="1900s";
 			}
+		elsif($date=~m|([A-Z][a-z.]+) *- *([A-Z][a-z]+) (\d\d\d\d)|){
+			$day=""; $month="$2-$3";$year=$3;
+		}
 		else{
-			print ERROR "Fall thru Date problem: $date made null $err_line\n";
+			print ERR "Fall thru Date problem: $date made null $err_line\n" unless $date=~/unknown/i;
 			$date="";
 		}
 $day="" if $day eq "00";
@@ -434,7 +464,7 @@ if(m/<UTMZone>/){
 			$ellipsoid=5;
 		}
 		else {
-			print "$datum\n";
+			print COORDS_LOG "$datum\n";
 		}
 	}
 	else{
@@ -460,7 +490,7 @@ if(m|<LongitudeDegree>(.+)</LongitudeDegree>|s){
 $LongitudeDirection="W" unless $LongitudeDirection;
 $long .= $LongitudeDirection;
 $long=~s/  */ /g;
-print "L: $long\n";
+print  COORDS_LOG "L: $long\n";
 }
 else{
 $long="";
@@ -490,7 +520,7 @@ if(m|<LatitudeDegree>(.+)</LatitudeDegree>|s){
 $LatitudeDirection="N" unless $Latitude_Direction;
 $lat .= $LatitudeDirection;
 $lat=~s/  */ /g;
-print "LT: $lat\n";
+print COORDS_LOG "LT: $lat\n";
 }
 else{
 $lat="";
@@ -505,14 +535,15 @@ $decimal_lat="";
 }
 if(m|<LongitudeDecimal>([\d.-]+)</LongitudeDecimal>|){
 $decimal_long=$1;
-		print " LD $decimal_lat, $decimal_long\n";
+		print COORDS_LOG " LD $decimal_lat, $decimal_long\n";
 }
 else{
 $decimal_long="";
 }
 	if($zone){
 		($decimal_lat,$decimal_long)=utm_to_latlon($ellipsoid,$zone,$easting,$northing);
-		print " UTM $decimal_lat, $decimal_long\n";
+		print COORDS_LOG " UTM $decimal_lat, $decimal_long\n";
+$source="UTM conversion";
 	}
 
 
@@ -520,10 +551,10 @@ if(($decimal_lat=~/\d/  || $decimal_long=~/\d/)){
 	$decimal_long="-$decimal_long" if $decimal_long > 0;
 	if($decimal_lat > 42.1 || $decimal_lat < 32.5 || $decimal_long > -114 || $decimal_long < -124.5){
 		if($zone){
-		print ERROR "coordinates set to null, Outside California: $accession_id: UTM is $zone $easting $northing --> $decimal_lat $decimal_long\n";
+		print ERR "$accession_id coordinates set to null, Outside California: $accession_id: UTM is $zone $easting $northing --> $decimal_lat $decimal_long\n";
 		}
 		else{
-		print ERROR "coordinates set to null, Outside California: D_lat is $decimal_lat D_long is $decimal_long lat is $lat long is $long\n";
+		print ERR "$accession_id coordinates set to null, Outside California: D_lat is $decimal_lat D_long is $decimal_long lat is $lat long is $long\n";
 		}
 $decimal_lat =$decimal_long="";
 }   
@@ -548,7 +579,7 @@ $county="unknown";
 }
 foreach($county){
 #unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
-		#print ERROR <<EOP;
+		#print ERR <<EOP;
 		#Unknown California county; $accession_id: $_
 #EOP
 #}
@@ -564,12 +595,13 @@ foreach($county){
 	s/Montery/Monterey/;
 	s/Santo Cruz/Santa Cruz/;
 	s/Calveras/Calaveras/;
+	s/Calaveris/Calaveras/;
+s/SISKYOU/Siskiyou/;
 	s/Yolo Grasslands Park/Yolo/;
 	s/ and.*//;
 	s/^S\. ?E\. ?//;
 	s/^Western //;
-	s/El ?Dorodo/El Dorado/;
-	s/El ?dorodo/El Dorado/;
+	s/El ?[dD]or[ao]do/El Dorado/;
 	s/Mododc/Modoc/;
 	s/Solona/Solano/;
 	s/Glen$/Glenn/;
@@ -588,8 +620,8 @@ foreach($county){
 	s/^ *//;
 	s/ *$//;
 unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
-		print ERROR <<EOP;
-		Unknown California county, not corrected; skipping $accession_id: $_
+		print ERR <<EOP;
+$accession_id skipped: Unknown California county, not corrected; $_
 EOP
 next Record;
 	}
@@ -610,7 +642,7 @@ next Record;
 		if($elev_test=~s/ +(ft|feet)//i){
 
 			if($elev_test > $max_elev{$county}){
-				print ERROR "$accession_id\t$county\t ELEV: $elevation $metric greater than max: $max_elev{$county} discrepancy=", $elev_test-$max_elev{$county},"\n";
+				print ERR "$accession_id\t$county\t ELEV: $elevation $metric greater than max: $max_elev{$county} discrepancy=", $elev_test-$max_elev{$county},"\n";
 			}
 		}
 	}
@@ -629,6 +661,32 @@ $annotation="$name; $1";
 }
 else{
 $annotation="";
+}
+#<LatLongAccuracy>100 ft.</LatLongAccuracy>
+if(m|<LatLongAccuracy> *([0-9.]+) *([^<]+)</LatLongAccuracy>|){
+#if(m|<LatLongAccuracy>|){
+warn "$&\n";
+$extent=$1;
+$ExtUnits = lc($2);
+}
+else{
+$extent="";
+$ExtUnits = "";
+}
+if(m!<LatLongDatum>(.+)</LatLongDatum>!){
+$datum=$1;
+}
+else{
+$datum="";
+}
+if(m!<USGSQuadrangle>(.+)</USGSQuadrangle>!){
+	$quad="USGS quad $1";
+	if(m!<USGSQuadrangleScale>(.+)</USGSQuadrangleScale>!){
+		$quad.= " $1";
+	}
+}
+else{
+$quad="";
 }
 foreach(
 $annotation,
@@ -651,10 +709,17 @@ $lat,
 $long,
 $decimal_lat,
 $decimal_long,
+$quad,
 ){
 s/\n/ /g;
 s/[ 	][ 	]*/ /g;
 }
+foreach($datum){
+	s/NAD 1927/NAD27/;
+	s/NAD 1983/NAD83/;
+	s/WGS 1984/WGS84/;
+}
+
 print OUT <<EOP;
 Date: $date
 CNUM: $collnum
@@ -677,8 +742,14 @@ Latitude: $lat
 Longitude: $long
 Decimal_latitude: $decimal_lat
 Decimal_longitude: $decimal_long
+Max_error_distance: $extent
+Max_error_units: $ExtUnits
+Datum: $datum
+Source: $source
 Notes: 
 Annotation: $annotation
+Hybrid_annotation: $hybrid_annotation
+USGS_Quadrangle: $quad
 
 EOP
 }
@@ -724,6 +795,9 @@ s/Susan J. Schmidale/Susan J. Schmickle/;
 s/Walter. R Spiver/Walter R. Spiver/;
 s/  / /g;
 $_;
+}
+sub log {
+print ERR "@_\n";
 }
 __END__
 1.	Inyo	Mount Whitney	14,495 	Sequoia Sierra Nevada
