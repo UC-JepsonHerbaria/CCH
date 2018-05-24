@@ -2716,8 +2716,6 @@ my $long_minutes;
 my $long_seconds;
 my $long_decimal;
 
-
-
 foreach ($verbatimLatitude, $verbatimLongitude){
 		s/'/ /;
 		s/"/ /;
@@ -2809,9 +2807,10 @@ foreach ($latitude, $longitude){
 		s/^\s$//;
 }	
 
+
 #fix some problematic records with bad latitude and longitude in home database, mostly detected because they are yellow flags
 
-if (($id =~ m/^(10881842|10794076)$/) && ($verbatimLongitude =~ m/114\./)){ 
+if (($id =~ m/^(10881842|10794076)$/) && ($longitude =~ m/114\./)){ 
 	$latitude = "34.45";
 	$longitude = "-119.7095";
 	&log_change("COORD: latitude and longitude ($verbatimLatitude; $verbatimLongitude) does not map within boundary of county and/or state on the label, coordinates changed to ($latitude; $longitude)==>$county\t$location\t--\t$id\n");
@@ -2825,6 +2824,21 @@ if (($id =~ m/^(2049369|2051199|2053747|3084025|3084168|2054640|3563011)$/) && (
 	$coordinateUncertaintyInMeters = "5000";
 	&log_change("COORD: latitude and longitude ($verbatimLatitude; $verbatimLongitude) maps to the Pacific Ocean and within boundary of county and/or state on the label, coordinates changed to ($latitude; $longitude)==>$county\t$location\t--\t$id\n");
 #the original longitude on the label, 117d 58m, is in error and maps to the Pacific Ocean, not Riverside County
+}
+
+if (($id =~ m/^(4676150)$/) && ($longitude =~ m/121\./)){ 
+	$latitude = "36.3204";
+	$longitude = "-116.3777";
+	$georeferenceSource = "";
+	$coordinateUncertaintyInMeters = "";
+	&log_change("COORD: latitude and longitude ($verbatimLatitude; $verbatimLongitude) does not map within boundary of county and/or state on the label, coordinates changed to ($latitude; $longitude)==>$county\t$location\t--\t$id\n");
+#the original is in error and maps to Plumas County, coords erroneously converted from TRS using the wrong baseline
+}
+if (($id =~ m/^(224307)$/) && ($longitude =~ m/117\./)){
+	$latitude = "37.178";
+	$longitude = "-118.31";
+	&log_change("COORD: latitude and longitude ($verbatimLatitude; $verbatimLongitude) does not map within boundary of county and/or state on the label, coordinates changed to ($latitude; $longitude)==>$county\t$location\t--\t$id\n");
+#the original is in error and maps to Panamint Range, new coords copied from UC127089 which is a duplicate
 }
 
 
