@@ -1,4 +1,5 @@
-use lib '/Users/richardmoe/4_DATA/CDL';
+use File::Slurp;
+use lib '../..';
 use CCH;
 $today=`date "+%Y-%m-%d"`;
 chomp($today);
@@ -12,91 +13,76 @@ open(ERR,">RSA_problems") || die;
 
 print ERR <<EOP;
 $today
-Report from running parse_riverside.pl
-Name alterations from file ~/data/CDL/alter_names
-Name comparisons made against ~/taxon_ids/smasch_taxon_ids (SMASCH taxon names, which are not necessarily correct)
-Genera to be excluded from riv_non_vasc
+Report from running parse_rsa.pl
+Name alterations from file ~/DATA/alter_names
+Name comparisons made against ~/DATA/smasch_taxon_ids (SMASCH taxon names, which are not necessarily correct)
+Genera to be excluded from ~/mosses
 
 EOP
 
-#die "See what must be done about types\n";
 
-open(IN, "all_rsa_types") || die;
+#this types file can be deleted once RSA is totally out of Specify
+open(IN, "all_rsa_types.txt") || die;
 while(<IN>){
 	chomp;
 	($ID,$kind)=split(/: */);
 	$TYPE{$ID}=$kind;
 }
 
-while(<DATA>){
+#load a list of Accession_IDs (preformatted) from a exclude_from_fmp.pl script
+#this is used later to avoid duplicates
+#my $exclude_from_fmp = read_file( 'exclude_from_fmp.txt' );
+#print $exclude_from_fmp;
+#die();
+
+open(ELEV, "/Users/davidbaxter/DATA/max_county_elev.txt") || die;
+while(<ELEV>){
 	@fields=split(/\t/);
 	$fields[3]=~s/\+//;
 	$fields[3]=~s/,//;
 	$max_elev{$fields[1]}=$fields[3];
 }
-open(IN,"../CDL/collectors_id") || die;
-#open(IN,"all_collectors_2005") || die;
-while(<IN>){
-	chomp;
-	s/\t.*//;
-	$coll_comm{$_}++;
-}
-
-open(IN,"../CDL/riv_non_vasc") || die;
-while(<IN>){
-	chomp;
-	$exclude{$_}++;
-}
-open(IN,"/Users/richardmoe/4_CDL_BUFFER/smasch/mosses") || die;
-while(<IN>){
-	chomp;
-	s/\s.*//;
-	$exclude{$_}++;
-}
+#open(IN,"../CDL/collectors_id") || die;
+##open(IN,"all_collectors_2005") || die;
+##while(<IN>){
+#	chomp;
+#	s/\t.*//;
+#	$coll_comm{$_}++;
+#}
 
 
+#############
+#While RSA is moving from FMP to Specify
+#They are sending what they have in Specify so far
+#plus the entire FMP dataset
+#So in order to remove duplicates
+#run the shell script, which generates the exclude_from_FMP file that is used to remove dupes
 
+my $specify_id_file;
+$specify_id_file = "AID_GUID_RSA.txt";
 
-
-
-open(IN,"../CDL/alter_names") || die;
-while(<IN>){
-	chomp;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-open(TABFILE,">new_parse_rsa.out") || die;
+open(TABFILE,">RSA_fmp.out") || die;
 #open(OUT,">rsa_problems") || die;
-open(COORDS,">rsa_coord_issues") || die;
+#open(COORDS,">rsa_coord_issues") || die;
 $date=localtime();
 
-#open(IN,"clinkers" ) || die;
 #open(IN,"UCRData122009.tab" ) || die;
 #open(IN,"rsa_sept.txt") || die;
 
-$current_file="RSA_Data";
+
+#################
+#RSA file arrives with Windows "^M" carriage returns
+#The file is so big that it will crash vi if you try to replace the line breaks in vi
+#So open in TextWrangler, then Save As with Unix line breaks
+#################
+$current_file="RSA_Data_2015.05.19_from_FMP.tab";
 
 open(IN,"$current_file") || die;
 warn "reading from $current_file\n";
 
 while(<IN>){
 	chomp;
+	&CCH::check_file;
 	s/\t.*//;
 	if($seen_dup{$_}++){
 		++$duplicate{$_};
@@ -112,12 +98,12 @@ $assoc=$combined_collectors=$Collector_full_name= $elevation= $name=$lat=$long=$
 #next unless m/Annette Winn/;
 if (m/^Deacc/i){
 		++$skipped{one};
-				&log("DEACC $_");
+				&log("skipped: DEACC $_");
 next Record;
 }
 if (m/^unaccess/i){
 		++$skipped{one};
-				&log("UNACC $_");
+				&log("skipped: UNACC $_");
 next Record;
 }
 s/\cK+$//;
@@ -136,15 +122,14 @@ s/Ó/"/g;
 		++$skipped{one};
 		print ERR<<EOP;
 
-Not RSA or POM, skipped: $_
+skipped: Not RSA or POM: $_
 EOP
 		next Record;
 	}
 	if($duplicate{$poss_dup}){
 		++$skipped{one};
 		print ERR<<EOP;
-
-Duplicate number, skipped: $_
+skipped: Duplicate number: $_
 EOP
 		next Record;
 	}
@@ -153,7 +138,7 @@ EOP
 		++$skipped{one};
 		print ERR<<EOP;
 
-No accession number, skipped: $_
+skipped: No accession number: $_
 EOP
 		next Record;
 	}
@@ -161,7 +146,7 @@ EOP
 		++$skipped{one};
 		print ERR<<EOP;
 
-De/Un accessioned accession number, skipped: $_
+skipped: De/Un accessioned accession number: $_
 EOP
 		next Record;
 	}
@@ -170,7 +155,7 @@ EOP
 		++$skipped{one};
 		print ERR<<EOP;
 
-No generic name, skipped: $_
+skipped: No generic name: $_
 EOP
 		next Record;
 	}
@@ -178,7 +163,7 @@ EOP
 		++$skipped{one};
 		print ERR<<EOP;
 
-No generic name, skipped: $_
+skipped: No generic name: $_
 EOP
 		next Record;
 	}
@@ -187,7 +172,7 @@ EOP
 		warn "Duplicate number: $fields[0]<\n";
 		print ERR<<EOP;
 
-Duplicate accession number, skipped: $fields[0]
+skipped: Duplicate accession number: $fields[0]
 EOP
 		next Record;
 	}
@@ -239,21 +224,21 @@ EOP
 	}
 unless($fields[30]=~/^(CA|Ca|Calif\.|California)$/ && $fields[29]=~/^(US|U\.S\.|United States)$/){
 		print ERR<<EOP;
-		State not California $fields[0]: $_ skipped
+skipped: State not California $fields[0]: $_ 
 EOP
 		next Record;
 	}
 		foreach($fields[31]){
-		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)$/){
+		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown)$/){
 			$v_county= &verify_co($_);
 			if($v_county=~/SKIP/){
-				&log("NON-CA county? $_");
+				&log("skipped: NON-CA county? $_");
 				++$skipped{one};
 				next Record;
 			}
 
 			unless($v_county eq $_){
-				&log("$fields[0] $_ -> $v_county");
+				&log("logging: $fields[0] $_ -> $v_county");
 				$_=$v_county;
 			}
 
@@ -305,7 +290,7 @@ $det_day,
 $country,
 $state,
 $county_mpio,
-$physiographic_region,
+#$physiographic_region, #physiographic region was removed starting with 2014-03 dump
 $topo_quad,
 $locality,
 $lat_degrees,
@@ -318,6 +303,10 @@ $long_minutes,
 $long_seconds,
 $E_or_W,
 $decimal_long,
+$error_radius,
+$ER_units,
+$datum,
+$coord_source,
 $Township,
 $Range,
 $section,
@@ -337,7 +326,7 @@ $low_range_f,
 $top_range_f,
 $ecol_notes,
 $Plant_description,
-$plant,
+#$plant, #there is only one field with plant description in the 2014-03 dump, so I removed $plant from here and from the "Notes: " printout
 $phenology,
 $culture,
 $origin,
@@ -351,41 +340,70 @@ $day=~s/\.\.\.?/-/g;
 #print "$UTM_E, $UTM_N $UTM_grid_zone, $UTM_grid_cell, $name_of_UTM_cell\n" if $UTM_E;
 #next;
 $Plant_description{$Plant_description}++;
-$plant{$plant}++;
+#$plant{$plant}++;
 $phenology{$phenology}++;
 $culture{$culture}++;
 $origin{$origin}++;
+
 $Label_ID_no=~s/-//;
+$Label_ID_no=~s/\.//;
+
+
+######Check if the Accession number is already loaded form the Specify file
+#if ($Label_ID_no =~ /$exclude_from_fmp/) {
+#	warn "$Label_ID_no from new Specify file";
+#	next Record;
+#}
+
+#check that id has a single prefix + number
+unless ($Label_ID_no=~/^(RSA|POM)(\d+)/){
+	&log("Accession number missing prefix or has prefix problem id:$id $_");
+	next Record;
+}
+
+
 $orig_lat_min=$lat_minutes;
 $orig_long_min=$long_minutes;
 $decimal_lat="" if $decimal_lat eq 0;
 $decimal_long="" if $decimal_long eq 0;
 $name=$genus ." " .  $species . " ".  $subtype . " ".  $subtaxon;
 #print "\nTEST $name<\n";
-$name=ucfirst(lc($name));
+
 #$name=~s/'//g;
 $name=~s/`//g;
 $name=~s/\?//g;
+$name=~s/^\.//g;
+$name=~s/^ *//;
 $name=~s/ *$//;
 $name=~s/  +/ /g;
+
+$name=ucfirst(lc($name));
+
 $name=~s/ spp\./ subsp./;
 $name=~s/ssp\./subsp./;
 $name=~s/ ssp / subsp. /;
 $name=~s/ subsp / subsp. /;
 $name=~s/ var / var. /;
-$name=~s/ var. $//;
-$name=~s/ sp\..*//;
-$name=~s/ sp .*//;
+$name=~s/ var\. $//;
+$name=~s/ sp\.$//;
+#$name=~s/ sp *$//;
 $name=~s/ [Uu]ndet.*//;
 $name=~s/ x / X /;
 $name=~s/ × / X /;
 $name=~s/ *$//;
+$name=~s/ [Ii]ndet.*//;
+$name=~s/ subsp\. *$//;
+$name=~s/ sp *$//;
+$name=~s/ var\. cf\. / var. /;
+$name=~s/ var\. l\. / var. /;
+$name=~s/ var\. uncertain *$//;
+
 #print "TEST $name<\n";
 
 if($name=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
                  $hybrid_annotation=$name;
                  warn "$1 from $name\n";
-                 &log("$1 from $name");
+                 &log("logging: $1 from $name");
                  $name=$1;
              }
 	     else{
@@ -394,7 +412,7 @@ if($name=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
 
 
 if($exclude{$genus}){
-	&log("Excluded, not a vascular plant: $name");
+	&log("skipped: not a vascular plant: $name");
 	++$skipped{one};
 	next Record;
 }
@@ -402,7 +420,7 @@ if($exclude{$genus}){
 %infra=( 'var.','subsp.','subsp.','var.');
 
 if($alter{$name}){
-        &log("$name altered to $alter{$name}");
+        &log("logging: $name altered to $alter{$name}");
                 $name=$alter{$name};
 }
 #print "N>$name<\n";
@@ -413,27 +431,27 @@ if($TID{$test_name}){
         $name=$test_name;
 }
 elsif($alter{$test_name}){
-        &log("$name altered to $alter{$test_name}");
+        &log("logging: $name altered to $alter{$test_name}");
                 $name=$alter{$test_name};
 }
 elsif($test_name=~s/(var\.|subsp\.)/$infra{$1}/){
         if($TID{$test_name}){
-                &log("$name not in SMASCH  altered to $test_name");
+                &log("logging: $name not in SMASCH  altered to $test_name");
                 $name=$test_name;
         }
         elsif($alter{$test_name}){
-                &log("$name not in smasch  altered to $alter{$test_name}");
+                &log("logging: $name not in smasch  altered to $alter{$test_name}");
                 $name=$alter{$test_name};
         }
 	else{
-        	&log ("$name is not yet in the master list: skipped");
+        	&log ("skipped: $name is not yet in the master list: skipped");
 $needed_name{$name}++;
 		++$skipped{one};
 		next Record;
 	}
 }
 else{
-        &log ("$name is not yet in the master list: skipped");
+        &log ("skipped: $name is not yet in the master list: skipped");
 $needed_name{$name}++;
 	++$skipped{one};
 	next Record;
@@ -527,6 +545,38 @@ $Associated_collectors=~s/.*Boyd.*Kashiwase.*LaDoux.*Provance.*Sanders.*White.*B
 		}
 	}
 
+
+
+#######ER, UNITS, DATUM
+foreach($datum){
+	s/NAD 83/NAD83/i;
+	s/NAD 27/NAD27/i;
+	s/^1927$/NAD27/i;
+}
+
+foreach($ER_units){
+	s/feet/ft/i;
+	s/meters/m/i;
+}
+
+#unless($ER_units=m/(ft|m|feet|meters)/){
+#	&log("$fields[0] ER units not recognized: $error_radius");
+#	$error_radius="";
+#	$ER_units="";
+#}
+
+#unless($error_radius=~/[\d.]*/){
+#	&log("$fields[0] error radius non-numeric: $error_radius");
+#	$error_radius="";
+#	$ER_units="";
+#}	
+
+
+
+
+
+
+
 if($low_range_m){
 	if($top_range_m){
 		$elevation="$low_range_m - $top_range_m m";
@@ -559,7 +609,7 @@ $elev_test=$elevation;
 		if($elev_test=~s/ +(ft|feet)//i){
 
 			if($elev_test > $max_elev{$fields[31]}){
-				print ERR "ELEV fields[31]\t ELEV: $elevation $metric greater than max: $max_elev{$fields[31]} discrepancy=", $elev_test-$max_elev{$fields[31]}," $Label_ID_no\n";
+				print ERR "logging: ELEV fields[31]\t ELEV: $elevation $metric greater than maximum for county: $max_elev{$fields[31]} discrepancy=", $elev_test-$max_elev{$fields[31]}," $Label_ID_no\n";
 			}
 		}
 
@@ -706,13 +756,13 @@ $year=~s/^['`]+//;
 $year=~s/['`]+$//;
 unless($year=~/^(1[789]\d\d|20\d\d)$/){
 		print ERR<<EOP;
-Date config problem $year $month $day: date nulled 9 $Label_ID_no
+logging: Date config problem $year $month $day: date nulled 9 $Label_ID_no
 EOP
 	$year=$month=$day="";
 }
 unless($day=~/(^[0-3]?[0-9]$)|(^[0-3]?[0-9]-[0-3]?[0-9]$)|(^$)/){
 		print ERR<<EOP;
-Date config problem $year $month $day: date nulled 10 $Label_ID_no
+logging: Date config problem $year $month $day: date nulled 10 $Label_ID_no
 EOP
 	$year=$month=$day="";
 }
@@ -730,6 +780,13 @@ $zone=$UTM_grid_zone;
 #$UTM_N,
 #$name_of_UTM_cell,
 $decimal_lat=~s/^-//;
+####just some formatting errors that RSA has
+$decimal_lat=~s/\.\././;
+$decimal_long=~s/\.\././;
+$decimal_lat=~s/\. /./;
+$decimal_long=~s/\. /./;
+
+
 unless(($decimal_lat || $decimal_long)){
 	if($zone){
 		$easting=$UTM_E;
@@ -756,7 +813,7 @@ unless(($decimal_lat || $decimal_long)){
 }
 	if($decimal_lat){
 		if ($decimal_long > 0){
-			print ERR "$decimal_long made -$decimal_long $Label_ID_no\n";
+			print ERR "logging: $decimal_long made -$decimal_long $Label_ID_no\n";
 		$decimal_long="-$decimal_long";
 		}
 	if($decimal_lat > 42.1 || $decimal_lat < 32.5 || $decimal_long > -114 || $decimal_long < -124.5){
@@ -802,11 +859,15 @@ Other_coll: $other_coll
 Combined_collector: $combined_collectors
 Habitat: $ecol_notes
 Associated_species: $assoc
-Notes: $Plant_description $plant $culture $origin
+Notes: $Plant_description $culture $origin
 Latitude: $lat
 Longitude: $long
 Decimal_latitude: $decimal_lat
 Decimal_longitude: $decimal_long
+Datum: $datum
+Max_error_distance: $error_radius
+Max_error_units: $ER_units
+Lat_long_ref_source: $coord_source
 Annotation: $annotation
 Hybrid_annotation: $hybrid_annotation
 Reproductive_biology: $phenology
@@ -815,17 +876,19 @@ Type_status: $Type_status
 EOP
 ++$included;
 }
-open(COLL,">missing_coll");
-foreach(sort(keys(%collector))){
-#print "$_\n" if $coll_comm{$_};
-	$key=$_;
-#s/\./. /g;
-s/\. ,/., /;
-s/  +/ /g;
-s/ *$//;
-next if $coll_comm{$_};
-print COLL "$_\t$collector{$key}\n";
-}
+
+
+#open(COLL,">missing_coll");
+#foreach(sort(keys(%collector))){
+##print "$_\n" if $coll_comm{$_};
+#	$key=$_;
+##s/\./. /g;
+#s/\. ,/., /;
+#s/  +/ /g;
+#s/ *$//;
+#next if $coll_comm{$_};
+#print COLL "$_\t$collector{$key}\n";
+#}
 
 foreach(sort(keys(%name))){
 	#print "$_\n" unless $taxon{$_};
@@ -840,83 +903,8 @@ foreach(sort(keys(%coord_alter))){
 }
 open(ERR,">new_names_needed") || die;
 foreach(sort {$needed_name{$a} <=> $needed_name{$b}}(keys(%needed_name))){
-print ERR "$_ $needed_name{$_}\n";
-}
-open(ERR,">ucr_field_check") || die;
-foreach(sort(keys(%Plant_description))){
-	print ERR "PD: $_\n";
-}
-foreach(sort(keys(%plant))){
-	print ERR "P: $_\n";
-}
-foreach(sort(keys(%phenology))){
-	print ERR "Phen: $_\n";
-}
-foreach(sort(keys(%culture))){
-	print ERR "C: $_\n";
-}
-foreach(sort(keys(%origin))){
-	print ERR "O: $_\n";
+print ERR "$_\t$needed_name{$_}\n";
 }
 sub log {
 print ERR "@_\n";
 }
-__END__
-1.	Inyo	Mount Whitney	14,495 	Sequoia Sierra Nevada
-1.	Tulare	Mount Whitney	14,495 	Sequoia Sierra Nevada
-3.	Mono	White Mountain Peak	14,246 	West Great Basin Ranges
-4.	Fresno	North Palisade	14,242 	Central Sierra Nevada
-5.	Siskiyou	Mount Shasta	14,162 	California Cascades
-6.	Madera	Mount Ritter	13,143 	Yosemite-Ritter Sierra Nevada
-7.	Tuolumne	Mount Lyell	13,114 	Yosemite-Ritter Sierra Nevada
-8.	Mariposa	Parsons Peak-Northwest Ridge	12,040+	Yosemite-Ritter Sierra Nevada
-9.	San Bernardino	San Gorgonio Mountain	11,499 	Transverse Ranges
-10.	Alpine	Sonora Peak	11,459 	Lake Tahoe-Sonora Pass Sierra Nevada
-11.	El Dorado	Freel Peak	10,881 	Lake Tahoe-Sonora Pass Sierra Nevada
-12.	Riverside	San Jacinto Peak	10,839 	Peninsular Southern California Ranges
-13.	Shasta	Lassen Peak	10,457 	California Cascades
-14.	Los Angeles	Mount San Antonio	10,064 	Transverse Ranges
-15.	Modoc	Eagle Peak	9892 	Northwest Great Basin Ranges
-16.	Amador	Thunder Mountain	9410 	Lake Tahoe-Sonora Pass Sierra Nevada
-17.	Tehama	Brokeoff Mountain	9235 	California Cascades
-18.	Nevada	Mount Lola	9148 	Northern Sierra Nevada
-19.	Placer	Mount Baldy-West Ridge	9040+	Lake Tahoe-Sonora Pass Sierra Nevada
-20.	Trinity	Mount Eddy	9025 	Klamath Mountains
-21.	Sierra	Mount Lola-North Ridge Peak	8844 	Northern Sierra Nevada
-22.	Ventura	Mount Pinos	8831 	Transverse Ranges
-23.	Kern	Sawmill Mountain	8818 	Transverse Ranges
-24.	Lassen	Hat Mountain	8737 	Northwest Great Basin Ranges
-25.	Plumas	Mount Ingalls	8372 	Northern Sierra Nevada
-26.	Calaveras	Corral Hollow Hill	8170 	Lake Tahoe-Sonora Pass Sierra Nevada
-27.	Glenn	Black Butte	7448 	Northern California Coast Range
-28.	Butte	Butte County High Point	7120+	Northern Sierra Nevada
-29.	Colusa	Snow Mountain	7056 	Northern California Coast Range
-29.	Lake	Snow Mountain	7056 	Northern California Coast Range
-31.	Humboldt	Salmon Mountain	6956 	Klamath Mountains
-32.	Mendocino	Anthony Peak	6954 	Northern California Coast Range
-33.	Santa Barbara	Big Pine Mountain	6800+	Transverse Ranges
-34.	San Diego	Hot Springs Mountain	6533 	Peninsular Southern California Ranges
-35.	Del Norte	Bear Mountain-Del Norte CoHP	6400+	Klamath Mountains
-36.	Monterey	Junipero Serra Peak	5862 	Central California Coast Ranges
-37.	Orange	Santiago Peak	5687 	Peninsular Southern California Ranges
-38.	San Benito	San Benito Mountain	5241 	Central California Coast Ranges
-39.	San Luis Obispo	Caliente Mountain	5106 	Central California Coast Ranges
-40.	Yuba	Yuba County High Point	4825+	Northern Sierra Nevada
-41.	Imperial	Blue Angels Peak	4548 	Northern Baja California
-42.	Sonoma	Cobb Mountain-Southwest Peak	4480+	Northern California Coast Range
-43.	Santa Clara	Copernicus Peak	4360+	Central California Coast Ranges
-44.	Napa	Mount Saint Helena-East Peak	4200+	Northern California Coast Range
-45.	Contra Costa	Mount Diablo	3849 	Central California Coast Ranges
-46.	Alameda	Valpe Ridge-Rose Flat	3840+	Central California Coast Ranges
-47.	Stanislaus	Mount Stakes	3804 	Central California Coast Ranges
-48.	Merced	Laveaga Peak	3801 	Central California Coast Ranges
-49.	San Joaquin	Boardman North	3626 	Central California Coast Ranges
-50.	Kings	Table Mountain	3473 	Central California Coast Ranges
-51.	Santa Cruz	Mount Bielewski	3231 	Central California Coast Ranges
-52.	Yolo	Little Blue Ridge	3120+	Northern California Coast Range
-53.	Solano	Mount Vaca	2819 	Northern California Coast Range
-54.	San Mateo	Long Ridge	2600+	Central California Coast Ranges
-55.	Marin	Mount Tamalpais	2571 	Northern California Coast Range
-56.	Sutter	South Butte	2120+	Northern Sierra Nevada
-57.	San Francisco	Mount Davidson	925+	Central California Coast Ranges
-58.	Sacramento	Carpenter Benchmark	828 	Lake Tahoe-Sonora Pass Sierra Nevada
