@@ -327,8 +327,8 @@ if($seen{$id}++){
 #fix some really problematic records with data that is misleading and causing georeference errors
 
 if (($id =~ m/^(SD8210)$/) && ($tempCounty=~m/^(Lassen|Shasta)/i)){
-	$tempCounty = "San Diego"
-		if ($verbatimLatitude !~ m/32\./)){ 
+	$tempCounty = "San Diego";
+		if ($verbatimLatitude !~ m/32\./){ 
 			$latitude = ""; #delete the persistently bad georeference if it maps to anything but this latitude, currently mapping to Lat 40.47
 			$longitude = "";
 		}
