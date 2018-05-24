@@ -15,7 +15,7 @@ warn "today is $today ($today_JD)";
 
 my %month_hash = &month_hash;
 
-open(OUT,">JROH_out.txt") || die;
+open(OUT,">/JEPS-master/CCH/Loaders/JROH/JROH_out.txt") || die;
 my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
 
@@ -29,7 +29,7 @@ my $det_string;
 my $det_prev;
 
 
-my $file = 'ConsortiumUpdate9Jan2018_mod.txt';
+my $file = '/JEPS-master/CCH/Loaders/JROH/ConsortiumUpdate9Jan2018_mod.txt';
 
 #####process the file
 #JROH file arrives as a tab delimited txt
@@ -1111,7 +1111,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'JROH_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/JROH/JROH_out.txt';	#the file this script will act upon is called 'JROH_out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
