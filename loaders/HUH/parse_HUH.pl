@@ -26,6 +26,7 @@ my $count;
 my $seen;
 my %seen;
 my $det_string;
+my $count_record;
 
 my $file = '/JEPS-master/CCH/Loaders/HUH/huh_apr2017.txt';
 
@@ -517,6 +518,14 @@ foreach ($tempName){
 
 }
 
+$tempName =~ s/([A-Z][a-z]+) [A-Z]\..*/$1/; #fix specimens determined only as Genus but has a type 1 authority abbreviation==> L.
+$tempName =~ s/([A-Z][a-z]+) [A-Z][a-z]+\..*/$1/; #fix specimens determined only as Genus but has a type 2 authority==> Dougl.
+$tempName =~ s/([A-Z][a-z]+) [A-Z][a-z]+ ..*/$1/; #fix specimens determined only as Genus but has a type 3 authority==> Webb & Bert
+$tempName =~ s/([A-Z][a-z]+) \([A-Z].*/$1/; #fix specimens determined only as Genus but has a type 4 authority==> (Nutt. ex Hook.) Copel.
+$tempName =~ s/^([A-Z][a-z]+) [A-Z][a-z]+$/$1/; #fix specimens determined only as Genus but has a type 5 authority==> Webb
+
+
+
 #####process remaining taxa
 
 $scientificName = &strip_name($tempName);
@@ -739,15 +748,17 @@ foreach ($startdatecollected,$enddatecollected){
 	else{
 		&log_change("Date: date format not recognized: $eventDateAlt==>($verbatimEventDate)\t$id\n");
 	}
-
-			if($enddatecollected =~ m/^([12][0789]\d\d)-(\d+)-(\d+)$/){
-					$DD2=$3;
-					$MM2=$2;
-			}
-			else{
-					$DD2="";
-					$MM2="";
-			}
+#skip this section
+#end date collected has a value even with 1 day collection dates, it is always the first day of the next month
+#this messes up searches using dates
+			#if($enddatecollected =~ m/^([12][0789]\d\d)-(\d+)-(\d+)$/){
+			#		$DD2=$3;
+			#		$MM2=$2;
+			#}
+			#else{
+			#		$DD2="";
+			#		$MM2="";
+			#}
 
 #convert to YYYY-MM-DD for eventDate and Julian Dates
 $MM = &get_month_number($MM, $id, %month_hash);
@@ -916,9 +927,9 @@ $county=&CCH::format_county($tempCounty,$id);
 
 
 #fix additional problematic counties
-	if(($barcode=~/^(GH367268)$/) && ($tempCounty !~ m/Tuolumne/)){ 
+	if(($id=~/^(GH367268)$/) && ($tempCounty !~ m/Tuolumne/)){ 
 		$tempCounty=~s/^.*$/Tuolumne/;
-		&log_change("COUNTY: County/State problem==>Duplicates of Grant 951 from other herbaria (see JEPS11025) are from Straberry Lake, Tuolumne Co., county changed from unkown ($barcode: $tempCounty, $locality)\n");	
+		&log_change("COUNTY: County/State problem==>Duplicates of Grant 951 from other herbaria (see JEPS11025) are from Straberry Lake, Tuolumne Co., county changed from unknown ($id: $tempCounty, $locality)\n");	
 	}
 
 

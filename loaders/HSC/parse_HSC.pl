@@ -375,7 +375,7 @@ if (($id =~ m/^(HSC43420|HSC43421)$/) && (length($TID{$name}) == 0)){
 	$name =~ s/Ceanothus X smithii/Ceanothus/;
 	&log_change("Scientific name not published: Ceanothus X smithii, not a published hybrid combination, modified to genus:\t$name\t--\t$id\n");
 }
-if (($id =~ m/^HSC100465$/) && (length($TID{$name}) == 0)){ 
+if (($id =~ m/^HSC100388$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Aspidium nevadense/Nephrodium nevadense/;
 	&log_change("Scientific name illegitimate: Aspidium nevadense D.C. Eaton is an illegitimate name, modified to the legitimate basionym:\t$name\t--\t$id\n");
 }
