@@ -1,72 +1,31 @@
+use Time::JulianDay;
+use Time::ParseDate;
+use lib '/Users/davidbaxter/DATA';
+use CCH; #loads non-vascular plant names list ("mosses"), alter_names table, and max_elev values
+&load_noauth_name;
+
+
+#####process the file
+#SBBG sends a excel with problem line breaks within fields that need deleted
+#has sent as a database and xml similar to DAV and CHSC in the past
+#filet has windows line breaks instead of newlines
+#open the file in text wrangler and save as UTF* with Unix line breaks
+#before running this script
+#delete extraneous " due to excel export
 
 #parse_sbbg_export: alternate xml labels
 @sggb_precision=(0, 10, 100, 1000, 10000);
-open(OUT,">sbbg_problem");
-open(IN,"../CDL/collectors_id") || die;
-while(<IN>){
-chomp;
-s/\t.*//;
-$coll_comm{$_}++;
-}
-open(IN,"/Users/richardmoe/4_data/taxon_ids/smasch_taxon_ids.txt") || die;
-while(<IN>){
-chomp;
-($id,$name,@residue)=split(/\t/);
-$taxon{$name}++;
-}
-open(IN,"../CDL/riv_non_vasc") || die;
-while(<IN>){
-	chomp;
-	$exclude{$_}++;
-}
-open(IN,"../CDL/alter_names") || die;
-while(<IN>){
-	next if m/^#/;
-	chomp;
-s/\cJ//;
-s/\cM//;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
-#open(IN,"rsa_alter_names") || die;
-#while(<IN>){
-	#chomp;
-	#next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	#$alter{$riv}=$smasch;
-#}
-open(IN,"sbbg_alter_coll") || die;
-while(<IN>){
-	chomp;
-s/\cJ//;
-s/\cM//;
-	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-	$alter_coll{$rsa}=$smasch;
-}
-#open(IN,"rsa_alter_coll") || die;
-#while(<IN>){
-	#chomp;
-#s/\cJ//;
-#s/\cM//;
-	#next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-	#$alter_coll{$rsa}=$smasch;
-#}
-#open(IN,"riv_alter_coll") || die;
-#while(<IN>){
-	#chomp;
-#s/\cJ//;
-#s/\cM//;
-	#next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-	#$alter_coll{$rsa}=$smasch;
-#}
+open(ERR,">sbbg_problem");
 #$/=qq{<SBBGexport>};
 #$/=qq{<SBBG8202009>};
-$/=qq{<_x0033__x002F_31_x002F_2011export>};
+#$/=qq{<_x0033__x002F_31_x002F_2011export>};
+$/=qq{<SBBG_x0020_records>};
 
-#open(IN,"SBBG3_31_2011export.xml") || die;
-$/="";
-open(IN,"SBBG_2014") || die;
-#open(IN,"SBBG8202009.xml") || die;
+open(OUT,">SBBG.out");
+
+open(IN,"SBBG_records.xml") || die;
 while(<IN>){
+#next unless /Mr\./;
 s/\cM/ /g;
 #s/\n/ /g;
 s/&apos;/'/g;
@@ -107,18 +66,18 @@ $CNUM_SUFFIX =
 "";
 
 
-	($name)=m|<Search_x0020_Name>(.*)</Search_x0020_Name>|;
+	($name)=m|<Name>(.*)</Name>|;
 #                     <Accession_x0020_Number>323</Accession_x0020_Number>
-	($Accession_id)=m|<acc_num>(.*)</acc_num>|;
-	($county)=m|<county_name>(.*)</county_name>|;
-	($loc_other)=m|<ter_name>(.*)</ter_name>|;
-	($locality)=m|<local_txt>(.*)</local_txt>|;
-	($elev_ft)=m|<elevft_num>(.*)</elevft_num>|;
-	($elev_m)= m|<elevm_num>(.*)</elevm_num>|;
-	($latitude)=m|<lat_num>(.*)</lat_num>|;
-	($longitude)=m|<long_num>(.*)</long_num>|;
-	($collector)=m|<coll1_txt>(.*)</coll1_txt>|;
-	($collector_number)=m|<coll_num_txt>(.*)</coll_num_txt>|;
+	($Accession_id)=m|<Catalog_x0020_Number>(.*)</Catalog_x0020_Number>|;
+	($county)=m|<County_x0020_Name>(.*)</County_x0020_Name>|;
+	($loc_other)=m|<Terrane_x0020_Name>(.*)</Terrane_x0020_Name>|;
+	($locality)=m|<Locality>(.*)</Locality>|;
+	($elev_ft)=m|<Elev_x0020_Ft>(.*)</Elev_x0020_Ft>|;
+	($elev_m)= m|<Elev_x0020_M>(.*)</Elev_x0020_M>|;
+	($latitude)=m|<Latitude>(.*)</Latitude>|;
+	($longitude)=m|<Longitude>(.*)</Longitude>|;
+	($collector)=m|<Collector_x0028_s_x0029_>(.*)</Collector_x0028_s_x0029_>|;
+	($collector_number)=m|<Collection_x0020_No>(.*)</Collection_x0020_No>|;
 unless ($collector_number=~/^\d+$/){
  if($collector_number=~s/^([0-9]+)-([0-9]+)([A-Za-z]*)/$2/){
                 $CNUM_PREFIX=$1;
@@ -147,33 +106,35 @@ unless ($collector_number=~/^\d+$/){
 #EOP
 	}
 
-	($month)=m|<month_sym>(.*)</month_sym>|;
-	($day)=m|<day_num>(.*)</day_num>|;
-	($year)=m|<year_num>(.*)</year_num>|;
+	($month)=m|<Month>(.*)</Month>|;
+	($day)=m|<Day>(.*)</Day>|;
+	($year)=m|<Year>(.*)</Year>|;
 	################NEW
-	($habitat)=m|<asp_txt>(.*)</asp_txt>|;
-	($precision)=m|<prec_num>(.*)</prec_num>|;
-	if($precision=~/^[12345]$/){
-		$max_error_distance= $sggb_precision[$precision];
-		$max_error_units="m";
+	($habitat)=m|<Habitat>(.*)</Habitat>|;
+	($precision)=m|<Precision>(.*)</Precision>|;
+#	if($precision=~/^[12345]$/){
+#		$max_error_distance= $sggb_precision[$precision];
+#		$max_error_units="m";
+#	}
+ if($precision=~/ *([0-9.]+) *(m|km)/i) { 
+	$max_error_distance=$1;
+	$max_error_units=$2;
 	}
-	($datum)=m|<basereference_txt>(.*)</basereference_txt>|;
-	($source)=m|<source_txt>(.*)</source_txt>|;
-	if(($anno)=m|<Determinor>(.*)</Determinor>|){
-	$anno=&process_anno($anno, $name);
-	}
-	else{
-	$anno="";
-	}
+	($datum)=m|<Datum>(.*)</Datum>|;
+	($source)=m|<Source>(.*)</Source>|;
+
 	##################
 
 $county=&modify_county($county);
+$collector=~s/Mr\., Mrs\. (.*)/Mr. $1, Mrs. $1/;
+$collector=~s/Mr\. and Mrs\. (.*)/Mr. $1, Mrs. $1/;
 $collector=~s/^([A-Z]\.) (and|&) ([A-Z]\.) ([A-Z][a-z]+)/$1 $4, $3 $4/;
 $collector=~s/^([A-Z]\. [A-Z]\.) (and|&) ([A-Z]\. [A-Z]\.) ([A-Z][a-z]+)/$1 $4, $3 $4/;
 $collector=~s/^([A-Z]\. [A-Z]\.) (and|&) ([A-Z]\.) ([A-Z][a-z]+)/$1 $4, $3 $4/;
 $collector=~s/([A-Z]\.)([A-Z][a-z])/$1 $2/g;
 $collector=~s/ *$//;
 $collector=~s/ +,/,/;
+
 #$collector=&modify_collector($collector);
 
 $Accession_id="SBBG$Accession_id";
@@ -195,8 +156,13 @@ $name=~s/  +/ /g;
 $name=~s/ssp\./subsp./;
 $name=~s/ indet//;
 $name=~s/ [Xx] / X /;
-$name=~s/^× ([a-z])/X \u$1/;
+$name=~s/^Ã— ([a-z])/X \u$1/;
 			if($name=~/([A-Z][a-z-]+ [a-z-]+) X /){
+				$hybrid_annotation=$name;
+				warn "$1 from $name\n";
+				$name=$1;
+			}
+			elsif ($name=~/(.*) hybrid$/){	#e.g. "Cirsium hybrid"
 				$hybrid_annotation=$name;
 				warn "$1 from $name\n";
 				$name=$1;
@@ -206,31 +172,28 @@ $name=~s/^× ([a-z])/X \u$1/;
 			}
 ($genus=$name)=~s/ .*//;
 if($exclude{$genus}){
-	print OUT <<EOP;
-
+	print ERR <<EOP;
 Excluded, not a vascular plant: $name
 EOP
 		++$skipped{one};
 	next;
 }
 if($alter{$name}){
-	print OUT <<EOP;
-
+	print ERR <<EOP;
 Spelling altered to $alter{$name}: $name 
 EOP
 	$name=$alter{$name};
 }
-unless($taxon{$name}){
+unless($TID{$name}){
 	$on=$name;
 	if($name=~s/subsp\./var./){
-		if($taxon{$name}){
-			print OUT <<EOP;
-
+		if($TID{$name}){
+			print ERR <<EOP;
 Not yet entered into SMASCH taxon name table: $on entered as $name
 EOP
 		}
 		else{
-	print OUT <<EOP;
+	print ERR <<EOP;
 
 Not yet entered into SMASCH taxon name table: $on skipped
 EOP
@@ -239,15 +202,13 @@ next;
 		}
 	}
 	elsif($name=~s/var\./subsp./){
-		if($taxon{$name}){
-			print OUT <<EOP;
-
+		if($TID{$name}){
+			print ERR <<EOP;
 Not yet entered into SMASCH taxon name table: $on entered as $name
 EOP
 		}
 		else{
-			print OUT <<EOP;
-
+			print ERR <<EOP;
 Not yet entered into SMASCH taxon name table: $on skipped
 EOP
 		++$skipped{one};
@@ -255,8 +216,7 @@ next;
 		}
 	}
 	else{
-	print OUT <<EOP;
-
+	print ERR <<EOP;
 Not yet entered into SMASCH taxon name table: $name skipped
 EOP
 		++$skipped{one};
@@ -266,21 +226,39 @@ EOP
 
 $name{$name}++;
 
+#I moved the anno processor to after the scientificName processing
+#So that the processed name is what appears in the annotation field
+	if(($anno)=m|<Determinor>(.*)</Determinor>|){
+	$anno=&process_anno($anno, $name);
+	}
+	else{
+	$anno="";
+	}
+
+
 	($assignor=$collector)=~s/ (with|&|and) .*//;
-	$assignor=$alter_coll{$assignor} if $alter_coll{$assignor};
+
+	#$assignor=$alter_coll{$assignor} if $alter_coll{$assignor};
+	$assignor=~s/ *w\/.*//;
+
 	$assignor=~s/, .*//;
-	$need_coll{$assignor}++ unless $coll_comm{$assignor};
+
+#	$need_coll{$assignor}++ unless $coll_comm{$assignor};
 	unless($assignor eq $collector){
 		$combined_collector="$collector";
+
 		$collector=$assignor;
-		$combined_collector=~s/,? (with|&|and) /, /g;
-		$combined_collector=~s/ (with|&|and) */, /g;
-	$combined_collector=$alter_coll{$combined_collector} if $alter_coll{$combined_collector};
-	$need_coll{$combined_collector}++ unless $coll_comm{$combined_collector};
+		$combined_collector=~s/,? (w\/|with|&|and) /, /g;
+
+		$combined_collector=~s/ (w\/|with|&|and) */, /g;
+
+	#$combined_collector=$alter_coll{$combined_collector} if $alter_coll{$combined_collector};
+#	$need_coll{$combined_collector}++ unless $coll_comm{$combined_collector};
 	}
 else{
 $combined_collector="";
 }
+
 if(($elev_ft=~/\d/) || ($elev_m =~/\d/)){
 	if($elev_m && ($elev_m < $Mt_Whitney) && ($elev_m > $Death_Valley)){
 		$elevation= "$elev_m m";
@@ -293,7 +271,7 @@ if(($elev_ft=~/\d/) || ($elev_m =~/\d/)){
 	}
 	else{
 		$elevation="";
-print OUT <<EOP;
+print ERR <<EOP;
 $Accession_id: elevation out of California range: $elev_ft ft, $elev_m m
 EOP
 	}
@@ -313,7 +291,7 @@ EOP
 warn <<EOP;
 $Accession_id: something wrong with date: $day $month $year set to $date 
 EOP
-print OUT <<EOP;
+print ERR <<EOP;
 $Accession_id: something wrong with date: $day $month $year set to $date 
 EOP
 				}
@@ -324,7 +302,7 @@ EOP
 		}
 		else{
 			$date=$year;
-print OUT <<EOP;
+print ERR <<EOP;
 $Accession_id: something wrong with date: $day $month $year  set to $date
 EOP
 		}
@@ -333,7 +311,7 @@ EOP
 	else{
 		$date="";
 	}
-print  <<EOP;
+print OUT <<EOP;
 Date: $date
 CNUM: $collector_number
 CNUM_prefix: $CNUM_PREFIX
@@ -452,51 +430,36 @@ s/S. Junak, T. Ayer, R. Scott/S. Junak, T. Ayers, R. Scott/;
 s/E. L. Painter\./E. L. Painter,/;
 $_;
 }
-open(OUT,">sbbg_coll_needed") || die;
-foreach(sort(keys(%need_coll))){
-	print OUT "$_\t$need_coll{$_}\n";
-}
-sub strip_name{
-	local($_) = @_;
-	s/\?//;
-	s/  */ /g;
-	s/Hook\. f\./Hookf/g;
-	s/Ait\. f\./Aitf/g;
-	s/L\. f\./Lf/g;
-if(m/Encelia californica .*Encelia farinosa/){
-return("Encelia californica × Encelia farinosa");
-}
-if(m/Encelia farinosa .*Encelia frutescens/){
-return("Encelia farinosa × Encelia frutescens");
-}
-if(m/Aloe saponaria.*A.*striata.*/){
-return("Aloe saponaria × Aloe striata");
-}
 
-	s/^ *//;
-	s/ x / X /;
-	s/^× ?([a-zA-Z])/X \u$1/;
-	s/Ã— ?/X /;
-s/^x ([A-Z][a-z]+ [a-z]+).*/× $1/;
-s/Fragaria × ananassa Duchesne var. cuneifolia.*/Fragaria × ananassa var. cuneifolia/ ||
-s/Trifolium variegatum Nutt. phase (\d)/Trifolium variegatum phase $1/ ||
-	s/^([A-Z][a-z]+) (X?[-a-z]+).*(subsp.) ([-a-z]+).*(var\.) ([-a-z]+).*/$1 $2 $3 $4 $5 $6/ ||
-	s/^([A-Z][a-z]+ [a-z]+) (X [-A-Z][a-z]+ [a-z]+).*/$1 $2/ ||
-	s/^([A-Z][a-z]+) (X [-a-z]+).*/$1 $2/ ||
-	s/^([A-Z][a-z]+) (X?[-a-z]+).* (ssp\.|var\.|f\.|subsp.) ([-a-z]+).*/$1 $2 $3 $4/ ||
-	s/^([A-Z][a-z]+) (X?[-a-z]+).*/$1 $2/||
-	s/^(× [A-Z][a-z]+) (X?[-a-z]+).*/$1 $2/||
-	s/^([A-Z][a-z]+) [A-Z(].*/$1/||
-	warn "$_ no match\n";
-warn "SAPONARIA: $_" if m/saponaria/;
-	return ($_);
-}
+#sub strip_name{
+#	local($_) = @_;
+#
+#	
+#
+#	warn "$_ no match\n";
+#warn "SAPONARIA: $_" if m/saponaria/;
+#	return ($_);
+#}
 
+#The old sub process_anno (commented out) is based on the the determiner and year being separated by semicolon
+#However, now there is no comma. They are in the format "G.F.Hrusa 2008"
+#Which could be separated by space, except there isn't always a year.
 sub process_anno {
+#my($person, $year)=split(/ /, $annotator);
+#return "$current; $person; $year;";
 my($annotator, $current)=@_;
-my($person, $year)=split(/, /, $annotator);
-return "$current; $person; $year;";
+if ($annotator =~/(.*) (.*)/){
+	my($person)=$1;
+	my($year)=$2;
+	return "$current; $person; $year";
+	}
+else{
+	my($person)=$annotator;
+	return "$current; $person";
+	}
 }
+
+
 __END__
 15085 <Determinor
 93822 <Search_x0020_Name
