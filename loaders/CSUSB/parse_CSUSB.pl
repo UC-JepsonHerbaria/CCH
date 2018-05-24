@@ -12,13 +12,13 @@ chomp;
 s/\t.*//;
 $coll_comm{$_}++;
 }
-open(IN,"/Users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
+open(IN,"/Users/davidbaxter/DATA/smasch_taxon_ids.txt") || die;
 while(<IN>){
 chomp;
 s/^.*\t//;
 $taxon{$_}++;
 }
-open(IN,"../CDL/riv_non_vasc") || die;
+open(IN,"~/DATA/mosses") || die;
 while(<IN>){
 	chomp;
 	$exclude{$_}++;
@@ -50,15 +50,15 @@ s/\cM//;
 	#next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
 	#$alter_coll{$rsa}=$smasch;
 #}
-open(TABFILE,">parse_csusb.out") || die;
+open(TABFILE,">CSUSB.out") || die;
 open(OUT,">csusb_loading_report.txt") || die;
 $date=localtime();
 print OUT <<EOP;
 $date
 Report from running parse_csusb.pl
-Name alterations from file alter_names
-Name comparisons made against SMASCH taxon names (which are not necessarily correct)
-Genera to be excluded from riv_non_vasc
+Name alterations from file ~/DATA/alter_names
+Name comparisons made against ~/DATA/smasch_taxon_ids.txt (SMASCH taxon names, which are not necessarily correct)
+Genera to be excluded from ~/DATA/mosses
 
 EOP
 
@@ -199,7 +199,7 @@ EOP
 			s/bernardino/Bernardino/;
 			s/Shassta/Shasta/;
 s/^ *$/Unknown/;
-unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
+unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown)/i){
 		print OUT<<EOP;
 		Unknown California county not reconciled $fields[0]: $_ skipped
 EOP
@@ -739,6 +739,7 @@ foreach(sort(keys(%collector))){
 s/\. ,/., /;
 s/  +/ /g;
 s/ *$//;
+s/^ *//;
 next if $coll_comm{$_};
 print COLL "$_\t$collector{$key}\n";
 }
