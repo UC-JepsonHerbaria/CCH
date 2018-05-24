@@ -5,34 +5,60 @@ while(<IN>){
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
 	$alter{$riv}=$smasch;
 }
-open(IN,"../CDL/tnoan.out") || die;
+open(IN,"../CDL/riv_non_vasc") || die;
 while(<IN>){
 	chomp;
-	($id,$name)=split(/\t/);
+	if(m/\cM/){
+	die;
+	}
+	$exclude{$_}++;
+}
+open(IN,"/Users/richardmoe/4_data/taxon_ids/smasch_taxon_ids.txt") || die;
+while(<IN>){
+	chomp;
+	($id,$name,@residue)=split(/\t/);
 	$taxon{$name}=$id;
 }
 open(ERR,">SDSU_error");
 #open(IN,"Jepson_EXPORT_041708.tab") || die;
 use utf8;
-open(IN,"SDSU_dec_08.in") || die;
+$file=
+"SDSU2013.txt";
+#"CCH_SDSU_Export-20120821.txt";
+open(IN,"$file") || die;
+
 
 while(<IN>){
 	chomp;
 	s/\cK/ /g;
 s/Õ/'/g;
-$hybrid_annotation=$annotation="";
+$hybrid_annotation=$annotation=$image="";
 	$determiner=$PREFIX=$SUFFIX=$PlantDescr="";
 
 #Accession ID    Determination   Collector       Collection Date Collection Number       County  Locality        Elevation in meters     Latitude        Longitude       Lat/Long Accuracy       Geology Community       Plant Description       Determinor      Determination Date      Specimen Notes
 
-($ACCESSNO, $name, $collector, $DATE, $NUMBER, $DISTRICT, $LOCALITY, $elevation, $decimal_latitude, $decimal_longitude, $accuracy, $Geology, $Community, $PlantDescr, $determiner,$det_date, $notes)=split(/\t/);
+#NEW Accession ID	CACounty	Coll. Number	Collect. Date	Collector	Community	Determination	Determination Date	Determinor	Elevation in m.	Geology	Image	Latitude	LatLong Accuracy meters	Local.	Longitude	Plant Descr.	Specimen Notes
+#OLD Accession ID    Determination   Collector   Collection Date Collection Number   County  Locality    Elevation in meters Latitude    Longitude   LatLong Accuracy    Geology Community   Plant Description   Determinor  Determination Date  Notes
+
+
+($ACCESSNO, $name, $collector, $DATE, $NUMBER, $DISTRICT, $LOCALITY, $elevation, $decimal_latitude, $decimal_longitude, $accuracy, $Geology, $Community, $PlantDescr, $determiner,$det_date, $notes, $image)=split(/\t/);
 @fields=split(/\t/);
 print "$#fields\n" unless $seen{$fields}++;
 	foreach
-	($ACCESSNO, $collector, $DATE, $NUMBER, $DISTRICT, $Family, $name, $decimal_latitude, $decimal_longitude, $elevation, $PlantDescr, $Geology, $Community, $LOCALITY, $notes){
+	($ACCESSNO, $collector, $DATE, $NUMBER, $DISTRICT, $Family, $name, $decimal_latitude, $decimal_longitude, $elevation, $PlantDescr, $Geology, $Community, $LOCALITY, $notes, $image, $accuracy){
 		s/^"(.*)"$/$1/;
 	}
-	$extent="" unless $ExtUnits;
+foreach($accuracy){
+s!\+/-!!;
+s/'/ ft/;
+s/  / /g;
+}
+if($accuracy=~/([0-9.]+) (.*)/){
+$extent=$1; $ExtUnits=$2;
+}
+else{
+$extent= $ExtUnits="";
+}
 	unless($ACCESSNO){
 		&skip("No accession id", @columns);
 	}
@@ -43,9 +69,11 @@ print "$#fields\n" unless $seen{$fields}++;
 		#print "$ACCESSNO $DISTRICT\n";
 	}
 	foreach($DISTRICT){
+s/, .*//;
 		s/Eldorado/El Dorado/;
 		s/Humbolt/Humboldt/;
 		s/Bernadino/Bernardino/;
+		s/East San Diego/San Diego/;
 	s/ Co\.? ?$//;
 	s/ County ?$//;
 	}
@@ -55,6 +83,7 @@ print "$#fields\n" unless $seen{$fields}++;
 	}
 	$name="" if $name=~/^No name$/i;
 		$name=~s/ *$//;
+$name=~s/  */ /g;
 		$name=~s/ c\.?f\.//g;
 		unless($name){
 			&skip("No name: $ACCESSNO", @columns);
@@ -63,11 +92,22 @@ print "$#fields\n" unless $seen{$fields}++;
 		$name=~s/^ *//;
 		($genus=$name)=~s/ .*//;
 		$orig_name=$name;
-		if($ignore_name{$genus}){
+		if($exclude{$genus}){
 			&skip("Non-vascular plant: $ACCESSNO", @columns);
 			next;
 		}
 		$name=ucfirst($name);
+		foreach($name){
+			s/ [Ss]sp / subsp. /;
+			s/ spp\.? / subsp. /;
+			s/ var / var. /;
+			s/ [Ss]sp\. / subsp. /;
+			s/ Subsp\. / subsp. /;
+			s/ f / f\. /;
+			s/ [xX] / X /;
+			s/ sp\.//;
+			s/\?//;
+		}
 		if($alter{$name}){
 			&log ("Spelling altered to $alter{$name}: $name");
 			$name=$alter{$name};
@@ -84,17 +124,7 @@ print "$#fields\n" unless $seen{$fields}++;
 			#$badname{$name}++;
 			next;
 		}
-		foreach($name){
-			s/ ssp / subsp. /;
-			s/ spp\.? / subsp. /;
-			s/ var / var. /;
-			s/ ssp\. / subsp. /;
-			s/ f / f\. /;
-			s/ [xX] / × /;
-			s/ sp\.//;
-			s/\?//;
-		}
-		if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
+		if($name=~/([A-Z][a-z-]+ [a-z-]+) X /){
 			$hybrid_annotation=$name;
 			warn "$1 from $name\n";
 			$name=$1;
@@ -148,25 +178,30 @@ print "$#fields\n" unless $seen{$fields}++;
 		$collector=~s/  +/ /g;
 		$collector=~s/([A-Z]\.)([A-Z]\.)([A-Z][a-z])/$1 $2 $3/g;
 		$collector=~s/([A-Z]\.)([A-Z]\.) ([A-Z][a-z])/$1 $2 $3/g;
-		$collector= $alter_coll{$collector} if $alter_coll{$collector};
-		if($combined_collector){
-			$combined_collector=~s/et al$/et al./;
-			$combined_collector=~s/([A-Z]\.)([A-Z]\.)([A-Z][a-z])/$1 $2 $3/g;
-			$combined_collector=~s/([A-Z]\.)([A-Z]\.) ([A-Z][a-z])/$1 $2 $3/g;
-			$combined_collector=~s/([A-Z]\.)([A-Z][a-z])/$1 $2/g;
-			$combined_collector=~s/  +/ /g;
-			$combined_collector= $alter_coll{$combined_collector} if $alter_coll{$combined_collector};
-			if($collector){
-				$combined_collector= "$collector, $combined_collector";
-			}
-			else{
-				$collector=$combined_collector;
-				$combined_collector= "";
-			}
-		}
-		else{
+		#$collector= $alter_coll{$collector} if $alter_coll{$collector};
+		#if($combined_collector){
+			#$combined_collector=~s/et al$/et al./;
+			#$combined_collector=~s/([A-Z]\.)([A-Z]\.)([A-Z][a-z])/$1 $2 $3/g;
+			#$combined_collector=~s/([A-Z]\.)([A-Z]\.) ([A-Z][a-z])/$1 $2 $3/g;
+			#$combined_collector=~s/([A-Z]\.)([A-Z][a-z])/$1 $2/g;
+			#$combined_collector=~s/  +/ /g;
+			#$combined_collector= $alter_coll{$combined_collector} if $alter_coll{$combined_collector};
+			#if($collector){
+				#$combined_collector= "$collector, $combined_collector";
+			#}
+			#else{
+				#$collector=$combined_collector;
+				#$combined_collector= "";
+			#}
+		#}
+		#else{
+			#$combined_collector="";
+		#}
+				$combined_collector= $collector;
+unless($collector=~s/, .*// || $collector=~s/ and .*//){
 			$combined_collector="";
-		}
+}
+
 		$badcoll{$collector}++ unless $COLL{$collector};
 		$badcoll{$combined_collector}++ unless $COLL{$combined_collector};
 		if($NUMBER=~/^(\d+)$/){
@@ -259,6 +294,7 @@ Max_error_distance: $extent
 Max_error_units: $ExtUnits
 Annotation: $annotation
 Hybrid_annotation: $hybrid_annotation
+Image: $image
 
 EOP
 }
