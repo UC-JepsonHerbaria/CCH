@@ -1,338 +1,162 @@
-use lib '/Users/richardmoe/4_DATA/CDL';
-use CCH;
-$today=`date "+%Y-%m-%d"`;
-chomp($today);
-($today_y,$today_m,$today_d)=split(/-/,$today);
-&load_noauth_name;
+use Time::JulianDay;
+use Time::ParseDate;
+use lib '/Users/davidbaxter/DATA';
+use CCH; #load non-vascular hash %exclude, alter_names hash %alter, and max county elevation hash %max_elev
+$today_JD = &get_today_julian_day;
+&load_noauth_name; #loads taxon id master list into an array
 
 $m_to_f="3.2808";
-		use Geo::Coordinates::UTM;
+use Geo::Coordinates::UTM;
 
-open(ERR,">CLARK_problems") || die;
+#log.txt is used by logging subroutines in CCH.pm
+my $error_log = "log.txt";
+unlink $error_log or warn "making new error log file $error_log";
 
-print ERR <<EOP;
-$today
-Report from running parse_CLARK.pl
-Name alterations from file ~/data/CDL/alter_names
-Name comparisons made against ~/taxon_ids/smasch_taxon_ids (SMASCH taxon names, which are not necessarily correct)
-Genera to be excluded from riv_non_vasc
-
-EOP
+open(TABFILE,">CLARK.out") || die;
 
 
-while(<DATA>){
-	@fields=split(/\t/);
-	$fields[3]=~s/\+//;
-	$fields[3]=~s/,//;
-	$max_elev{$fields[1]}=$fields[3];
-}
+#note that CLARK sends their data in separate Excel files
+#I amalgamate them all into a single text file
+#As of September 2014 there are four Excel files
 
-open(IN,"/Users/richardmoe/4_CDL_BUFFER/smasch/mosses") || die;
-while(<IN>){
-	chomp;
-	s/\s.*//;
-	$exclude{$_}++;
-}
+#####RECORD DUPLICATION
+#Almost all of the records in the second CLARK file ("CCH list2 for Riverside CLARK.xls")
+#Are duplicated in the third and fourth file ("Sept2014_CCH... and "Complete List-Second...")
+#Since the newer records are desired, I used comm to determine what IDs were unique to the second list (92 IDs)
+#then extract those from that file, concatenate with the other three files, then run the parser on that
+#send the list of good records to CLARK and maybe they can do something with it
 
-
-open(IN,"../CDL/alter_names") || die;
-while(<IN>){
-	chomp;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
-
-
-
-
-
-
-open(TABFILE,">parse_CLARK.out") || die;
-#open(OUT,">rsa_problems") || die;
-open(COORDS,">CLARK_coord_issues") || die;
-
-$current_file="CLARK.txt";
-
+$current_file="CLARK2015_files/CLARK_2015.txt";
+#$current_file="Sept2014_CLARK.txt";
 
 open(IN,"$current_file") || die;
 warn "reading from $current_file\n";
-
-while(<IN>){
-	chomp;
-	s/\t.*//;
-	if($seen_dup{$_}++){
-		++$duplicate{$_};
-	}
-}
-close(IN);
-
-#ID	FAMILY	GENUS	SPECIES	SP. AUTH.	SSP.	SSP. AUTH.	COMMON NAME	LOCALITY	LOCALITY NOTES	DATE	COLLECTOR	FIELD #	LAT/LONG	UTM E/N	OTHER #
-
-open(IN,"$current_file") || die;
-#open(IN,"test_ac.tmp") || die;
 Record: while(<IN>){
-$assoc=$combined_collectors=$Collector= $elevation= $name=$lat=$long=$decimal_lat=$decimal_long="";
-		$zone=$easting=$northing="";
-
+	&CCH::check_file;
 	chomp;
 	@fields=split(/\t/,$_,100);
-#unless ($#fields==15){
-#foreach  $i (1 .. $#fields){
-#print "$i $fields[$i]\n";
+	unless ($#fields>=13){
+		&log_skip("$#fields bad field number $_");
+		next Record;
+	}
+
 foreach(@fields){
-s/^"? *//;
-s/ *"?$//;
-#}
+	s/^"? *//;
+	s/ *"?$//;
 }
-#next;
 
-$Label_ID_no="CLARK-$fields[0]";
-	$genus=$fields[2];
-	$species=$fields[3];
-	$infra =$fields[5];
+($id,
+$family,
+$genus,
+$species,
+$species_author,
+$infra,
+$infra_author,
+$higher_geography,
+$locality_notes,
+$eventDate,
+$collector,
+$CNUM,
+$latitude,
+$longitude)=@fields;
+
+########ACCESSION NUMBER
+$id="CLARK-$id";
+
+#check for nulls
+if ($id=~/^ *$/){
+	&log_skip("Record with no accession id $_");
+	next Record;
+}
+#remove duplicates
+if ($seen{$id}++){
+	&log_skip("Duplicate number: $id<");
+	next Record;
+}
+
+
+########SCIENTIFIC NAMES
+#$family not used
+$scientificName= "";
 	if($infra){
-		$name="$genus $species subsp. $infra";
+		$scientificName="$genus $species subsp. $infra";
 	}
 	else{
-		$name="$genus $species";
+		$scientificName="$genus $species";
 	}
-	$name=~s/ *$//;
-	$name=~s/ +/ /g;
-	($country,$state,$county,$place)=split(/ ?\| ?/,$fields[8]);
-$country=~s/^ *//;
-$county=~s/ County//;
-	$date=$fields[10];
-if($date=~/[Uu]nknown/){
-$date="";
-}
-else{
-unless($date=~/\/(1[789]\d\d|20\d\d)$/){
-		print ERR<<EOP;
-Date config problem $date: date nulled 9 $Label_ID_no
-EOP
-}
-}
-	$collector=$fields[11];
-	$CNUM=$fields[12];
-print "$CNUM\n";
-	($decimal_lat,$decimal_long)=split(/ ?[,\|] ?/,$fields[13]);
-#print <<EOP;
-#$decimal_lat = $decimal_long = $fields[13]
-#EOP
-	$datum="WGS84/NAD83";
-	($easting,$northing)=split(/ ?\| ?/,$fields[14]);
-	@local=split(/; /,$fields[9]);
-	$elevation="";
-$associates="";
-#print "$fields[9]\n";
-	#foreach $i (0 .. $#local){
-#print "$i $local[$i]\n";
-#}
-	foreach(@local){
-		if(s/([Ee]levation.*)//){
-			$elevation=$1;
-$elevation=~s/elevation //;
-$elevation=~s/,//;
-$elevation=~s/approximately/ca./;
-
-		}
-elsif(s/associated with (.*)//){
-$associates=$1;
-}
-	}
-$locality_notes=join("; ",@local);
-
-
-
-	$line_store=$_;
-	++$count;
-	($poss_dup=$_)=~s/\t.*//;
-	unless($poss_dup=~/^A\d/){
-		++$skipped{one};
-		print ERR<<EOP;
-
-Not CLARK, skipped: $_
-EOP
-		next Record;
-	}
-	if($duplicate{$poss_dup}){
-		++$skipped{one};
-		print ERR<<EOP;
-
-Duplicate number, skipped: $_
-EOP
-		next Record;
-	}
-
-	if($fields[0]=~/^ *$/){
-		++$skipped{one};
-		print ERR<<EOP;
-
-No accession number, skipped: $_
-EOP
-		next Record;
-	}
-	if($fields[0]=~/^(Un|de)accessioned/i){
-		++$skipped{one};
-		print ERR<<EOP;
-
-De/Un accessioned accession number, skipped: $_
-EOP
-		next Record;
-	}
-	if($seen{$fields[0]}++){
-		++$skipped{one};
-		warn "Duplicate number: $fields[0]<\n";
-		print ERR<<EOP;
-
-Duplicate accession number, skipped: $fields[0]
-EOP
-		next Record;
-	}
-
-	################collector numbers
-	$CNUM=~s/ *$//;
-	$CNUM=~s/^ *//;
-	$CNUM=~s/,//;
-		$Coll_no_prefix= $Coll_no_suffix="";
-	if($CNUM=~s/-$//){
-		$Coll_no_suffix="-$Coll_no_suffix";
-	}
-	if($CNUM=~s/^-//){
-		$Coll_no_prefix.="-";
-	}
-	if($CNUM=~s/^([0-9]+)(-[0-9]+)$/$2/){
-		$Coll_no_prefix.=$1;
-	}
-	if($CNUM=~s/^([0-9]+)(\.[0-9]+)$/$1/){
-		$Coll_no_suffix=$2 . $Coll_no_suffix;
-	}
-	if($CNUM=~s/^([0-9]+)([A-Za-z]+)$/$1/){
-		$Coll_no_suffix=$2 . $Coll_no_suffix;
-	}
-	if($CNUM=~s/^([0-9]+)([^0-9])$/$1/){
-		$Coll_no_suffix=$2 . $Coll_no_suffix;
-	}
-	if($CNUM=~s/^(S\.N\.|s\.n\.)$//){
-		$Coll_no_suffix=$1 . $Coll_no_suffix;
-	}
-	if($CNUM=~s/^([0-9]+-)([0-9]+)([A-Za-z]+)$/$2/){
-		$Coll_no_suffix=$3 . $Coll_no_suffix;
-		$Coll_no_prefix.=$1;
-	}
-	if($CNUM=~m/[^\d]/){
-		$CNUM=~s/(.*)//;
-		$Coll_no_suffix=$1 . $Coll_no_suffix;
-	}
-unless($state=~/^(CA|Ca|Calif\.|California)$/){
-		print ERR<<EOP;
-		State not California $fields[0] state=$state country=$country: $_ skipped
-EOP
-		next Record;
-	}
-		foreach($county){
-		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)$/){
-			$v_county= &verify_co($_);
-			if($v_county=~/SKIP/){
-				&log("NON-CA county? $_");
-				++$skipped{one};
-				next Record;
-			}
-
-			unless($v_county eq $_){
-				&log("$fields[0] $_ -> $v_county");
-				$_=$v_county;
-			}
-
-
-		}
-		$county{$_}++;
-	}
-
 	
+$scientificName=ucfirst(lc($scientificName));
+$scientificName=~s/ sp\..*//;
+$scientificName=~s/ x / X /;
+$scientificName=~s/ Ã— / X /;
+$scientificName=~s/ *$//;
+$scientificName=~s/ +/ /g;
 
-
-$name=ucfirst(lc($name));
-#print ">$name<\n";
-#$name=~s/'//g;
-$name=~s/`//g;
-$name=~s/\?//g;
-$name=~s/ *$//;
-$name=~s/  +/ /g;
-$name=~s/ spp\./ subsp./;
-$name=~s/ssp\./subsp./;
-$name=~s/ ssp / subsp. /;
-$name=~s/ subsp / subsp. /;
-$name=~s/ var / var. /;
-$name=~s/ var. $//;
-$name=~s/ sp\..*//;
-$name=~s/ sp .*//;
-$name=~s/ [Uu]ndet.*//;
-$name=~s/ x / X /;
-$name=~s/ × / X /;
-$name=~s/ *$//;
-#print "TEST $name<\n";
-
-if($name=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
-                 $hybrid_annotation=$name;
-                 warn "$1 from $name\n";
-                 &log("$1 from $name");
-                 $name=$1;
-             }
-	     else{
-                 $hybrid_annotation="";
-	     }
-
-
-if($exclude{$genus}){
-	&log("Excluded, not a vascular plant: $name");
-	++$skipped{one};
-	next Record;
-}
-
-%infra=( 'var.','subsp.','subsp.','var.');
-
-if($alter{$name}){
-        &log("$name altered to $alter{$name}");
-                $name=$alter{$name};
-}
-#print "N>$name<\n";
-$test_name=&strip_name($name);
-#print "TN>$test_name<\n";
-
-if($TID{$test_name}){
-        $name=$test_name;
-}
-elsif($alter{$test_name}){
-        &log("$name altered to $alter{$test_name}");
-                $name=$alter{$test_name};
-}
-elsif($test_name=~s/(var\.|subsp\.)/$infra{$1}/){
-        if($TID{$test_name}){
-                &log("$name not in SMASCH  altered to $test_name");
-                $name=$test_name;
-        }
-        elsif($alter{$test_name}){
-                &log("$name not in smasch  altered to $alter{$test_name}");
-                $name=$alter{$test_name};
-        }
-	else{
-        	&log ("$name is not yet in the master list: skipped");
-$needed_name{$name}++;
-		++$skipped{one};
-		next Record;
-	}
+if($scientificName=~s/([A-Z][a-z-]+ [a-z-]+) [Xxâ—Š] /$1 X /){
+	$hybrid_annotation=$scientificName;
+	warn "$1 from $scientificName\n";
+	&log_change("$1 from $scientificName");
+	$scientificName=$1;
 }
 else{
-        &log ("$name is not yet in the master list: skipped");
-$needed_name{$name}++;
-	++$skipped{one};
+	$hybrid_annotation="";
+}
+
+$scientificName = &validate_scientific_name($scientificName, $id);
+$scientificName{$scientificName}++;
+
+
+######HIGHER GEOGRAPHY AND LOCALITY
+($country,$state,$county,$place)=split(/ ?, ?/,$higher_geography);
+$country=~s/^ *//;
+$country="USA" if $country=~/U\.?S\.?/;
+$state=~s/^ *//;
+$county=~s/^ *//;
+unless($state=~/^(CA|Ca|Calif\.|California)$/){
+	&log_skip("State not California $id state=$state country=$country: skipped");
 	next Record;
 }
 
-$name{$name}++;
+$county=~s/ County//;
+foreach($county){
+	unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown)$/){
+		$v_county= &verify_co($_);
+		if($v_county=~/SKIP/){
+			&log_change("NON-CA county? $_");
+			next Record;
+		}
+		unless($v_county eq $_){
+			&log_change("$id $_ -> $v_county");
+			$_=$v_county;
+		}
+	}
+	$county{$_}++;
+}
 
-#print "TEST \n\n";
+########LOCALITY
+#split up locality_notes to get elevation and associated species
+$associates=$elevation=$locality="";
+@locality_notes_split=split(/; /,$locality_notes);
+foreach(@locality_notes_split){
+	if(s/([Ee]levation.*)//){
+		$elevation=$1;
+		$elevation=~s/elevation //;
+		$elevation=~s/,//g;
+		$elevation=~s/approximately/ca./;
+		$elevation=~s/ feet/ ft/;
+	}		
+	elsif(s/associated with (.*)//){
+		$associates=$1;
+	}
+}
+
+#join the rest back together, then concatenate with $place to get DwC locality 
+$locality_notes=join("; ",@local_notes_split);
+$locality = "$place, $locality_notes";
+$locality =~ s/, $//;
+
+
+############ELEVATION (from locality notes)
 $elev_test=$elevation;
 		$elev_test=~s/.*- *//;
 		$elev_test=~s/ *\(.*//;
@@ -348,202 +172,119 @@ $elev_test=$elevation;
 		if($elev_test=~s/ +(ft|feet)//i){
 
 			if($elev_test > $max_elev{$county}){
-				print ERR "ELEV $county\t ELEV: $elevation $metric greater than max: $max_elev{$county} discrepancy=", $elev_test-$max_elev{$county}," $Label_ID_no\n";
+				print ERR "ELEV $county\t ELEV: $elevation $metric greater than max: $max_elev{$county} discrepancy=", $elev_test-$max_elev{$county}," $id\n";
 			}
 		}
+		
+		
 
-if($ecol_notes=~s/[;.] +([Aa]ssoc.*)//){
-$assoc=$1;
+####### COLLECTION DATES
+if($eventDate=~/[Uu]nknown/){
+	$eventDate="";
+}
+
+if ($eventDate=~/(\d\d?)\/(\d\d?)\/(\d\d\d\d)/){
+	$MM=$1;
+	$DD=$2;
+	$YYYY=$3;
+	$DD=~s/^0//;
+	$MM=~s/^0//;
+}
+
+##CLARK data contains many two digit years
+##but I have confirmed that they are all 1900s
+elsif ($eventDate=~/(\d\d?)\/(\d\d?)\/(\d\d)/){
+	$MM=$1;
+	$DD=$2;
+	$YYYY="19$3";
+	$DD=~s/^0//;
+	$MM=~s/^0//;
+}	
+elsif($eventDate=~/(\d\d?)\/(\d\d\d\d)/){
+	$MM=$1;
+	$YYYY=$2;
+	$MM=~s/^0//;
+}
+elsif ($eventDate=~/.+/){
+	unless($eventDate=~/(1[789]\d\d|20\d\d)$/){
+		&log_change("Date config problem $eventDate: date nulled 9 $id");
+	}
+}
+($EJD, $LJD)=&make_julian_days($YYYY, $MM, $DD, $id);
+($EJD, $LJD)=&check_julian_days($EJD, $LJD, $today_JD, $id);
+
+
+#########COLLECTORS
+if ($collector=~/(.*) \| (.*)/){
+	$collector=$1;
+	$other_coll=$2;
+}
+elsif ($collector=~/(.*)\|(.*)/){
+	$collector=$1;
+	$other_coll=$2;
+}
+elsif ($collector=~/(.*) ?- ?(.*)/){
+	$collector=$1;
+	$other_coll=$2;
+}
+else {
+	$collector=$collector;
+	$other_coll="";
 }
 
 
+#########COLLECTOR NUMBER
+$CNUM=~s/ *$//;
+$CNUM=~s/^ *//;
+$CNUM=~s/,//;
 
-
-
-$country="USA" if $country=~/U\.?S\.?/;
-if($determiner){
-	$annotation="$name; $determiner; $det_year $det_mo $det_day";
+if ($CNUM){
+	($Coll_no_prefix, $Coll_no, $Coll_no_suffix)=&parse_CNUM($CNUM);
 }
-else{
-	$annotation="";
-}
-$zone=$UTM_grid_zone;
-#$UTM_grid_cell,
-#$UTM_E,
-#$UTM_N,
-#$name_of_UTM_cell,
-$decimal_lat=~s/^-//;
-unless(($decimal_lat || $decimal_long)){
-	if($zone){
-		$easting=$UTM_E;
-		$northing=$UTM_N;
-		$easting=~s/[^0-9]*$//;
-		$northing=~s/[^0-9]*$//;
-		#warn "$fields[0] $zone $easting $northing\n";
-		$zone="11S" if $zone==11;
-		$zone="11S" if $zone eq "Z11";
-		$zone="11S" if $zone eq "S11";
-		$zone="10S" if $zone==10;
-		$ellipsoid=23;
-		if($zone=~/9|10|11|12/ && $easting=~/^\d\d\d\d\d\d/ && $northing=~/^\d\d\d\d\d/){
-			($decimal_lat,$decimal_long)=utm_to_latlon($ellipsoid,$zone,$easting,$northing);
-			print COORDS "$Label_ID_no decimal derived from UTM $decimal_lat, $decimal_long\n";
-		}
-		else{
-			print COORDS "$Label_ID_no UTM problem $zone $easting $northing\n";
-		}
-
-
-		$decimal_long="-$decimal_long" if $decimal_long > 0;
-	}  
-}
-	if($decimal_lat){
-$decimal_lat=~s/[^0-9.]//g;
-$decimal_long=~s/[^0-9.]//g;
-		if ($decimal_long > 0){
-			print ERR "$decimal_long made -$decimal_long $Label_ID_no\n";
-		$decimal_long="-$decimal_long";
-		}
-	if($decimal_lat > 42.1 || $decimal_lat < 32.5 || $decimal_long > -114 || $decimal_long < -124.5){
-		if($zone){
-			print COORDS "$Label_ID_no coordinates set to null, Outside California: $accession_id: UTM is $zone $easting $northing --> $decimal_lat $decimal_long\n";
-		}
-		else{
-			print COORDS "$Label_ID_no coordinates set to null, Outside California: D_lat is $decimal_lat D_long is $decimal_long lat is $lat long is $long\n";
-		}
-	$decimal_lat =$decimal_long="";
-}   
+else {
+	$Coll_no_prefix=$Coll_no=$Coll_no_suffix="";
 }
 
 
+######LATITUDE AND LONGITUDE
+$datum="WGS84/NAD83";
+if($latitude){
+$latitude=~s/[^0-9.]//g;
+$longitude=~s/[^0-9.]//g;
+		if ($longitude > 0){
+			#&log_change("$longitude made -$longitude $id"); #commented out, since all longitudes are not negative
+		$longitude="-$longitude";
+		}
+	if($latitude > 42.1 || $latitude < 32.5 || $longitude > -114 || $longitude < -124.5){
+		&log_change("$id coordinates set to null, Outside California: lat is $latitude long is $longitude");
+		$latitude =$longitude="";
+	}   
+}
 
 
 print TABFILE <<EOP;
-Date: $date
-CNUM_prefix: ${Coll_no_prefix}
-CNUM: ${Coll_no}
-CNUM_suffix: ${Coll_no_suffix}
-Name: $name
-Accession_id: $Label_ID_no
-Family_Abbreviation: $family
+Date: $eventDate
+EJD: $EJD
+LJD: $LJD
+CNUM_prefix: $Coll_no_prefix
+CNUM: $Coll_no
+CNUM_suffix: $Coll_no_suffix
+Name: $scientificName
+Accession_id: $id
 Country: $country
 State: $state
 County: $county
-Loc_other: $place
-Location: $locality_notes
-T/R/Section: $Unified_TRS
+Location: $locality
 USGS_Quadrangle: $topo_quad
 Elevation: $elevation
 Collector: $collector
 Other_coll: $other_coll
-Combined_collector: $combined_collectors
-Habitat: $ecol_notes
+Habitat: 
 Associated_species: $associates
-Decimal_latitude: $decimal_lat
-Decimal_longitude: $decimal_long
+Decimal_latitude: $latitude
+Decimal_longitude: $longitude
 Datum: $datum
-Annotation: $annotation
 Hybrid_annotation: $hybrid_annotation
 
 EOP
-++$included;
 }
-open(COLL,">missing_coll");
-
-foreach(sort(keys(%name))){
-	#print "$_\n" unless $taxon{$_};
-}
-print <<EOP;
-INCL: $included
-EXCL: $skipped{one};
-EOP
-
-foreach(sort(keys(%coord_alter))){
-	#print "$_\n";
-}
-open(ERR,">new_names_needed") || die;
-foreach(sort {$needed_name{$a} <=> $needed_name{$b}}(keys(%needed_name))){
-print ERR "$_ $needed_name{$_}\n";
-}
-open(ERR,">ucr_field_check") || die;
-foreach(sort(keys(%Plant_description))){
-	print ERR "PD: $_\n";
-}
-foreach(sort(keys(%plant))){
-	print ERR "P: $_\n";
-}
-foreach(sort(keys(%phenology))){
-	print ERR "Phen: $_\n";
-}
-foreach(sort(keys(%culture))){
-	print ERR "C: $_\n";
-}
-foreach(sort(keys(%origin))){
-	print ERR "O: $_\n";
-}
-sub log {
-print ERR "@_\n";
-}
-
-
-
-
-__END__
-1.	Inyo	Mount Whitney	14,495 	Sequoia Sierra Nevada
-1.	Tulare	Mount Whitney	14,495 	Sequoia Sierra Nevada
-3.	Mono	White Mountain Peak	14,246 	West Great Basin Ranges
-4.	Fresno	North Palisade	14,242 	Central Sierra Nevada
-5.	Siskiyou	Mount Shasta	14,162 	California Cascades
-6.	Madera	Mount Ritter	13,143 	Yosemite-Ritter Sierra Nevada
-7.	Tuolumne	Mount Lyell	13,114 	Yosemite-Ritter Sierra Nevada
-8.	Mariposa	Parsons Peak-Northwest Ridge	12,040+	Yosemite-Ritter Sierra Nevada
-9.	San Bernardino	San Gorgonio Mountain	11,499 	Transverse Ranges
-10.	Alpine	Sonora Peak	11,459 	Lake Tahoe-Sonora Pass Sierra Nevada
-11.	El Dorado	Freel Peak	10,881 	Lake Tahoe-Sonora Pass Sierra Nevada
-12.	Riverside	San Jacinto Peak	10,839 	Peninsular Southern California Ranges
-13.	Shasta	Lassen Peak	10,457 	California Cascades
-14.	Los Angeles	Mount San Antonio	10,064 	Transverse Ranges
-15.	Modoc	Eagle Peak	9892 	Northwest Great Basin Ranges
-16.	Amador	Thunder Mountain	9410 	Lake Tahoe-Sonora Pass Sierra Nevada
-17.	Tehama	Brokeoff Mountain	9235 	California Cascades
-18.	Nevada	Mount Lola	9148 	Northern Sierra Nevada
-19.	Placer	Mount Baldy-West Ridge	9040+	Lake Tahoe-Sonora Pass Sierra Nevada
-20.	Trinity	Mount Eddy	9025 	Klamath Mountains
-21.	Sierra	Mount Lola-North Ridge Peak	8844 	Northern Sierra Nevada
-22.	Ventura	Mount Pinos	8831 	Transverse Ranges
-23.	Kern	Sawmill Mountain	8818 	Transverse Ranges
-24.	Lassen	Hat Mountain	8737 	Northwest Great Basin Ranges
-25.	Plumas	Mount Ingalls	8372 	Northern Sierra Nevada
-26.	Calaveras	Corral Hollow Hill	8170 	Lake Tahoe-Sonora Pass Sierra Nevada
-27.	Glenn	Black Butte	7448 	Northern California Coast Range
-28.	Butte	Butte County High Point	7120+	Northern Sierra Nevada
-29.	Colusa	Snow Mountain	7056 	Northern California Coast Range
-29.	Lake	Snow Mountain	7056 	Northern California Coast Range
-31.	Humboldt	Salmon Mountain	6956 	Klamath Mountains
-32.	Mendocino	Anthony Peak	6954 	Northern California Coast Range
-33.	Santa Barbara	Big Pine Mountain	6800+	Transverse Ranges
-34.	San Diego	Hot Springs Mountain	6533 	Peninsular Southern California Ranges
-35.	Del Norte	Bear Mountain-Del Norte CoHP	6400+	Klamath Mountains
-36.	Monterey	Junipero Serra Peak	5862 	Central California Coast Ranges
-37.	Orange	Santiago Peak	5687 	Peninsular Southern California Ranges
-38.	San Benito	San Benito Mountain	5241 	Central California Coast Ranges
-39.	San Luis Obispo	Caliente Mountain	5106 	Central California Coast Ranges
-40.	Yuba	Yuba County High Point	4825+	Northern Sierra Nevada
-41.	Imperial	Blue Angels Peak	4548 	Northern Baja California
-42.	Sonoma	Cobb Mountain-Southwest Peak	4480+	Northern California Coast Range
-43.	Santa Clara	Copernicus Peak	4360+	Central California Coast Ranges
-44.	Napa	Mount Saint Helena-East Peak	4200+	Northern California Coast Range
-45.	Contra Costa	Mount Diablo	3849 	Central California Coast Ranges
-46.	Alameda	Valpe Ridge-Rose Flat	3840+	Central California Coast Ranges
-47.	Stanislaus	Mount Stakes	3804 	Central California Coast Ranges
-48.	Merced	Laveaga Peak	3801 	Central California Coast Ranges
-49.	San Joaquin	Boardman North	3626 	Central California Coast Ranges
-50.	Kings	Table Mountain	3473 	Central California Coast Ranges
-51.	Santa Cruz	Mount Bielewski	3231 	Central California Coast Ranges
-52.	Yolo	Little Blue Ridge	3120+	Northern California Coast Range
-53.	Solano	Mount Vaca	2819 	Northern California Coast Range
-54.	San Mateo	Long Ridge	2600+	Central California Coast Ranges
-55.	Marin	Mount Tamalpais	2571 	Northern California Coast Range
-56.	Sutter	South Butte	2120+	Northern Sierra Nevada
-57.	San Francisco	Mount Davidson	925+	Central California Coast Ranges
-58.	Sacramento	Carpenter Benchmark	828 	Lake Tahoe-Sonora Pass Sierra Nevada
