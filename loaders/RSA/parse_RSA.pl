@@ -1,5 +1,13 @@
+open(IN,"rsa_dups") || die;
+while(<IN>){
+chomp;
+next unless m/^(POM|RSA)/;
+s/-//g;
+$rsa_dups{$_}++;
+}
+close(IN);
 open(TABFILE,">rsa_out_new.tab") || die;
-open(IN,"../collectors_id") || die;
+open(IN,"../CDL/collectors_id") || die;
 while(<IN>){
 chomp;
 s/\t.*//;
@@ -8,9 +16,9 @@ s/\cM//;
 $coll_comm{uc($_)}++;
 }
 foreach(keys(%coll_comm)){
-	#print "$_\n";
+	##print "$_\n";
 }
-open(IN,"../TNOAN.OUT") || die;
+open(IN,"../CDL/tnoan.out") || die;
 while(<IN>){
 	chomp;
 s/\cJ//;
@@ -22,7 +30,7 @@ foreach(keys(%taxon)){
 	#print "$_\n";
 }
 #die "that was the taxon hash\n";
-open(IN,"rsa_alter_coll") || die;
+open(IN,"oldrsa/rsa/rsa_alter_coll") || die;
 while(<IN>){
 	chomp;
 s/\cJ//;
@@ -30,7 +38,7 @@ s/\cM//;
 	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
 	$alter_coll{$rsa}=$smasch;
 }
-open(IN,"rsa_alter_names") || die;
+open(IN,"../CDL/alter_names") || die;
 while(<IN>){
 	chomp;
 s/\cJ//;
@@ -38,43 +46,21 @@ s/\cM//;
 	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
 	$alter{$rsa}=$smasch;
 }
-open(IN,"../riv_alter_names") || die;
-while(<IN>){
-	chomp;
-s/\cJ//;
-s/\cM//;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
-open(IN,"../davis/alter_davis") || die;
-@alters=<IN>;
-chomp(@alters);
-grep(s/\cJ//,@alters);
-grep(s/\cM//,@alters);
-foreach $i (0 .. $#alters){
-	unless($i % 2){
-		if($alters[$i]=~s/ :.*//){
-			$alter{$alters[$i]}=$alters[$i+1];
-		}
-		else{
-			die "misconfig: $i $alters[$i]";
-		}
-	}
-}
 open(OUT,">RSA_problems") || die;
 open(TAXON_OUT,">RSA_missing_taxon") || die;
-#open(in,"rsa_subset") || die;
-open(IN,"UCJepsExtract.tab") || die;
+open(IN,"rsa_2009_in") || die;
+#open(IN,"UCJepsExtract.tab") || die;
 #open(IN,"all_new_rsa") || die;
 #open(IN,"modified records.txt") || die;
 #open(IN,"new_reordered") || die;
 
 	RECORD: while(<IN>){
-		++$linecount;
+#next RECORD  unless m/505269|519112/;
+
 	chomp;
 	s/\cK/ /g;
 s/\cM//g;
-$name=$Country=$Township=$Range=$section= $month=$day=$year= ${Coll_no_prefix}= ${Coll_no}= ${Coll_no_suffix}= $Full_scientific_name= $Label_ID_no= $family= $Country= $State= $County= $Physiographic_region= $Locality= $Unified_TRS= $topo_quad= $elevation= $Collector_full_name= $Associated_collectors= $Ecological_setting= $assoc= $Plant_specifics= $lat= $long= $decimal_lat= $decimal_long=$lon_degrees=$long_minutes=$long_seconds=$lat_degrees=$lat_minutes=$lat_seconds=$color=$combined_collectors=$hybrid_annotation="";
+$name=$Country=$Township=$Range=$section= $month=$day=$year= ${Coll_no_prefix}= ${Coll_no}= ${Coll_no_suffix}= $Full_scientific_name= $Label_ID_no= $family= $Country= $State= $County= $Physiographic_region= $Locality= $Unified_TRS= $topo_quad= $elevation= $Collector_full_name= $Associated_collectors= $Ecological_setting= $assoc= $Plant_specifics= $lat= $long= $decimal_lat= $decimal_long=$lon_degrees=$long_minutes=$long_seconds=$lat_degrees=$lat_minutes=$lat_seconds=$color=$combined_collectors="";
 	$line=$_;
 	s/, *, /, /g;
 	s/^"//;
@@ -83,19 +69,15 @@ $name=$Country=$Township=$Range=$section= $month=$day=$year= ${Coll_no_prefix}= 
 	s/  / /g;
 s/Õ/'/g;
 #@fields=split(/","/);
-@fields=split(/\t/,$_,1000);
-unless ($#fields==43){
-		print OUT<<EOP;
-Incorrect number of fields: $#fields, skipped: $line
-EOP
-next RECORD;
-}
+@fields=split(/\t/);
+#gets rid of genus
+#splice(@fields,3,1);
 grep(s/^"//,@fields);
 grep(s/"$//,@fields);
-	if($fields[43]=~s/ *([Aa]ssoc.*)//){
+	if($fields[39]=~s/ *([Aa]ssoc.*)//){
 		$assoc=$1;
 	}
-	elsif($fields[43]=~s/ *([Ww]ith [A-Z].*)//){
+	elsif($fields[39]=~s/ *([Ww]ith [A-Z].*)//){
 if($assoc){
 $assoc .= "; $1";
 }
@@ -103,7 +85,7 @@ else{
 		$assoc=$1;
 }
 }
-	if($fields[42]=~s/ *([Aa]ssoc.*)//){
+	if($fields[38]=~s/ *([Aa]ssoc.*)//){
 if($assoc){
 $assoc .= "; $1";
 }
@@ -111,7 +93,7 @@ else{
 		$assoc=$1;
 }
 	}
-	elsif($fields[42]=~s/ *([Ww]ith [A-Z].*)//){
+	elsif($fields[38]=~s/ *([Ww]ith [A-Z].*)//){
 if($assoc){
 $assoc .= "; $1";
 }
@@ -119,20 +101,21 @@ else{
 		$assoc=$1;
 }
 	}
-	if($fields[43]=~s/((Fls|Flowers).*(red|pink|blue|white|purple|orange|violet|green|yellow|black|maroon|brown|cream|lavender)(ish)?.*)//){
+	if($fields[39]=~s/((Fls|Flowers).*(red|pink|blue|white|purple|orange|violet|green|yellow|black|maroon|brown|cream|lavender)(ish)?.*)//){
 $color=$1;
 }
 	foreach $i (0 .. $#fields){
+		#print "$i: $fields[$i]\n";
 		$_=$fields[$i];
 		s/ *$//;
 		s/^ *//;
-		if(length($_)>254){
-			$fields[$i]=substr($_, 0, 249) . " ...";
-			#print "$fields[$i]\n";
-		}
-		else{
+		#if(length($_)>254){
+			#$fields[$i]=substr($_, 0, 249) . " ...";
+			##print "$fields[$i]\n";
+		#}
+		#else{
 			$fields[$i]=$_;
-		}
+		#}
 	}
 
 
@@ -140,8 +123,6 @@ $color=$1;
 
 
 
-
-	
 
 (
 $Primary_key,
@@ -152,8 +133,6 @@ $Species,
 $Subtype,
 $Subtaxon,
 $Full_scientific_name,
-$Kind_of_type,
-$Type_yes_or_no,
 $Collector_last_name,
 $Collector_full_name,
 $Collector_number,
@@ -170,7 +149,6 @@ $Elevation_lower_range_ft,
 $Elevation_top_range_ft,
 $Elevation_lower_range_meters,
 $Elevation_top_range_meters,
-$topo_quad,
 $lat_degrees,
 $lat_minutes,
 $lat_seconds,
@@ -183,14 +161,19 @@ $Township,
 $Range,
 $Section,
 $Quarter,
-$UTM_zone,
 $UTM_E,
 $UTM_N,
 $Ecological_setting,
 $Plant_specifics,
+$UTM_zone,
+$Kind_of_type,
+$Type_yes_or_no,
 )= @fields;
+#$UTM_zone, left out
 $N_or_S="N";
 $E_or_W="W";
+$day=~s/ ?\.\.\. ?/-/;
+$day=~s/ ?\.\. ?/-/;
 	$Label_ID_no=~s/- *//;
 	$Label_ID_no=~s/RSA POM/POM/;
 	if(length($Label_ID_no) > 15){
@@ -214,14 +197,14 @@ No accession number, skipped: $line
 EOP
 		next RECORD;
 	}
-	if($seen{$Label_ID_no}++){
+	if($seen{$Label_ID_no}++ || $rsa_dups{$Label_ID_no}){
 
 		print OUT<<EOP;
-Duplicate accession number, skipped: $line
+		Duplicate accession number, skipped: $line
 EOP
 		next RECORD;
 	}
-	unless ($State =~/^ *(CA|California|Calif.) *$/){
+	unless ($State =~/^ *(CA|California|Calif.|Ca) *$/){
 		if($State=~/^ *$/){
 			if ($County=~m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)$/){
 				$State="CA";
@@ -243,6 +226,8 @@ EOP
 $State="CA";
 
 	foreach($Collector_full_name){
+
+s/O.Brien/O'Brien/g;
 		s/ \./\./g;
 		s/([A-Z]\.)([A-Z]\.)([A-Z]\.)/$1 $2 $3 /g;
 		s/([A-Z]\.)([A-Z]\.)/$1 $2 /g;
@@ -259,6 +244,7 @@ $State="CA";
 		s/^J\. ?C\. $/J. C./;
 		s/John A. Churchill M. ?D. $/John A. Churchill M. D./;
 		if($Associated_collectors){
+$Associated_collectors=~s/O[^A-Za-z.-]B/O'B/g;
 			$Associated_collectors=~s/ \./\./g;
 			$Associated_collectors=~s/^w *\/ *//;
 			$Associated_collectors=~s/([A-Z]\.)([A-Z]\.)([A-Z]\.)/$1 $2 $3 /g;
@@ -295,6 +281,7 @@ $State="CA";
 		}
 	}
 foreach($County){
+s/ *\?//;
 s/boundary between Los Angeles and San Bernardino/Los Angeles/;
 s/[\[\]]//g;
 s/ Co\.//;
@@ -362,6 +349,7 @@ s/^\?/Unknown/;
 s/Humbolt/Humboldt/;
 s|Colusa/Lake|Colusa|;
 s/^ *$/Unknown/;
+s/Fresno line/Fresno/;
 }
 unless ($County=~m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|[Uu]nknown)$/){
 warn "Not a CA county: $County\n";
@@ -439,13 +427,22 @@ EOP
 	$year=$month=$day="";
 }
 }
+$day=~s/ ?\.\.\. ?/-/;
+$day=~s/ ?\.\. ?/-/;
 unless($day=~/(^[0-3]?[0-9]$)|(^[0-3]?[0-9]-[0-3]?[0-9]$)|(^$)/){
 		print OUT<<EOP;
 Date config problem $year $month $day: date nulled $Label_ID_no
 EOP
 	$year=$month=$day="";
 }
+
+
+
+
+
+
 		foreach($Full_scientific_name){
+$original_name=$_;
 			s/^\.//;
 			$_=ucfirst(lc($_));
 			s/,//g;
@@ -458,14 +455,37 @@ EOP
 	s/ forma / f. /;
 	s/ fo. / f. /;
 	s/ undescr\..*/ sp./;
+	s/ [iu]ndet\..*/ sp./;
+	s/ sp\.//;
 	s/  */ /g;
+				s/ [xX] / × /;
 			$name=$_;
-			if($name=~/^ *$/){
-		print OUT<<EOP;
-		No taxon name: $line
-EOP
-		next RECORD;
-	}
+			s/ssp\./subsp./;
+if(s/ (cf\.|aff\.)//){
+$note="as $original_name";
+}
+else{
+$note="";
+}
+			#if($name=~/^ *$/){
+		#print OUT<<EOP;
+		#No taxon name: $line
+#EOP
+		#next RECORD;
+	#}
+			if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
+				$hybrid_annotation=$name;
+				warn "$1 from $name\n";
+				$name=$1;
+			}
+			elsif($name=~/([A-Z][a-z-]+ [a-z-]+ (var\.|subsp\.) [a-z-]+) × /){
+				$hybrid_annotation=$name;
+				warn "$1 from $name\n";
+				$name=$1;
+			}
+			else{
+				$hybrid_annotation="";
+			}
 	if($alter{$name}){
 		print TAXON_OUT <<EOP;
 
@@ -480,30 +500,15 @@ Spelling altered further to $alter{$name}: $name
 EOP
 		$name=$alter{$name};
 	}
-	if($name=~/^([A-Za-z]+ [a-z]+) +[Xx] +[a-z]+/){
-				$hybrid_annotation=$name;
-				$name=$1;
+	if($name=~/[a-z]+ [a-z]+ +[Xx] +[a-z]+/){
 				print TAXON_OUT <<EOP;
 
-Can't deal with unnamed hybrids yet: $hybrid_annotation recorded as $1
+Can't deal with unnamed hybrids yet: $name skipped
 EOP
+		++$skipped{$name};
+		next RECORD;
 	}
-	elsif($name=~/^([A-Za-z]+ .*[a-z]) +[Xx] +[a-z]+/){
-				$hybrid_annotation=$name;
-				$name=$1;
-				print TAXON_OUT <<EOP;
-
-Can't deal with unnamed hybrids yet: $hybrid_annotation recorded as $1
-EOP
-	}
-	elsif($name=~/^([A-Za-z].*) +>> +[a-z]+/){
-				$hybrid_annotation=$name;
-				$name=$1;
-				print TAXON_OUT <<EOP;
-
-Can't deal with designations of tendency yet: $hybrid_annotation recorded as $1
-EOP
-	}
+	$name=~s/ssp\./subsp./;
 	unless($taxon{$name}){
 		$on=$name;
 		if($name=~s/subsp\./var./){
@@ -550,6 +555,12 @@ EOP
 else{
 }
 		}
+			unless($name=~/[A-Za-z]/){
+		print OUT<<EOP;
+		No taxon name: $line
+EOP
+		next RECORD;
+	}
 	++$count;
 	#ELEVATION
 if($Elevation_lower_range_meters){
@@ -644,6 +655,12 @@ $coord_alter{"$orig_long_min -> $long_minutes $long_seconds"}++;
 
 ($lat= "${lat_degrees} ${lat_minutes} ${lat_seconds}$N_or_S")=~s/ ([EWNS])/$1/;
 ($long= "${long_degrees} ${long_minutes} ${long_seconds}$E_or_W")=~s/ ([EWNS])/$1/;
+$long=~s/°//;
+$long=~s/º//;
+$lat=~s/°//;
+$lat=~s/º//;
+$lat=~s/Â//;
+$long=~s/Â//;
 $lat=~s/^ *([EWNS])//;
 $long=~s/^ *([EWNS])//;
 $lat=~s/^ *//;
@@ -677,13 +694,28 @@ EOP
 }
 }
 if($lat_degrees=~/\d+/){
-if(($lat_degrees > 42 || $lat_degrees < 32)){
+if(($lat_degrees > 43 || $lat_degrees < 32)){
 $lat="", $long="";
 		print OUT<<EOP;
 Latitude out of range, nulled: $Label_ID_no 
 EOP
 }
 }
+if ($decimal_lat){
+if ($decimal_lat < 32.5 || $decimal_lat > 42.1){
+print OUT "$Label_ID_no: Latitude $decimal_lat outside CA box; lat and long nulled\n";
+$decimal_lat="";
+$decimal_long="";
+}
+}
+if ($decimal_long){
+if ($decimal_long > -114.0 || $decimal_long < -124.5){
+print OUT "$Label_ID_no: Longitude $decimal_long outside CA box; lat and long nulled\n";
+$decimal_long="";
+$decimal_lat="";
+}
+}
+
 
 if(($lat_minutes=~/\d/ && $lat_minutes > 59) || ($lat_seconds=~/\d/ && $lat_seconds > 59)){
 		print OUT<<EOP;
@@ -708,6 +740,9 @@ $Label_ID_no No collector, but collector number is $Collector_number and other c
 EOP
 if($Associated_collectors){
 	warn "$Label_ID_no: No collector\n";
+		print OUT<<EOP;
+$Label_ID_no No collector, other collectors are $Associated_collectors
+EOP
 }
 else{
 	$Collector_full_name="Unknown";
@@ -716,9 +751,9 @@ else{
 }
 print TABFILE <<EOP;
 Date: $month $day $year
-CNUM_prefix: $Coll_no_prefix
+CNUM_PREFIX: $Coll_no_prefix
 CNUM: $Collector_number
-CNUM_suffix: $Coll_no_suffix
+CNUM_SUFFIX: $Coll_no_suffix
 Name: $name
 Accession_id: $Label_ID_no
 Family_Abbreviation: $family
@@ -742,6 +777,8 @@ Decimal_latitude: $decimal_lat
 Decimal_longitude: $decimal_long
 Color: $color
 Hybrid_annotation: $hybrid_annotation
+Note: $note
+Type_status: $Kind_of_type
 
 EOP
 ++$included;
