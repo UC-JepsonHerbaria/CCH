@@ -1,5 +1,11 @@
 #parse_nybg.pl
 
+
+#out of state specimens to check and skip:
+# NY345833 NY342324 NY337165 NY1043449
+ 
+ 
+ 
 open(IN,"Users/rlmoe/data/CDL/riv_non_vasc") || die;
 while(<IN>){
 	chomp;
@@ -37,7 +43,7 @@ last;
 #}
 #print "$count\n";
 
-open(OUT, ">nybg.out") || die;
+open(OUT, ">NY.out") || die;
 open(IN,"ny_alters") || die "SD alter names wont open\n";
 while(<IN>){
 	chomp;
@@ -216,7 +222,7 @@ $annotation="";
 		foreach($DISTRICT){
 			s/Eldorado/El Dorado/;
 		}
-		unless($DISTRICT=~/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|unknown)/i){
+		unless($DISTRICT=~/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown)/i){
 			&skip("Non-California county: $ACCESSNO $DISTRICT");
 			next;
 		}
