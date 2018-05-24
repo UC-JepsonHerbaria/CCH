@@ -24,7 +24,7 @@ my $det_string;
 my $tempCounty;
 my $count_record;
 
-open(OUT, ">SBBG_out.txt") || die;
+open(OUT, ">/JEPS-master/CCH/Loaders/SBBG/SBBG_out.txt") || die;
 
 
 
@@ -55,7 +55,7 @@ my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
 
 
-	my $file = 'SBBG_CA_BAJA_MOD.txt';
+	my $file = '/JEPS-master/CCH/Loaders/SBBG/SBBG_CA_BAJA_MOD.txt';
 
 
  open (IN, "<", $file) or die $!;
@@ -1536,7 +1536,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'SBBG_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/SBBG/SBBG_out.txt';	#the file this script will act upon is called 'CATA.out'
 
 open(IN,"$file_in" ) || die;
 
