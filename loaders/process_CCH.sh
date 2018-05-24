@@ -73,6 +73,45 @@ sort -u log.txt > /JEPS-master/CCH/Loaders/GMDRC/GMDRC_log_sort.txt
 echo "$?                                          NEXT";
 
 
+echo "$?                                          parsing HSC";
+perl /JEPS-master/CCH/Loaders/HSC/parse_HSC.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/HSC/HSC_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/HSC/
+sort -u log.txt > /JEPS-master/CCH/Loaders/HSC/HSC_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing HUH";
+perl /JEPS-master/CCH/Loaders/HUH/parse_HUH.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/HUH/HUH_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/HUH/
+sort -u log.txt > /JEPS-master/CCH/Loaders/HUH/HSC_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing JOTR";
+perl /JEPS-master/CCH/Loaders/JOTR/parse_JOTR.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/JOTR/JOTR_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/JOTR/
+sort -u log.txt > /JEPS-master/CCH/Loaders/JOTR/JOTR_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing JROH";
+perl /JEPS-master/CCH/Loaders/JROH/parse_JROH.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/JROH/JROH_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/JROH/
+sort -u log.txt > /JEPS-master/CCH/Loaders/JROH/JROH_log_sort.txt
+
+echo "$?                                          NEXT";
+
 
 echo "$?                                          parsing OBI";
 perl /JEPS-master/CCH/Loaders/OBI/parse_OBI.pl
@@ -80,6 +119,26 @@ echo "$?                                          sorting log file";
 cp /JEPS-master/CCH/Loaders/OBI/OBI_out.txt /JEPS-master/CCH/bulkload/input/new_files/
 cp log.txt /JEPS-master/CCH/Loaders/OBI/
 sort -u log.txt > /JEPS-master/CCH/Loaders/OBI/OBI_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing PGM";
+perl /JEPS-master/CCH/Loaders/PGM/parse_PGM.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/PGM/PGM_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/PGM/
+sort -u log.txt > /JEPS-master/CCH/Loaders/PGM/PGM_log_sort.txt
+
+echo "$?                                          NEXT";
+
+
+echo "$?                                          parsing RSA";
+perl /JEPS-master/CCH/Loaders/RSA/parse_RSA.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/RSA/RSA_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/RSA/
+sort -u log.txt > /JEPS-master/CCH/Loaders/RSA/RSA_log_sort.txt
 
 echo "$?                                          NEXT";
 

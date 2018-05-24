@@ -599,253 +599,340 @@ foreach ($tempName){
 #allows name to pass through to CCH; the name is only corrected herein and not global in case name is published
 if (($id =~ m/^(RSA495405|RSA495794)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Artemisia californica subsp\. triangularis/Artemisia californica/;
-	&log_change("Scientific name not published: Artemisia californica subsp\. triangularis not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Artemisia californica subsp\. triangularis not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA697863)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Brunellia vulgaris var\. lanceolata/Prunella vulgaris var. lanceolata/;
-	&log_change("Scientific name not published: No published 'vulgaris' epithet in genus Brunellia (Brunelliaceae), this is an error for the genus Prunella (Lamiaceae), modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: No published 'vulgaris' epithet in genus Brunellia (Brunelliaceae), this is an error for the genus Prunella (Lamiaceae), modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0001205|RSA717284)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Arabis yorkii/Boechera yorkii/;
-	&log_change("Scientific name not published: No published 'yorkii' epithet in genus Arabis, this is an error for the genus Boechera, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: No published 'yorkii' epithet in genus Arabis, this is an error for the genus Boechera, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA500546)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Asclepias californica subsp\. glaucus/Asclepias californica/;
-	&log_change("Scientific name not published: Asclepias californica subsp. glaucus in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Asclepias californica subsp. glaucus in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA754833)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Bromus tectorum subsp\. rubens/Bromus tectorum/;
-	&log_change("Scientific name not published: Bromus tectorum subsp. rubens in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Bromus tectorum subsp. rubens in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA229736)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Asclepias eriocarpa subsp\. capitatum/Asclepias eriocarpa/;
-	&log_change("Scientific name not published: Asclepias eriocarpa subsp. capitatum not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Asclepias eriocarpa subsp. capitatum not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA302526)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Atriplex rosea subsp\. platyota/Atriplex rosea/;
-	&log_change("Scientific name not published: Atriplex rosea subsp. platyota not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Atriplex rosea subsp. platyota not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0082891)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Lepidium lasiocarpum subsp\. aurantiaca/Lepidium lasiocarpum/;
-	&log_change("Scientific name not published: Lepidium lasiocarpum subsp. aurantiaca not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Lepidium lasiocarpum subsp. aurantiaca not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0060658|RSA0060370|RSA0060365|RSA0060364|RSA0060363)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Gilia maculata subsp\. emaculatus/Gilia maculata/;
-	&log_change("Scientific name not published: Gilia maculata subsp. emaculatus not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Gilia maculata subsp. emaculatus not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA65664)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Claytonia parviflora subsp\. exigua/Claytonia parviflora/;
-	&log_change("Scientific name not published: Claytonia parviflora subsp. exigua not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Claytonia parviflora subsp. exigua not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }	
 if (($id =~ m/^(RSA755736)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Claytonia exigua subsp\. grandiflora/Claytonia exigua/;
-	&log_change("Scientific name not published: Claytonia exigua subsp. grandiflora not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Claytonia exigua subsp. grandiflora not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }	
 if (($id =~ m/^(RSA0074689|RSA0059523)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Claytonia gabrielensis subsp\. viridis/Claytonia/;
-	&log_change("Scientific name not published: Claytonia gabrielensis subsp. viridis not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Claytonia gabrielensis subsp. viridis not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }	
 if (($id =~ m/^(RSA495803)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Rhus ovata subsp\. triangularis/Rhus ovata/;
-	&log_change("Scientific name not published: Rhus ovata subsp. triangularis not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Rhus ovata subsp. triangularis not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }	
 if (($id =~ m/^(RSA0019492)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Thinopyrum intermedium var\. trichophorum/Thinopyrum intermedium/;
-	&log_change("Scientific name not published: Thinopyrum intermedium var. trichophorum not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Thinopyrum intermedium var. trichophorum not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }	
 if (($id =~ m/^(RSA654784|RSA660399|RSA661304)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Thinopyrum intermedium subsp\. hispidus/Thinopyrum intermedium/;
-	&log_change("Scientific name not published: Thinopyrum intermedium subsp. hispidus not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Thinopyrum intermedium subsp. hispidus not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0027714|RSA640885|RSA802053|RSA802424)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Thinopyrum ponticum subsp\. pontica/Thinopyrum ponticum/;
-	&log_change("Scientific name not published: Thinopyrum ponticum subsp. pontica not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Thinopyrum ponticum subsp. pontica not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0021821)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Thinopyrum junceiforme subsp\. boreo-atlanticus/Thinopyrum junceiforme/;
-	&log_change("Scientific name not published: Thinopyrum junceiforme subsp. boreo-atlanticus not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Thinopyrum junceiforme subsp. boreo-atlanticus not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }	
 if (($id =~ m/^(RSA65714)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Silene bridgesii subsp. bernardina/Silene bridgesii/;
-	&log_change("Scientific name not published: Silene bridgesii subsp\. bernardina not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Silene bridgesii subsp\. bernardina not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }	
 if (($id =~ m/^(RSA539341|RSA542360|RSA548876|RSA589242|RSA599824|RSA639112|RSA673498|RSA703101|RSA773562)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Achnatherum coronatum var. coronata/Achnatherum coronatum/;
-	&log_change("Scientific name not published: Achnatherum coronatum var. coronata not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Achnatherum coronatum var. coronata not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }	
 if (($id =~ m/^(POM231276|RSA597451|RSA597742|RSA642085)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Achnatherum coronatum var\. depauperata/Achnatherum parishii subsp. depauperatum/;
-	&log_change("Scientific name not published: Achnatherum coronatum var. depauperata not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Achnatherum coronatum var. depauperata not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA600583)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Achnatherum coronatum subsp\. depauperata/Achnatherum parishii subsp. depauperatum/;
-	&log_change("Scientific name not published: Achnatherum coronatum subsp. depauperata not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Achnatherum coronatum subsp. depauperata not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA387706|RSA618091|RSA619710)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Achnatherum coronatum var\. parishii/Achnatherum parishii/;
-	&log_change("Scientific name not published: Achnatherum coronatum var. parishii not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Achnatherum coronatum var. parishii not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA539341|RSA542360|RSA548876|RSA589242|RSA599824|RSA639112|RSA673498|RSA703101|RSA773562)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trisetum canescens var. canescens/Trisetum canescens/;
-	&log_change("Scientific name not published: Trisetum canescens var. canescens not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Trisetum canescens var. canescens not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA500535)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Acourtia microcephala var\. weedii/Acourtia microcephala/;
-	&log_change("Scientific name not published: Acourtia microcephala var. weediii not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Acourtia microcephala var. weediii not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA126401)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Aira elegans var\. capillaris/Aira elegans/;
-	&log_change("Scientific name not published: Aira elegans var. capillaris not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Aira elegans var. capillaris not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0027800)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Ambrosia platyspina var\. dumosa/Ambrosia X platyspina/;
-	&log_change("Scientific name not published: Ambrosia platyspina var. dumosa not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Ambrosia platyspina var. dumosa not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA603698)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Amaranthus tricolor var\. angustior/Amaranthus tricolor/;
-	&log_change("Scientific name not published: Amaranthus tricolor var. angustior not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Amaranthus tricolor var. angustior not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0000712)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Lomatium californicum var\. platycarpa/Leptotaenia californica var. platycarpa/;
-	&log_change("Scientific name not published: Lomatium californicum var. platycarpa not in TROPICOS, combination only made in Leptotaenia, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Lomatium californicum var. platycarpa not in TROPICOS, combination only made in Leptotaenia, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA169390|RSA712866)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Lomatium donnellii var\. plummerae/Lomatium donnellii/;
-	&log_change("Scientific name not published: Lomatium donnellii var. plummerae not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Lomatium donnellii var. plummerae not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA271913|RSA452590)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Lomatium donnellii var\. sonnei/Lomatium donnellii/;
-	&log_change("Scientific name not published: Lomatium donnellii var. sonnei not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Lomatium donnellii var. sonnei not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0000726)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Lomatium vaginatum var\. anthemifolium/Lomatium donnellii/;
-	&log_change("Scientific name not published: Lomatium vaginatum var. anthemifolium not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Lomatium vaginatum var. anthemifolium not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0105316)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Lomatium lucidum var\. capitatum/Lomatium lucidum/;
-	&log_change("Scientific name not published: Lomatium lucidum var. capitatum not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Lomatium lucidum var. capitatum not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA69918)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Apocynum floribundum var\. floribundum/Apocynum X floribundum/;
-	&log_change("Scientific name not published: Apocynum floribundum var. floribundum not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Apocynum floribundum var. floribundum not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA69918)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Apocynum floribundum var\. floribundum/Apocynum X floribundum/;
-	&log_change("Scientific name not published: Apocynum floribundum var. floribundum not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Apocynum floribundum var. floribundum not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA696474)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Toxicodendron tribolata/Toxicodendron/;
-	&log_change("Scientific name not published: neither Toxicodendron tribolata nor trilobata in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: neither Toxicodendron tribolata nor trilobata in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA795842)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Anredera cordifolia var\. pseudocaselloides/Anredera cordifolia/;
-	&log_change("Scientific name not published: Anredera cordifolia var. pseudocaselloides not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Anredera cordifolia var. pseudocaselloides not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA195356)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Arabis oregana var\. modesta/Arabis oregana/;
-	&log_change("Scientific name not published: Arabis oregana var. modesta not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Arabis oregana var. modesta not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(POM219015)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Arabis platysperma var\. oligantha/Arabis platysperma/;
-	&log_change("Scientific name not published: Arabis platysperma var. oligantha not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Arabis platysperma var. oligantha not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA160569)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Aster subspicatus var\. ligulatus/Aster subspicatus/;
-	&log_change("Scientific name not published: Aster subspicatus var. ligulatus not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Aster subspicatus var. ligulatus not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA790242)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Athyrium americanum var\. americanum/Athyrium americanum/;
-	&log_change("Scientific name not published: Athyrium americanum var. americanum not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Athyrium americanum var. americanum not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA15288|RSA377723|RSA377724|RSA377725|RSA377726|RSA377728|RSA377729|RSA377730|RSA377731|RSA569206|RSA670)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Maianthemum stellatum var\. sessilifolium/Maianthemum stellatum/;
-	&log_change("Scientific name not published: Maianthemum stellatum var. sessilifolium not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Maianthemum stellatum var. sessilifolium not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0028786|RSA377696|RSA377697|RSA377698|RSA377699|RSA377700|RSA377701|RSA377702|RSA377703|RSA377704)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Maianthemum racemosum var\. glabra/Maianthemum racemosum/;
-	&log_change("Scientific name not published: Maianthemum racemosum var. glabra not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Maianthemum racemosum var. glabra not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(POM110457|POM118765|POM221998|POM257224|RSA589935)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Zigadenus venenosus var\. fontanus/Zigadenus venenosus/;
-	&log_change("Scientific name not published: Zigadenus venenosus var. fontanus not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Zigadenus venenosus var. fontanus not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(POM368122|POM368124|POM368125|POM368126|POM368127|RSA201776|RSA359914|RSA518404|RSA626613|RSA639042|RSA639318)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Amsinckia floribunda/Amsinckia/;
-	&log_change("Scientific name not published: Amsinckia floribunda not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Amsinckia floribunda not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA452373)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Atriplex fremontii/Atriplex/;
-	&log_change("Scientific name not published: Atriplex fremontii not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Atriplex fremontii not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0000939)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Baeria subciliata/Baeria/;
-	&log_change("Scientific name not published: Baeria subciliata not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Baeria subciliata not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA495446)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Carex peninsular[ise]+/Carex/;
-	&log_change("Scientific name not published: Carex peninsulare or Carex peninsularis not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Carex peninsulare or Carex peninsularis not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0110916)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Cryptantha lepida/Cryptantha/;
-	&log_change("Scientific name not published: Cryptantha lepida not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Cryptantha lepida not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA184790)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Elymus hordeum/Elymus/;
-	&log_change("Scientific name not published: Elymus hordeum not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Elymus hordeum not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0001817)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Krynitzkia lentiformis/Krynitzkia/;
-	&log_change("Scientific name not published: Krynitzkia lentiformis not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Krynitzkia lentiformis not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA0001829)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Krynitzkia unilateralis/Krynitzkia/;
-	&log_change("Scientific name not published: Krynitzkia unilateralis not in TROPICOS, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Krynitzkia unilateralis not in TROPICOS, modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA749784|RSA750186|RSA751051|RSA752009|RSA761037|RSA764200|RSA764252|RSA782687|RSA800225)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Cryptantha lepida/Cryptantha/;
-	&log_change("Scientific name not published: Cryptantha lepida modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Cryptantha lepida modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA500135|RSA500108|RSA500110|RSA500110|RSA500140)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Sambucus mexicana var\. jepsonii/Sambucus mexicana/;
-	&log_change("Scientific name not published: Sambucus mexicana var. jepsonii modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Sambucus mexicana var. jepsonii modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(UCR58860)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Lupinus elatus var\. viridulus/Lupinus elatus/;
-	&log_change("Scientific name not published: Lupinus elatus var. viridulus modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Lupinus elatus var. viridulus modified to:==>$tempName\t==>\t$id\n");
 }
-if (($id =~ m/^(POM11039|POM11044|POM11046|POM11096|POM11103|POM123537|POM128664|POM145415|POM158394|POM173545|POM184296|POM19097|POM203092|POM23753|POM2437|POM2483|POM2484|POM24844|POM2513|POM2586|POM2618|POM2657|POM26693|POM27641|POM276450|POM276454|POM299296|POM299298|POM305479|POM305673|POM305955|POM306279|POM306353|POM307717|POM310146|POM312120|POM312127|POM6955|POM88476|RSA102271|RSA104452|RSA113198|RSA113353|RSA118045|RSA124211|RSA160413|RSA167055|RSA169163|RSA171372|RSA17253|RSA182300|RSA219973|RSA33606|RSA34555|RSA372148|RSA39051|RSA430281|RSA430282|RSA430283|RSA430284|RSA430285|RSA430286|RSA430287|RSA430288|RSA430289|RSA430392|RSA430395|RSA430406|RSA431059|RSA431079|RSA503808|RSA503811|RSA503815|RSA503816|RSA519402|RSA584262|RSA584264|RSA6710|RSA6724|RSA78781|RSA87206)$/) && (length($TID{$tempName}) == 0)){ 
+if (($id =~ m/^(POM9815|POM96973|POM11039|POM11044|POM11046|POM11096|POM11103|POM123537|POM128664|POM145415|POM158394|POM173545|POM184296|POM19097|POM203092|POM23753|POM2437|POM2483|POM2484|POM24844|POM2513|POM2586|POM2618|POM2657|POM26693|POM27641|POM276450|POM276454|POM299296|POM299298|POM305479|POM305673|POM305955|POM306279|POM306353|POM307717|POM310146|POM312120|POM312127|POM6955|POM88476|RSA102271|RSA104452|RSA113198|RSA113353|RSA118045|RSA124211|RSA160413|RSA167055|RSA169163|RSA171372|RSA17253|RSA182300|RSA219973|RSA33606|RSA34555|RSA372148|RSA39051|RSA430281|RSA430282|RSA430283|RSA430284|RSA430285|RSA430286|RSA430287|RSA430288|RSA430289|RSA430392|RSA430395|RSA430406|RSA431059|RSA431079|RSA503808|RSA503811|RSA503815|RSA503816|RSA519402|RSA584262|RSA584264|RSA6710|RSA6724|RSA78781|RSA87206|RSA91191)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Lupinus formosus var\. proximus/Lupinus formosus/;
-	&log_change("Scientific name not published: Lupinus formosus var. proximus modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name not published: Lupinus formosus var. proximus modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA552704|RSA557777|RSA560504)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Guillenia lasiophylla var\. inalienus/Caulanthus lasiophyllus var. inalienus/;
-	&log_change("Scientific name combination not published, only Guillenia inaliena is valid for this taxon in Guillenia; modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name combination not published, only Guillenia inaliena is valid for this taxon in Guillenia; modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA599523|RSA599611|RSA615654|RSA616355|RSA616365|RSA653249|RSA701909|RSA701943|RSA749311)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Guillenia lasiophylla var\. lasiophylla/Guillenia lasiophylla/;
-	&log_change("Scientific name combination not published, only Guillenia lasiophylla is valid for this taxon in Guillenia; modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name combination not published, only Guillenia lasiophylla is valid for this taxon in Guillenia; modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA599523|RSA599611|RSA615654|RSA616355|RSA616365|RSA653249|RSA701909|RSA701943|RSA749311)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Guillenia lasiophylla var\. lasiophyllus/Guillenia lasiophylla/;
-	&log_change("Scientific name combination not published, only Guillenia lasiophylla is valid for this taxon in Guillenia; modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name combination not published, only Guillenia lasiophylla is valid for this taxon in Guillenia; modified to:==>$tempName\t==>\t$id\n");
 }
-if (($id =~ m/^(POM11961|POM204441|RSA500186|RSA527664|RSA527665|RSA527666|RSA527667|RSA543133|RSA543134|RSA559936|RSA559937|RSA562428|RSA564042|RSA574732|RSA593696)$/) && (length($TID{$tempName}) == 0)){ 
+if (($id =~ m/^(POM95608|POM11961|POM204441|RSA500186|RSA527664|RSA527665|RSA527666|RSA527667|RSA543133|RSA543134|RSA559936|RSA559937|RSA562428|RSA564042|RSA574732|RSA593696)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Guillenia lasiophylla var\. rigidus/Caulanthus lasiophyllus var. rigidus/;
-	&log_change("Scientific name combination not published: only Guillenia rigida is valid for this taxon in Guillenia; modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name combination not published: only Guillenia rigida is valid for this taxon in Guillenia; modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA517596|RSA549547|RSA549602|RSA676283)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Guillenia lasiophylla var\. utahensis/Caulanthus lasiophyllus var. utahensis/;
-	&log_change("Scientific name combination not published: no valid name for this taxon in Guillenia; modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name combination not published: no valid name for this taxon in Guillenia; modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(RSA620948)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Guillenia lasiophylla var\. utahense/Caulanthus lasiophyllus var. utahensis/;
-	&log_change("Scientific name combination not published: no valid name for this taxon in Guillenia; modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name combination not published: no valid name for this taxon in Guillenia; modified to:==>$tempName\t==>\t$id\n");
 }
 if (($id =~ m/^(POM198622|RSA129122|RSA138204|RSA141230|RSA184784|RSA238355|RSA238972|RSA238973|RSA285058|RSA299128|RSA299129|RSA758491)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trisetum canescens var\. canescens/Trisetum canescens/;
-	&log_change("Scientific name combination not published: Trisetum canescens var. canescens not in Tropicos, modified to\t$tempName\t==>\t$id\n");
+	&log_change("Scientific name combination not published: Trisetum canescens var. canescens not in Tropicos, modified to:==>$tempName\t==>\t$id\n");
 }
-
+if (($id =~ m/^(RSA0105707)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Gilia lottiae subsp\. sabulosa/Gilia lottiae/;
+	&log_change("Scientific name combination not published: Gilia lottiae subsp. sabulosa not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA0105707)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Boechera sparsiflora var\. californica/Boechera californica/;
+	&log_change("Scientific name combination not published: Boechera sparsiflora var. californica not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA778928)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Cryptantha clokeyi var\. rigida/Cryptantha clokeyi/;
+	&log_change("Scientific name combination not published: Cryptantha clokeyi var. rigida not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA244990)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Cryptantha flaccida var\. rostellata/Cryptantha flaccida/;
+	&log_change("Scientific name combination not published: Cryptantha flaccida var. rostellata not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(POM304536|RSA26601)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Cryptantha flaccida var\. spithamea/Cryptantha flaccida/;
+	&log_change("Scientific name combination not published: Cryptantha flaccida var. spithamea not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA786564)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Isolepis cernua var. californicus/Isolepis cernua/;
+	&log_change("Scientific name combination not published: Isolepis cernua var. californicus not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA795988)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Cusickiella douglasii var. crockeri/Cusickiella douglasii/;
+	&log_change("Scientific name combination not published: Cusickiella douglasii var. crockeri not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(POM98558)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Triteleia laxa var\. candida/Triteleia laxa/;
+	&log_change("Scientific name combination not published: Triteleia laxa var. candida not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA378032)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Triteleia laxa var\. nimia/Triteleia laxa/;
+	&log_change("Scientific name combination not published: Triteleia laxa var. nimia not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(POM229652|RSA0098392|RSA0098399)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Spergularia macrotheca var\. scariosa/Spergularia macrotheca/;
+	&log_change("Scientific name combination not published: Spergularia macrotheca var. scariosa not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA753927)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Suaeda calceoliformis var\. depressa/Suaeda calceoliformis/;
+	&log_change("Scientific name combination not published: Suaeda calceoliformis var. depressa not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(POM260374|RSA787673)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Suaeda moquinii var\. ramosissma/Suaeda moquinii/;
+	&log_change("Scientific name combination not published: Suaeda moquinii var. ramosissma not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA786477)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Pinus remorata var\. remorata/Pinus remorata/;
+	&log_change("Scientific name combination not published: Pinus remorata var. remorata not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA524480)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Tauschia arguta var\. capitatum/Tauschia arguta/;
+	&log_change("Scientific name combination not published: Tauschia arguta var. capitatum not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA0000236)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Eleocharis parvula var\. johnstonii/Eleocharis parvula/;
+	&log_change("Scientific name combination not published: Eleocharis parvula var. johnstonii not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA610548)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Elymus stebbinsii var\. laeve/Elymus stebbinsii/;
+	&log_change("Scientific name combination not published: Elymus stebbinsii var. laeve not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA502503)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Encelia actoni var\. intermedius/Encelia actoni/;
+	&log_change("Scientific name combination not published: Encelia actoni var. intermedius not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA0082892)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Heliotropium curassavicum var\. californicum/Heliotropium curassavicum/;
+	&log_change("Scientific name combination not published: Heliotropium curassavicum var. californicum not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA51433)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Hordeum brachyantherum var\. sitanion/Hordeum brachyantherum/;
+	&log_change("Scientific name combination not published: Hordeum brachyantherum var. sitanion not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA0001812)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Krynitzkia decipiens var\. longiloba/Krynitzkia decipiens/;
+	&log_change("Scientific name combination not published: Krynitzkia decipiens var. longiloba not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA368348)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Juncus circumscissa var\. occidentalis/Juncus occidentalis/;
+	&log_change("Scientific name combination not published: Juncus circumscissa var. occidentalis not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
+if (($id =~ m/^(RSA127232)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Leymus pacificus var\. vancouvernsis/Leymus pacificus/;
+	&log_change("Scientific name combination not published: Leymus pacificus var. vancouvernsis not in Tropicos, modified to==>$tempName\t==>\t$id\n");
+}
 
 #format hybrid names
 if($tempName=~m/^([A-Z][a-z-]+ [a-z-]+) X /){
@@ -1402,7 +1489,7 @@ foreach($elevation){
 	s/ft/ ft/;		#add a space before ft
 	s/m *$/ m/;		#add a space before m
 	s/^0+$/0 m/;
-	
+	s/\+-//g;
 	s/ //g;		#collapse space as many times as possible
 }
 
