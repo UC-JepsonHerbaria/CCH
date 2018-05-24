@@ -1,3 +1,4 @@
+
 #parse_sbbg_export: alternate xml labels
 @sggb_precision=(0, 10, 100, 1000, 10000);
 open(OUT,">sbbg_problem");
@@ -7,11 +8,11 @@ chomp;
 s/\t.*//;
 $coll_comm{$_}++;
 }
-open(IN,"/Users/jfp04/CDL_buffer/buffer/tnoan.out") || die;
+open(IN,"/Users/richardmoe/4_data/taxon_ids/smasch_taxon_ids.txt") || die;
 while(<IN>){
 chomp;
-s/^.*\t//;
-$taxon{$_}++;
+($id,$name,@residue)=split(/\t/);
+$taxon{$name}++;
 }
 open(IN,"../CDL/riv_non_vasc") || die;
 while(<IN>){
@@ -58,8 +59,13 @@ s/\cM//;
 	#$alter_coll{$rsa}=$smasch;
 #}
 #$/=qq{<SBBGexport>};
-$/=qq{<SBBG8202009>};
-open(IN,"SBBG8202009.xml") || die;
+#$/=qq{<SBBG8202009>};
+$/=qq{<_x0033__x002F_31_x002F_2011export>};
+
+#open(IN,"SBBG3_31_2011export.xml") || die;
+$/="";
+open(IN,"new_sbbg_export") || die;
+#open(IN,"SBBG8202009.xml") || die;
 while(<IN>){
 s/\cM/ /g;
 #s/\n/ /g;
@@ -96,7 +102,10 @@ $name=
 $precision=
 $source=
 $year =
+$CNUM_PREFIX =
+$CNUM_SUFFIX =
 "";
+
 
 	($name)=m|<Search_x0020_Name>(.*)</Search_x0020_Name>|;
 #                     <Accession_x0020_Number>323</Accession_x0020_Number>
@@ -110,6 +119,34 @@ $year =
 	($longitude)=m|<long_num>(.*)</long_num>|;
 	($collector)=m|<coll1_txt>(.*)</coll1_txt>|;
 	($collector_number)=m|<coll_num_txt>(.*)</coll_num_txt>|;
+unless ($collector_number=~/^\d+$/){
+ if($collector_number=~s/^([0-9]+)-([0-9]+)([A-Za-z]*)/$2/){
+                $CNUM_PREFIX=$1;
+                $CNUM_SUFFIX=$3;
+        }
+ if($collector_number=~s/^([A-Z]*[0-9]+)-([0-9]+)([A-Za-z]+)/$2/){
+                $CNUM_PREFIX=$1;
+                $CNUM_SUFFIX=$3;
+        }
+        if($collector_number=~s/^([A-Z]*[0-9]+-)([0-9]+)(-.*)/$2/){
+                $CNUM_PREFIX=$1;
+                $CNUM_SUFFIX=$3;
+        }
+        if($collector_number=~s/^([^0-9]+)//){
+                $CNUM_PREFIX=$1;
+        }
+        if($collector_number=~s/^(\d+)([^\d].*)/$1/){
+                $CNUM_SUFFIX=$2;
+        }
+
+                #print <<EOP;
+#C: $collnum
+#P: $CNUM_PREFIX
+#S: $CNUM_SUFFIX
+#
+#EOP
+	}
+
 	($month)=m|<month_sym>(.*)</month_sym>|;
 	($day)=m|<day_num>(.*)</day_num>|;
 	($year)=m|<year_num>(.*)</year_num>|;
@@ -122,8 +159,7 @@ $year =
 	}
 	($datum)=m|<basereference_txt>(.*)</basereference_txt>|;
 	($source)=m|<source_txt>(.*)</source_txt>|;
-	if(($anno)=m|<det_name>(.*)</det_name>|){
-#<Determinor>J.Ebinger, 2005</Determinor>
+	if(($anno)=m|<Determinor>(.*)</Determinor>|){
 	$anno=&process_anno($anno, $name);
 	}
 	else{
@@ -158,9 +194,9 @@ $name=~s/ *$//;
 $name=~s/  +/ /g;
 $name=~s/ssp\./subsp./;
 $name=~s/ indet//;
-$name=~s/ [Xx] / × /;
-$name=~s/^× ([a-z])/× \u$1/;
-			if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
+$name=~s/ [Xx] / X /;
+$name=~s/^× ([a-z])/X \u$1/;
+			if($name=~/([A-Z][a-z-]+ [a-z-]+) X /){
 				$hybrid_annotation=$name;
 				warn "$1 from $name\n";
 				$name=$1;
@@ -263,7 +299,10 @@ EOP
 	}
 }
 	if($year=~/^ *[12][0789]\d\d *$/){
+		if($month){
 		if($month=~/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i){
+			$day=~s/^ *//;
+			$day=~s/ *$//;
 			if($day){
 				if(($day > 0) && ($day < 32) && ($day=~m/^\d+$/)){
 					$date="$month $day $year";
@@ -289,6 +328,7 @@ print OUT <<EOP;
 $Accession_id: something wrong with date: $day $month $year  set to $date
 EOP
 		}
+		}
 	}
 	else{
 		$date="";
@@ -296,6 +336,8 @@ EOP
 print  <<EOP;
 Date: $date
 CNUM: $collector_number
+CNUM_prefix: $CNUM_PREFIX
+CNUM_suffix: $CNUM_SUFFIX
 Name: $name
 Accession_id: $Accession_id
 Country: US
@@ -432,15 +474,15 @@ return("Aloe saponaria × Aloe striata");
 }
 
 	s/^ *//;
-	s/ x / × /;
-	s/^× ?([a-zA-Z])/x \u$1/;
-	s/Ã— ?/× /;
+	s/ x / X /;
+	s/^× ?([a-zA-Z])/X \u$1/;
+	s/Ã— ?/X /;
 s/^x ([A-Z][a-z]+ [a-z]+).*/× $1/;
 s/Fragaria × ananassa Duchesne var. cuneifolia.*/Fragaria × ananassa var. cuneifolia/ ||
 s/Trifolium variegatum Nutt. phase (\d)/Trifolium variegatum phase $1/ ||
 	s/^([A-Z][a-z]+) (X?[-a-z]+).*(subsp.) ([-a-z]+).*(var\.) ([-a-z]+).*/$1 $2 $3 $4 $5 $6/ ||
-	s/^([A-Z][a-z]+ [a-z]+) (× [-A-Z][a-z]+ [a-z]+).*/$1 $2/ ||
-	s/^([A-Z][a-z]+) (× [-a-z]+).*/$1 $2/ ||
+	s/^([A-Z][a-z]+ [a-z]+) (X [-A-Z][a-z]+ [a-z]+).*/$1 $2/ ||
+	s/^([A-Z][a-z]+) (X [-a-z]+).*/$1 $2/ ||
 	s/^([A-Z][a-z]+) (X?[-a-z]+).* (ssp\.|var\.|f\.|subsp.) ([-a-z]+).*/$1 $2 $3 $4/ ||
 	s/^([A-Z][a-z]+) (X?[-a-z]+).*/$1 $2/||
 	s/^(× [A-Z][a-z]+) (X?[-a-z]+).*/$1 $2/||
@@ -456,49 +498,23 @@ my($person, $year)=split(/, /, $annotator);
 return "$current; $person; $year;";
 }
 __END__
-<Collector_x0020_Number
-<Collector_x0028_s_x0029_
-<County
-<Datum
-<Day
-<Determined_x0020_by
-<Elevation_x0020__x0028_ft_x0029_
-<Elevation_x0020__x0028_m_x0029_
-<Habitat
-<Latitude
-<Locality
-<Longitude
-<Month
-<Name
-<Precision
-<SBBG_x0020_Accession_x0020_Number
-<SBBGConsortium1
-<Source
-<Terrane
-<Year
-
-76811 </SBBG8202009
-76811 <SBBG8202009
-76811 <Search_x0020_Name
-76811 <acc_num
-56328 <asp_txt
-19467 <asspp_txt
-46593 <basereference_txt
-76811 <coll1_txt
-52804 <coll_num_txt
-76811 <county_name
-74318 <day_num
-9888 <det_name
-32082 <elevft_num
-5109 <elevm_num
-76811 <entry_x0020_date
-76811 <herb_sym
-46595 <lat_num
-76811 <local_txt
-46595 <long_num
-76048 <month_sym
-46595 <prec_num
-46593 <source_txt
-55975 <ter_name
-76735 <year_num
-
+15085 <Determinor
+93822 <Search_x0020_Name
+63622 <Source
+93822 <_x0032__x002F_1_x002F_2012_x0020_export> 
+93822 <acc_num
+68341 <asp_txt
+63669 <basereference_txt
+93822 <coll1_txt
+64501 <coll_num_txt
+93822 <county_name
+90761 <day_num
+38895 <elevft_num
+8073 <elevm_num
+63506 <lat_num
+93822 <local_txt
+63506 <long_num
+92904 <month_sym
+63542 <prec_num
+63275 <ter_name
+93756 <year_num
