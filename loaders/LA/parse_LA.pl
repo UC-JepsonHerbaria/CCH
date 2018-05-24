@@ -1,4 +1,4 @@
-use lib '/Users/richardmoe/4_DATA/CDL';
+use lib '/Users/davidbaxter/DATA';
 		use Geo::Coordinates::UTM;
 use CCH;
 $today=`date "+%Y-%m-%d"`;
@@ -8,27 +8,43 @@ chomp($today);
 ##meters to feet conversion
 $meters_to_feet="3.2808";
 
-open(TABFILE,">ucla.out") || die;
+open(TABFILE,">LA.out") || die;
 open(ERR,">ucla_problems") || die;
 
 print ERR <<EOP;
 $today
 Report from running parse_ucla.pl
-Name alterations from file ~/4_data/CDL/alter_names
-Name comparisons made against ~/taxon_ids/smasch_taxon_ids (SMASCH taxon names, which are not necessarily correct)
-Genera to be excluded from mosses
+Name alterations from file ~/DATA/alter_names
+Name comparisons made against ~/DATA/smasch_taxon_ids (SMASCH taxon names, which are not necessarily correct)
+Genera to be excluded from DATA/mosses
 outfile id ucla.out
 
 EOP
 
-$ucla_input=shift;
+#The last time the data was received from UCLA(January 2014)
+#it was in an Excel sheet which a bunch of hidden carriage returns in it
+#I used the following vi commands to take care of it
+#:%s/^M//g
+#:%s/\tCalifornia\t/\tCalifornia\t^M/g
+#Since the last two columns are always "California" and <null>
+#the first command removes all the carriage returns
+#the second adds a linebreak to the predictable record terminus
+#I checked records near the end of the file and they still line up
+
+#After that, use the following sequence to remove double quotes added in the MS Excel  export:
+#:%s/""/'''/g
+#:%s/"//g
+#:%s/'''/"/g
+
+$ucla_input=shift; #this "shift" means that $ucla_input will be the next item in the command line
 open(IN, $ucla_input) || die;
 Record: while(<IN>){
 	chomp;
+	next if $.==1; #skips the first line
 	@fields=split(/\t/,$_,150);
 grep(s/^"(.*)"/$1/,@fields);
 grep(s/  +/ /g,@fields);
-#print "$#fields\n";
+warn "$#fields\n" unless $seen{$#fields}++;
 #next;
 ($CNUM,
 $CNUM_prefix,
@@ -67,19 +83,20 @@ $Accuracy,
 $Minimum_Elev,
 $Maximum_Elev,
 $Units_Elev,
+#$BLANK_FIELD, #This was included in previous files but does not appear in dump 3
 $NOTES,
 $Name_annotation1,
-$Determination_annotation1,
+#$Determination_annotation1,
 $Annotator1,
 $Date_Annot_1,
 $Comment_annotation1,
 $Name_annotation2,
-$Determination_annotation2,
+#$Determination_annotation2,
 $Annotator2,
 $Date_Annot_2,
 $Comment_annotation2,
 $Name_annotation3,
-$Determination_annotation3,
+#$Determination_annotation3,
 $Annotator3,
 $Date_Annot_3,
 $Comment_annotation3,
@@ -91,8 +108,12 @@ $year_1,
 $day_2,
 $month_2,
 $year_2,
-$state)=@fields;
-print "$. $_\n" unless $#fields== 61;
+$state,
+$BLANK_FIELD2)=@fields; #Excel added an extra blank field at the end. Watch out for that
+unless ($#fields== 59){ #was 62 before blanked out fields were removed
+print ERR  "$. $#fields $_\n";
+next;
+}
 if($NOTES){
 	if($Specimen_data){
 		$Specimen_data.=". $NOTES";
@@ -102,23 +123,35 @@ if($NOTES){
 	}
 }
 
-if($Determination_annotation1){
-$annotation_1="$Determination_annotation1; $Annotator1; $Date_Annot_1; $Comment_annotation1";
+if($Name_annotation1){
+#$annotation_1="$Name_annotation1; $Annotator1; $Date_Annot_1; $Comment_annotation1";
+$annotation_1="$Comment_annotation1 $Name_annotation1; $Annotator1; $Date_Annot_1";
 }
 else{
 $annotation_1="";
 }
-if($Determination_annotation2){
-$annotation_2="$Determination_annotation2; $Annotator2; $Date_Annot_2; $Comment_annotation2";
+if($Name_annotation2){
+#$annotation_2="$Name_annotation2; $Annotator2; $Date_Annot_2; $Comment_annotation2";
+$annotation_3="$Comment_annotation2 $Name_annotation2; $Annotator2; $Date_Annot_2";
+
 }
 else{
 $annotation_2="";
 }
-if($Determination_annotation3){
-$annotation_3="$Determination_annotation3; $Annotator3; $Date_Annot_3; $Comment_annotation3";
+if($Name_annotation3){
+#$annotation_3="$Name_annotation3; $Annotator3; $Date_Annot_3; $Comment_annotation3";
+$annotation_3="$Comment_annotation3 $Name_annotation3; $Annotator3; $Date_Annot_3";
+
 }
 else{
 $annotation_3="";
+}
+foreach($annotation_1, $annotation_2, $annotation_3){
+	s/; ;/;/g;
+	s/;$//g;
+	s/^ *//g;
+	s/ *$//g;
+	s/  / /g;
 }
 
 	$fields[3]= ucfirst( $fields[3]);
@@ -140,8 +173,20 @@ $annotation_3="";
 		next Record;
 	}
 
+
+
 	foreach($County){
-		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)$/){
+		s/\?+//g;
+#I made the following fixes in &verify_co in CCH.pm
+#but it's not making those changes
+		s/^RIV$/Riverside/;
+		s/^SLO$/San Luis Obispo/;
+		s/^KRN$/Kern/;
+		s/^San Bernardino.*/San Bernardino/;
+		
+
+
+		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown)$/){
 			$v_county= &verify_co($_);
 			if($v_county=~/SKIP/){
 				&log("NON-CA county? $_");
@@ -150,7 +195,7 @@ $annotation_3="";
 			}
 
 			unless($v_county eq $_){
-				&log("$fields[4] $_ -> $v_county");
+				&log("County edit: $fields[4] $_ -> $v_county");
 				$_=$v_county;
 			}
 
@@ -158,6 +203,7 @@ $annotation_3="";
 		}
 		$county{$_}++;
 	}
+
 
 ($genus=$Name)=~s/ .*//;
 if($Name=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
@@ -280,6 +326,12 @@ if($UTM_Zone){
 		}   
 	}
 
+if($Accuracy){
+$error_units="m";
+}
+else{
+$error_units="";
+}
 
 if($year_2){
 	if($year_1){
@@ -300,12 +352,7 @@ else{
 if($Hybrid_annotation){
 $hybrid_annotation.= "($Hybrid_annotation)";
 }
-if($Acuracy){
-$error_units="m";
-}
-else{
-$error_units="";
-}
+
 
 $count{$ACCESSION_id}++;
 $print{$ACCESSION_id} = <<EOP;
