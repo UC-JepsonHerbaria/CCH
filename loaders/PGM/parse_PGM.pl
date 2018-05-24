@@ -1,6 +1,6 @@
 open(ERROR, ">pg_problems") || die;
 open(IN, "alter_pg") || die;
-open(OUT, ">PG.out") || die;
+open(OUT, ">PGM.out") || die;
 while(<IN>){
 chomp;
 ($pg_spelling,$alter)=split(/\t/);
