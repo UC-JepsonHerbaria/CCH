@@ -1,3 +1,5 @@
+#parse_sd.pl
+open(OUT, ">SD_out_new") || die;
 open(IN,"SD_non_vasc") || die;
 while(<IN>){
 	chomp;
@@ -6,53 +8,68 @@ while(<IN>){
 foreach(sort(keys(%ignore_name))){
 print " ignore $_\n";
 }
-open(IN,"SD_alter_coll") || die;
-while(<IN>){
-	chomp;
-	s/\cJ//;
-	s/\cM//;
-	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-	$alter_coll{$rsa}=$smasch;
-}
-open(IN,"SD_alter_name") || die;
+#open(IN,"SD_alter_coll") || die;
+#while(<IN>){
+	#chomp;
+	#s/\cJ//;
+	#s/\cM//;
+	#next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
+	#$alter_coll{$rsa}=$smasch;
+#}
+open(IN,"SD_alter_name") || die "SD alter names wont open\n";
 while(<IN>){
 	chomp;
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
 	$alter{$riv}=$smasch;
 }
-open(IN,"collectors_id") || die;
+open(IN,"../CDL/alter_names") || die "CDL alter names wont open\n";
+while(<IN>){
+	chomp;
+	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
+	$alter{$riv}=$smasch;
+}
+open(IN,"collectors_id") || die "coll name wont open\n";
 while(<IN>){
 	chomp;
 	($name,$id)=split(/\t/);
 	$COLL{$name}=$id;
 }
-open(IN,"tnoan.out") || die;
+open(IN,"/Users/jfp04/CDL_buffer/buffer/tnoan.out") || die "tnoan wont open\n";
 while(<IN>){
 	chomp;
 	($id,$name)=split(/\t/);
 	$taxon{$name}=$id;
 }
 open(ERR,">SD_error");
-    #use CSV;
-    my $file = 'data_in/SD.tab';
+    use Text::CSV;
+    #my $file = 'UC_Consortium.txt';
+    my $file = 'data_in/test';
     #my $file = 'data_in/SD.in';
     #my $csv = Text::CSV->new();
+	my $csv = Text::CSV->new({binary => 1});
     open (CSV, "<", $file) or die $!;
+#$/="\015\012";
 
     while (<CSV>) {
 		chomp;
 		s/\cK/ /g;
+		s/\t/ /g;
         if ($. == 1){
 			next;
 		}
-        #if ($csv->parse($_)) {
-            #my @columns = $csv->fields();
-            my @columns = split(/\t/,$_,1000);
+        if ($csv->parse($_)) {
+            my @columns = $csv->fields();
+            #my @columns = split(/\t/,$_,1000);
 			grep(s/ *$//,@columns);
 			grep(s/^N\/A$//,@columns);
-        	if ($#columns !=26){
-				&skip("Not 27 fields", @columns);
-				warn "bad record $_\n";
+        	if ($#columns !=27){
+				&skip("Not 28 fields", @columns);
+				warn "bad record $#columns not 28  $_\n";
+				next;
+			}
+			if($duplicate{$columns[5]}++){
+				&skip("Duplicate", @columns);
+				warn "Duplicate $columns[5]";
 				next;
 			}
 (
@@ -82,8 +99,10 @@ $datum,
 $extent,
 $ExtUnits,
 $UTM,
-$notes
+$notes,
+$determiner
 )=@columns;
+$hybrid_annotation="";
 $annotation="";
 $extent="" unless $ExtUnits;
 		unless($ACCESSNO){
@@ -105,6 +124,12 @@ $extent="" unless $ExtUnits;
 			&log("County set to unknown: $ACCESSNO $DISTRICT");
 			$DISTRICT="Unknown";
 		}
+				if($name=~s/^([A-Z][a-z]+ [a-z]+) (ssp\.|subsp\.) [a-z]+ var\. ([a-z]+)/$1 var. $3/){
+					&log("$name: quadrinomial converted $ACCESSNO");
+				}
+				if($name=~s/^([A-Z][a-z]+ [a-z]+) (ssp\.|subsp\.) [a-z]+ ([a-z]+)/$1 var. $3/){
+					&log("$name: quadrinomial converted $ACCESSNO");
+				}
 		$name="" if $name=~/^No name$/i;
 			unless($name){
 				&skip("No name: $ACCESSNO", @columns);
@@ -116,6 +141,10 @@ $extent="" unless $ExtUnits;
 				next;
 			}
 			$name=ucfirst($name);
+			if($alter{$name}){
+				&log ("Spelling altered to $alter{$name}: $name");
+				$name=$alter{$name};
+			}
 			if($name=~/  /){
 				if($name=~/^[A-Z][a-z]+ [a-z]+ +[a-z]+$/){
 					&log("$name: var. added $ACCESSNO");
@@ -137,7 +166,12 @@ $extent="" unless $ExtUnits;
 				s/ [xX] / × /;
 			}
 			if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
-				$annotation=$name;
+				$hybrid_annotation=$name;
+				warn "$1 from $name\n";
+				$name=$1;
+			}
+			if($name=~/([A-Z][a-z-]+ [a-z-]+ var. [a-z-]+) × /){
+				$hybrid_annotation=$name;
 				warn "$1 from $name\n";
 				$name=$1;
 			}
@@ -232,13 +266,29 @@ $decimal_latitude =$decimal_longitude="";
 $datum="" if $datum=~/^Unk$/i;
 #$LOCALITY=~s/^"(.*)"$/$1/;
 #$HABDESCR=~s/^"(.*)"$/$1/;
+
+if($determiner){
+if($determiner=~m/(.*), *(.*)/){
+    $annotation="$name; $1; $2";
+	}
+elsif($determiner=~m/(.+)/){
+    $annotation="$name; $1";
+}
+	else{
+	    $annotation="";
+		}
+	}
+
+
 foreach($DATE){
+s/.*0000.*//;
+s/.*year.*//i;
 s/Unknown//i;
 s/ *$//;
 }
 ++$count_record;
 warn "$count_record\n" unless $count_record % 5000;
-            print <<EOP;
+            print OUT <<EOP;
 Date: $DATE
 CNUM: $NUMBER
 CNUM_prefix: $PREFIX
@@ -265,14 +315,16 @@ Decimal_longitude: $decimal_longitude
 UTM: $UTM
 Notes: $notes
 Datum: $datum
-Extent: $extent $ExtUnits
-Hybrid_annotation: $annotation
+Max_error_distance: $extent
+Max_error_units: $ExtUnits
+Annotation: $annotation
+Hybrid_annotation: $hybrid_annotation
 
 EOP
-        #} else {
-            #my $err = $csv->error_input;
-            #print ERR "Failed to parse line: $err";
-        #}
+        } else {
+            my $err = $csv->error_input;
+            print ERR "Failed to parse line: $err";
+        }
     }
 warn "$count_record\n";
     close CSV;
