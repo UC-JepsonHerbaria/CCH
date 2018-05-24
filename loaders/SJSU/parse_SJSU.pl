@@ -2,7 +2,7 @@ use Geo::Coordinates::UTM;
 use strict;
 #use warnings;
 use Data::GUID;
-use lib '/Users/davidbaxter/DATA';
+use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH;
 my $today_JD;
 
@@ -1273,21 +1273,28 @@ $errorRadiusUnits = "m";
 			$decimalLongitude="-$decimalLongitude";	#make decLong = -decLong if it is greater than zero
 			&log_change("COORDINATE Longitude made negative\t--\t$id");
 	}
-#final check for rough out-of-boundary coordinates
 
+#final check for rough out-of-boundary coordinates
 if((length($decimalLatitude) >= 2)  && (length($decimalLongitude) >= 3)){ 
 	if($decimalLatitude > 42.1 || $decimalLatitude < 30.0 || $decimalLongitude > -114.0 || $decimalLongitude < -124.5){ #if the coordinate range is not within the rough box of california and northern Baja...
 	###was 32.5 for California, now 30.0 to include CFP-Baja
-		&log_change("COORDINATE set to null for $id, Outside California and CA-FP in Baja: >$decimalLatitude< >$decimalLongitude<\n");	#print this message in the error log...
-		$decimalLatitude =$decimalLongitude=$datum="";	#and set $decLat and $decLong to ""  
+		if ($decimalLatitude < 30.0){ #if the specimen is in Baja California Sur or farther south
+			&log_skip("COORDINATE: Mexico specimen mapping to south of the CA-FP boundary?\t$stateProvince\t\t$county\t$locality\t--\t$id>$decimalLatitude< >$decimalLongitude<\n");	#run the &skip function, printing the following message to the error log
+			++$skipped{one};
+			next Record;
+		}
+		else{
+		&log_change("coordinates set to null for $id, Outside California and CA-FP in Baja: >$decimalLatitude< >$decimalLongitude<\n");	#print this message in the error log...
+		$decimalLatitude = $decimalLongitude = $georeferenceSource = $datum="";	#and set $decLat and $decLong to ""  
+		}
 	}
 }
-else {
+else{
 		if((length($decimalLatitude) == 0)  && (length($decimalLongitude) == 0)){
 			#do nothing, NULL reported elsewhere above, this is done to shorten the error log
 		}
 		else{
-			&log_change("COORDINATE problems for $id: ($verbatimLatitude) \t($verbatimLongitude)\n");
+			&log_change("COORDINATE problems for $id: ($verbatimLatitude) \t($verbatimLongitude) \t(ZONE:$zone \t($UTME) \t($UTMN)\n");
 			$decimalLatitude = $decimalLongitude = $datum = $georeferenceSource = "";
 		}
 }
