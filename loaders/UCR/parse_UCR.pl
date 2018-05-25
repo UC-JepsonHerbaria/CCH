@@ -1,34 +1,34 @@
-open(IN,"../collectors_id") || die;
+open(IN,"../../CDL/collectors_id") || die;
 #open(IN,"all_collectors_2005") || die;
 while(<IN>){
 chomp;
 s/\t.*//;
 $coll_comm{$_}++;
 }
-open(IN,"../tnoan.out") || die;
+open(IN,"../../CDL/tnoan.out") || die;
 while(<IN>){
 chomp;
 s/^.*\t//;
 $taxon{$_}++;
 }
-open(IN,"../riv_non_vasc") || die;
+open(IN,"../../CDL/riv_non_vasc") || die;
 while(<IN>){
 	chomp;
 	$exclude{$_}++;
 }
-open(IN,"../riv_alter_names") || die;
+#open(IN,"../../CDL/riv_alter_names") || die;
+#while(<IN>){
+	#chomp;
+	#next unless ($riv,$smasch)=m/(.*)\t(.*)/;
+	#$alter{$riv}=$smasch;
+#}
+open(IN,"../../CDL/alter_names") || die;
 while(<IN>){
 	chomp;
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
 	$alter{$riv}=$smasch;
 }
-open(IN,"../rsa/rsa_alter_names") || die;
-while(<IN>){
-	chomp;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
-open(IN,"../rsa/rsa_alter_coll") || die;
+open(IN,"../../RSA/oldrsa/RSA/rsa_alter_coll") || die;
 while(<IN>){
 	chomp;
 s/\cJ//;
@@ -36,16 +36,16 @@ s/\cM//;
 	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
 	$alter_coll{$rsa}=$smasch;
 }
-open(IN,"riv_alter_coll") || die;
-while(<IN>){
-	chomp;
-s/\cJ//;
-s/\cM//;
-	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-	$alter_coll{$rsa}=$smasch;
-}
-open(TABFILE,">parse_riverside.out") || die;
-open(OUT,">riv_problems") || die;
+#open(IN,"/../../../CDL/riv_alter_coll") || die;
+#while(<IN>){
+	#chomp;
+#s/\cJ//;
+#s/\cM//;
+	#next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
+	#$alter_coll{$rsa}=$smasch;
+#}
+open(TABFILE,">parse_riverside_2009.out") || die;
+open(OUT,">riv_2009_problems") || die;
 $date=localtime();
 print OUT <<EOP;
 $date
@@ -56,10 +56,11 @@ Genera to be excluded from riv_non_vasc
 
 EOP
 
-open(IN,"new_riv.tab") || die;
+#open(IN,"clinkers" ) || die;
+open(IN,"UCRdata092008.tab" ) || die;
 #$/="\cM";
 #open(IN,"probs") || die;
-while(<IN>){
+Record: while(<IN>){
 $assoc=$combined_collectors=$Collector_full_name= $elevation= $name=$lat=$long="";
 #next unless m/Annette Winn/;
 s/\cK+$//;
@@ -81,11 +82,12 @@ No accession number, skipped: $_
 EOP
 		next;
 	}
-	if($fields[10]!~/^ *[A-Z]/){
+	$fields[10]= ucfirst( $fields[10]);
+	if(length($fields[10]) < 3){
 		++$skipped{one};
 		print OUT<<EOP;
 
-No generic name (name not beginning with capital), skipped: $_
+No generic name, skipped: $_
 EOP
 		next;
 	}
@@ -144,6 +146,12 @@ EOP
 		$fields[4]=$1 . $fields[4];
 	}
 		foreach($fields[31]){
+unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
+		print OUT<<EOP;
+
+		Unknown California county $fields[0]: $_
+EOP
+	}
 			s/\[//;
 			s/\]//;
 			s/  / /g;
@@ -152,7 +160,7 @@ EOP
 			s/ *\(.*//;
 			s/-.*//;
 			s/East //;
-			s/Eldorado/El Dorado/;
+			s/El[Dd]orado/El Dorado/;
 			s/Los angeles/Los Angeles/;
 			s/Angelos/Angeles/;
 			s/ County.*//;
@@ -171,10 +179,17 @@ EOP
 			s/DIEGO/Diego/;
 			s/San Barbara/Santa Barbara/;
 			s/RIverside/Riverside/;
+			s/Rvierside/Riverside/;
 			s/RIVERSIDE/Riverside/;
 			s/MONO/Mono/;
 			s/NAPA/Napa/;
 			s/bernardino/Bernardino/;
+unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
+		print OUT<<EOP;
+		Unknown California county not reconciled $fields[0]: $_ skipped
+EOP
+		next Record;
+	}
 		}
 		$county{$fields[31]}++;
 		foreach($fields[6]){
@@ -251,21 +266,44 @@ $top_range_m,
 $low_range_f,
 $top_range_f,
 $ecol_notes,
-$Plant_description
+$Plant_description,
+$plant,
+$phenology,
+$culture,
+$origin,
 ) = @fields;
+$Plant_description{$Plant_description}++;
+$plant{$plant}++;
+$phenology{$phenology}++;
+$culture{$culture}++;
+$origin{$origin}++;
 $Label_ID_no=~s/-//;
 $orig_lat_min=$lat_minutes;
 $orig_long_min=$long_minutes;
 $decimal_lat="" if $decimal_lat eq 0;
 $decimal_long="" if $decimal_long eq 0;
 $name=$genus ." " .  $species . " ".  $subtype . " ".  $subtaxon;
+#print "\nTEST $name<\n";
 $name=ucfirst(lc($name));
 $name=~s/'//g;
 $name=~s/`//g;
+$name=~s/\?//g;
 $name=~s/ *$//;
 $name=~s/  +/ /g;
 $name=~s/ssp\./subsp./;
 $name=~s/ [Xx] / × /;
+#print "TEST $name<\n";
+if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
+                 $hybrid_annotation=$name;
+                 warn "$1 from $name\n";
+                 print OUT "$1 from $name\n";
+                 $name=$1;
+             }
+	     else{
+                 $hybrid_annotation="";
+	     }
+
+
 if($exclude{$genus}){
 	print OUT <<EOP;
 
@@ -274,14 +312,17 @@ EOP
 		++$skipped{one};
 	next;
 }
+#print "TEST $name<\n";
 if($alter{$name}){
 	print OUT <<EOP;
 
 Spelling altered to $alter{$name}: $name 
 EOP
 	$name=$alter{$name};
+#print "TEST $name<\n";
 }
 unless($taxon{$name}){
+#print "TEST $name<\n";
 	$on=$name;
 	if($name=~s/subsp\./var./){
 		if($taxon{$name}){
@@ -293,13 +334,15 @@ EOP
 		else{
 	print OUT <<EOP;
 
-Not yet entered into SMASCH taxon name table: $on skipped
+Not yet entered into SMASCH taxon name table: $on skipped $line_store
 EOP
 		++$skipped{one};
+		$needed_name{$name}++;
 next;
 		}
 	}
 	elsif($name=~s/var\./subsp./){
+#print "TEST $name<\n";
 		if($taxon{$name}){
 			print OUT <<EOP;
 
@@ -307,26 +350,31 @@ Not yet entered into SMASCH taxon name table: $on entered as $name
 EOP
 		}
 		else{
+#print "TEST $name<\n";
 			print OUT <<EOP;
 
-Not yet entered into SMASCH taxon name table: $on skipped
+Not yet entered into SMASCH taxon name table: $on skipped $line_store
 EOP
 		++$skipped{one};
+		$needed_name{$name}++;
 next;
 		}
 	}
 	else{
+#print "TEST $name<\n";
 	print OUT <<EOP;
 
-Not yet entered into SMASCH taxon name table: $name skipped
+Not yet entered into SMASCH taxon name table: $name skipped $line_store
 EOP
 		++$skipped{one};
+		$needed_name{$name}++;
 	next;
 	}
 }
 
 $name{$name}++;
 
+#print "TEST \n\n";
 ########################COLLECTORS
 	$Collector_full_name=$collector;
 	foreach($Collector_full_name){
@@ -348,6 +396,7 @@ $name{$name}++;
 		s/L\. *F\. *La[pP]r./L. F. LaPre/;
 		s/B\. ?G\. ?Pitzer/B. Pitzer/;
 		s/J. André/J. Andre/;
+		s/Jim André/Jim Andre/;
 		s/ *$//;
 		$_= $alter_coll{$_} if $alter_coll{$_};
 			++$collector{$_};
@@ -384,6 +433,7 @@ $Associated_collectors=~s/.*Boyd.*Kashiwase.*LaDoux.*Provance.*Sanders.*White.*B
 		$Associated_collectors=~s/  */ /g;
 		$Associated_collectors=~s/,,/,/g;
 		$Associated_collectors=~s/J. André/J. Andre/;
+		$associated_collectors=~s/Jim André/Jim Andre/;
 		#warn $Associated_collectors;
 			if(length($_) > 1){
 				$combined_collectors="$_, $Associated_collectors";
@@ -555,11 +605,17 @@ EOP
 }
 $Unified_TRS="$Township$Range$section";
 $country="USA" if $country=~/U\.?S\.?/;
+if($determiner){
+	$annotation="$name; $determiner; $det_year $det_mo $det_day";
+}
+else{
+	$annotation="";
+}
 print TABFILE <<EOP;
 Date: $month $day $year
-CNUM_prefix: ${Coll_no_prefix}
+CNUM_PREFIX: ${Coll_no_prefix}
 CNUM: ${Coll_no}
-CNUM_suffix: ${Coll_no_suffix}
+CNUM_SUFFIX: ${Coll_no_suffix}
 Name: $name
 Accession_id: $Label_ID_no
 Family_Abbreviation: $family
@@ -581,6 +637,8 @@ Latitude: $lat
 Longitude: $long
 Decimal_latitude: $decimal_lat
 Decimal_longitude: $decimal_long
+Annotation: $annotation
+Hybrid_annotation: $hybrid_annotation
 
 EOP
 ++$included;
@@ -608,80 +666,168 @@ EOP
 foreach(sort(keys(%coord_alter))){
 	#print "$_\n";
 }
+open(OUT,">new_names_needed") || die;
+foreach(sort {$needed_name{$a} <=> $needed_name{$b}}(keys(%needed_name))){
+print OUT "$_ $needed_name{$_}\n";
+}
+open(OUT,">ucr_field_check") || die;
+foreach(sort(keys(%Plant_description))){
+	print OUT "PD: $_\n";
+}
+foreach(sort(keys(%plant))){
+	print OUT "P: $_\n";
+}
+foreach(sort(keys(%phenology))){
+	print OUT "Phen: $_\n";
+}
+foreach(sort(keys(%culture))){
+	print OUT "C: $_\n";
+}
+foreach(sort(keys(%origin))){
+	print OUT "O: $_\n";
+}
 __END__
-	foreach($collector, $other_coll){
-		s/B\. ?G\. ?Pitzer/B. Pitzer/;
-		s/\([^)]+\)//g;
-	s/([A-Z]\.[A-Z]\.)([A-Z][a-z])/$1 $2/g;
-	s/([A-Z]\.) ([A-Z]\.)/$1$2/g;
-s/l, L\./L./;
-s/T, T\./T./;
-s/c, Y\./Y./;
-s/Greg de Nevers/Greg De Nevers/;
-s/(Adrienne Russel)([^l])/$1l$2/;
-s/(D\.R\. Schram)([n])/$1m/;
-s/(D\.R\. Schram)([^m])/$1m$2/;
-s/D\.L Banks/D. L. Banks/;
-s/Frank Ambrey/Frank Aubrey/;
-s/G\. K Helmkamp/G. K. Helmkamp/;
-		s/Nevers,S\./Nevers, S./;
-		s/Thompson\./Thompson/;
-		s/James D. Morfield/James D. Morefield/;
-		s/K. Neisess/K. Neisses/;
-		s/Mc[cC][ou]lloh/McCulloh/;
-		s/L.C. Wheelr/L.C. Wheeler/;
-		s/Margariet Wetherwax/Margriet Wetherwax/;
-		s/P. Athley/P. Athey/;
-		s/R. F. .horne/R. F. Thorne/;
-		s/Annab le/Annable/;
-		s/Steve Boys/Steve Boyd/;
-		s/R. *A. Pimental/R. A. Pimentel/;
-		s/R. *R. Pimental/R. R. Pimentel/;
-		s/R. Riggens Pimental/R. Riggens Pimentel/;
-		s/S Ogg/S. Ogg/;
-		s/Koutnick/Koutnik/;
-		s/A\. Pignioli/A. Pigniolo/;
-		s/MIllet/Millett/;
-		s/Wiegand/Weigand/;
-		s/Tiliforth/Tilforth/;
-		s/MacKay\./MacKay,/;
-		s/Ochoterena/Ochoterana/;
-		s/Rigggins/Riggins/;
-		s/Walllace/Wallace/;
-		s/L\. *F\. *La[pP]r./L. F. LaPre/;
-		s/et\. al/et al/;
-		s/et all/et al/;
-		s/et al/et al./;
-		s/et al\.\./et al./;
-		s/ & others/, et al./;
-		s/, others/, et al./;
-		s/([A-Z]), ([A-Z][a-z])/$1. $2/g;
-		s/([A-Z])\. ([A-Z]) /$1. $2./g;
-		s/, *, /, /g;
-		s/ ,/,/g;
-		s/  / /g;
-s/anonymous/unknown/;
-s/Unknown/unknown/;
-	}
-	foreach($other_coll){
-s/D. *Charlton, *B. *Pitzer, *J. *Kniffen, *R. *Kniffen, *W. *W. *Wright, *Howie *Weir, *D. *E. *Bramlet/D. Charlton, et al./;
-s/Mark *Elvin, *Cathleen *Weigand, *M. *S. *Enright, *Michelle *Balk, *Nathan *Gale, *Anuja *Parikh, *K. *Rindlaub/Mark Elvin, et al./;
-s/P. *Mackay/P. MacKay/;
-s/P. *J. *Mackay/P. J. MacKay/;
-s/.*Boyd.*Bramlet.*Kashiwase.*LaDoux.*Provance.*Sanders.*White/et al./;
-s/.*Boyd.*Bramlet.*Kashiwase.*LaDoux.*Provance.*Sanders.*White/et al./;
-s/.*Boyd.*Kashiwase.*LaDoux.*Provance.*Sanders.*White.*Bramlet/et al./;
-}
-$collector{$collector}++;
-if(length($other_coll) > 2){
-	$coll_comm= "$collector, $other_coll";
-	foreach($coll_comm){
-		s/, , /, /g;
-		s/,, /, /g;
-	}
+Latitude 33 45.75N
+UCR151096
+UCR151097
+UCR151098
+UCR151099
+UCR151100
+UCR151101
+UCR151102
+UCR151103
+UCR151104
 
-				$combined_collectors=$coll_comm;
-	$collector{$coll_comm}=$line_store;
-	($assig=$coll_comm)=~s/,.*//;
-	$collector{$assig}=$line_store;
-}
+Longitude 117 10 49W
+UCR153440
+UCR153441
+UCR153442
+UCR153443
+
+Longitude 117 20 0.2W
+UCR164850
+UCR164919
+
+Latitude 34 12 0.5N
+UCR165226
+
+Longitude 115 31 52W
+UCR165474
+UCR165477
+UCR165484
+UCR165497
+UCR165498
+UCR165499
+UCR165500
+UCR165501
+UCR165502
+UCR165503
+UCR165507
+UCR165508
+UCR165509
+UCR165510
+UCR165511
+UCR165512
+UCR165513
+UCR165514
+UCR165806
+UCR165808
+
+Longitude -120.1663888888888889
+UCR168257
+
+Longitude 116 32 18W
+UCR171699
+
+Longitude 116 54 0.5W
+UCR171753
+
+Longitude 117 06 37.8 W
+UCR171802
+
+Latitude 33 46 08N
+UCR172733
+UCR172734
+UCR172735
+UCR172736
+UCR172737
+UCR172738
+UCR172739
+UCR172740
+UCR172741
+
+Longitude 116.7652777777777778
+UCR177213
+nulled
+
+Latitude 32 51 15N
+UCR177538
+UCR177539
+UCR177540
+UCR177610
+UCR177611
+UCR177612
+UCR177613
+UCR177781
+UCR177782
+UCR177783
+UCR177788
+UCR177791
+
+Longitude 117 59 03W
+UCR178923
+UCR178925
+UCR179229
+UCR179230
+UCR179231
+UCR179232
+UCR179233
+UCR179274
+
+Longitude 117 27 36W
+UCR180068
+
+Longitude 117 27 27W
+UCR180077
+
+Longitude 117 27 42W
+UCR180085
+
+Longitude 117 27 08W
+UCR180086
+
+Latitude 34 19 14.2N
+Longitude 116 51 15W
+UCR184622
+
+Longitude 115 41 0.2W
+UCR185050
+UCR185051
+UCR185052
+UCR185103
+UCR185104
+UCR185105
+UCR185106
+UCR185107
+UCR185118
+
+Longitude 120 32 08W
+UCR185198
+
+Longitude 120 46 02W
+UCR185199
+
+Longitude -118.4038888888888889
+UCR25840
+UCR26009
+UCR26038
+UCR26039
+
+Latitude 34 17 13N
+UCR27112
+
+Latitude 39.8361111111111111
+UCR47728
+
+Longitude 117 02 28W
+UCR95717
