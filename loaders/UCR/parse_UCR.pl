@@ -18,9 +18,9 @@ my %month_hash = &month_hash;
 ####INSERT NAMES OF RIVERSIDE FILES and assign variables
 #Note that most recent time Riverside data came with MS line breaks
 #Open them in TextWrangler and Save As with Unix line breaks
-my $images_file='UCRImages20171115.tab';
-my $dets_file='UCRDetHist20171115.tab';
-my $records_file='UCRData20171115.tab';
+my $images_file='/JEPS-master/CCH/Loaders/UCR/UCRImages20171115.tab';
+my $dets_file='/JEPS-master/CCH/Loaders/UCR/UCRDetHist20171115.tab';
+my $records_file='/JEPS-master/CCH/Loaders/UCR/UCRData20171115.tab';
 
 
 my $included;
@@ -39,7 +39,7 @@ my $det_string;
 my $tempCounty;
 
 
-open(OUT,">UCR_out.txt") || die;
+open(OUT,">/JEPS-master/CCH/Loaders/UCR/UCR_out.txt") || die;
 #open(MEX,">UCR_mexico.txt") || die;
 #print MEX ("Accession_id\tscientificName\teventDate\tverbatimCollectors\tCollNUM_prefix\tCollNUM\tCollNUM_suffix\tCountry\tstateProvince\tCounty\tLocation\tHabitat \tAssociatedTaxa\tDecimal_latitude\tDecimal_longitude\tDatum\tgeoreferenceSource\terrorRadius\tcoordinateUncertaintyUnits\tElevation\tMacromorphology\tHybrid_annotation\tCultivated");
 
@@ -1990,7 +1990,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'UCR_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/UCR/UCR_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
