@@ -1,398 +1,687 @@
-#open(IN,"collectors_id") || die;
-open(IN,"all_collectors_2005") || die;
-while(<IN>){
-chomp;
-#s/\t.*//;
-$coll_comm{$_}++;
-}
-open(IN,"tnoan.out") || die;
-while(<IN>){
-chomp;
-s/^.*\t//;
-$taxon{$_}++;
-}
-open(IN,"riv_non_vasc") || die;
-while(<IN>){
-	chomp;
-	$exclude{$_}++;
-}
-open(IN,"riv_alter_names") || die;
-while(<IN>){
-	chomp;
-	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	$alter{$riv}=$smasch;
-}
-$/="\cM";
-open(TABFILE,">parse_riverside.out") || die;
-open(OUT,">riv_problems") || die;
-$date=localtime();
-print OUT <<EOP;
-$date
-Report from running parse_riverside.pl
-Name alterations from file riv_alter_names
-Name comparisons made against SMASCH taxon names (which are not necessarily correct)
-Genera to be excluded from riv_non_vasc
-
-EOP
-
-open(IN,"UCBerkeleyCAData.tab") || die;
-while(<IN>){
-s/\cK+$//;
-s/\cK//g;
-s/Õ/'/g;
-s/Ò/"/g;
-s/Ó/"/g;
-	++$count;
-	chomp;
-	@fields=split(/\t/);
-	if($fields[0]=~/^ *$/){
-		++$skipped{one};
-		print OUT<<EOP;
-
-No accession number, skipped: $_
-EOP
-		next;
-	}
-	if($fields[10]!~/^ *[A-Z]/){
-		++$skipped{one};
-		print OUT<<EOP;
-
-No generic name (name not beginning with capital), skipped: $_
-EOP
-		next;
-	}
-	if($seen{$fields[0]}++){
-		++$skipped{one};
-		warn "Duplicate number: $fields[0]<\n";
-		print OUT<<EOP;
-
-Duplicate accession number, skipped: $fields[0]
-EOP
-		next;
-	}
-	foreach $i (0 .. $#fields){
-		$_=$fields[$i];
-		s/ *$//;
-		s/^ *//;
-		if(length($_)>254){
-			$fields[$i]=substr($_, 0, 249) . " ...";
-			#print "$fields[$i]\n";
-		}
-		else{
-			$fields[$i]=$_;
-		}
-	}
-
-	################collector numbers
-	$fields[3]=~s/ *$//;
-	$fields[3]=~s/^ *//;
-	if($fields[3]=~s/-$//){
-		$fields[4]="-$fields[4]";
-	}
-	if($fields[3]=~s/^-//){
-		$fields[2].="-";
-	}
-	if($fields[3]=~s/^([0-9]+)(-[0-9]+)$/$2/){
-		$fields[2].=$1;
-	}
-	if($fields[3]=~s/^([0-9]+)(\.[0-9]+)$/$1/){
-		$fields[4]=$2 . $fields[4];
-	}
-	if($fields[3]=~s/^([0-9]+)([A-Za-z]+)$/$1/){
-		$fields[4]=$2 . $fields[4];
-	}
-	if($fields[3]=~s/^([0-9]+)([^0-9])$/$1/){
-		$fields[4]=$2 . $fields[4];
-	}
-	if($fields[3]=~s/^(S\.N\.|s\.n\.)$//){
-		$fields[4]=$1 . $fields[4];
-	}
-	if($fields[3]=~s/^([0-9]+-)([0-9]+)([A-Za-z]+)$/$2/){
-		$fields[4]=$3 . $fields[4];
-		$fields[2].=$1;
-	}
-	if($fields[3]=~m/[^\d]/){
-	$fields[3]=~s/(.*)//;
-		$fields[4]=$1 . $fields[4];
-	}
-		foreach($fields[25]){
-			s/\[//;
-			s/\]//;
-			s/  / /g;
-			s/ *\?$//;
-			s/ *\/.*//;
-			s/ *\(.*//;
-			s/-.*//;
-			s/East //;
-			s/Eldorado/El Dorado/;
-			s/Los angeles/Los Angeles/;
-			s/Angelos/Angeles/;
-			s/ County.*//;
-			s/Riveside/Riverside/;
-			s/S[Aa][Nn]/San/;
-			s/Berbardino/Bernardino/;
-			s/Bernadino/Bernardino/;
-			s/Brenardino/Bernardino/;
-			s/bernadrino/Bernardino/;
-			s/obispo/Obispo/;
-			s/Barbarba/Barbara/;
-			s/Ange;es/Angeles/;
-			s/DEL NORTE/Del Norte/;
-			s/MENDOCINO/Mendocino/;
-			s/MERCED/Merced/;
-			s/DIEGO/Diego/;
-			s/San Barbara/Santa Barbara/;
-			s/RIverside/Riverside/;
-			s/RIVERSIDE/Riverside/;
-			s/MONO/Mono/;
-			s/bernardino/Bernardino/;
-		}
-		$county{$fields[25]}++;
-		foreach($fields[6]){
-			s/August/Aug/;
-			s/July/Jul/;
-			s/April/Apr/;
-			s/\.//;
-		}
-	
-		#$date{"$fields[6] $fields[7] $fields[5]"}++;
-		#$taxon{"$fields[10] $fields[11] $fields[12] $fields[13]"}++;
-
-
-
-
-$assoc= $elevation= $name=$lat=$long="";
-(
-$Label_ID_no,
-$collector,
-$Coll_no_prefix,
-$Coll_no,
-$Coll_no_suffix,
-$year,
-$month,
-$day,
-$other_coll,
-$family,
-$genus,
-$species,
-$subtype,
-$subtaxon,
-$hybrid_category,
-$Snd_genus,
-$Snd_species,
-$Snd_subtype,
-$Snd_subtaxon,
-$determiner,
-$det_year,
-$det_mo,
-$det_day,
-$country,
-$state,
-$county_mpio,
-$physiographic_region,
-$topo_quad,
-$locality,
-$lat_degrees,
-$lat_minutes,
-$lat_seconds,
-$N_or_S,
-$decimal_lat,
-$long_degrees,
-$long_minutes,
-$long_seconds,
-$E_or_W,
-$decimal_long,
-$Township,
-$Range,
-$section,
-$Fraction_of_section,
-$Snd_township,
-$Snd_Range,
-$Snd_section,
-$Snd_Fraction_of_section,
-$UTM_grid_zone,
-$UTM_grid_cell,
-$UTM_E,
-$UTM_N,
-$name_of_UTM_cell,
-$low_range_m,
-$top_range_m,
-$low_range_f,
-$top_range_f,
-$ecol_notes,
-$Plant_description
-) = @fields;
-$name=$genus ." " .  $species . " ".  $subtype . " ".  $subtaxon;
-$name=ucfirst(lc($name));
-$name=~s/'//g;
-$name=~s/`//g;
-$name=~s/ *$//;
-$name=~s/  +/ /g;
-$name=~s/ssp\./subsp./;
-$name=~s/ [Xx] / × /;
-if($exclude{$genus}){
-	print OUT <<EOP;
-
-Excluded, not a vascular plant: $name
-EOP
-		++$skipped{one};
-	next;
-}
-if($alter{$name}){
-	print OUT <<EOP;
-
-Spelling altered to $alter{$name}: $name 
-EOP
-	$name=$alter{$name};
-}
-unless($taxon{$name}){
-	print OUT <<EOP;
-
-Not yet entered into SMASCH taxon name table: $name
-EOP
-		++$skipped{one};
-next;
-}
-
-$name{$name}++;
-	$collector=~s/([A-Z]\.[A-Z]\.)([A-Z][a-z])/$1 $2/g;
-	$collector=~s/([A-Z]\.) ([A-Z]\.)/$1$2/g;
-	$other_coll=~s/([A-Z]\.[A-Z]\.)([A-Z][a-z])/$1 $2/g;
-	$other_coll=~s/([A-Z]\.) ([A-Z]\.)/$1$2/g;
-	foreach($collector, $other_coll){
-		s/\([^)]+\)//g;
-s/l, L\./L./;
-s/T, T\./T./;
-s/c, Y\./Y./;
-s/(Adrienne Russel)([^l])/$1l$2/;
-s/(D\.R\. Schram)([n])/$1m/;
-s/(D\.R\. Schram)([^m])/$1m$2/;
-s/Frank Ambrey/Frank Aubrey/;
-s/G\. K Helmkamp/G. K. Helmkamp/;
-s/Nevers,S\./Nevers, S./;
-s/Thompson\./Thompson/;
-s/James D. Morfield/James D. Morefield/;
-s/K. Neisess/K. Neisses/;
-s/Mc[cC][ou]lloh/McCulloh/;
-s/L.C. Wheelr/L.C. Wheeler/;
-s/Margariet Wetherwax/Margriet Wetherwax/;
-s/P. Athley/P. Athey/;
-s/R. F. .horne/R. F. Thorne/;
-		s/Annab le/Annable/;
-		s/Steve Boys/Steve Boyd/;
-		s/R. *A. Pimental/R. A. Pimentel/;
-		s/R. *R. Pimental/R. R. Pimentel/;
-		s/R. Riggens Pimental/R. Riggens Pimentel/;
-s/S Ogg/S. Ogg/;
-		s/Koutnick/Koutnik/;
-		s/A\. Pignioli/A. Pigniolo/;
-		s/MIllet/Millett/;
-s/Wiegand/Weigand/;
-s/Tiliforth/Tilforth/;
-		s/MacKay\./MacKay,/;
-		s/Ochoterena/Ochoterana/;
-		s/Rigggins/Riggins/;
-		s/Walllace/Wallace/;
-		s/L\. *F\. *La[pP]r./L. F. LaPre/;
-		s/et\. al/et al/;
-		s/et all/et al/;
-		s/et al/et al./;
-		s/et al\.\./et al./;
-		s/ & others/, et al./;
-		s/, others/, et al./;
-		s/([A-Z]), ([A-Z][a-z])/$1. $2/g;
-		s/([A-Z])\. ([A-Z]) /$1. $2./g;
-		s/ ,/,/g;
-		s/  / /g;
-
-	}
-$collector{$collector}++;
-if(length($other_coll) > 2){
-$coll_comm= "$collector, $other_coll";
-$coll_comm=~s/, , /, /g;
-$coll_comm=~s/,, /, /g;
-$collector{$coll_comm}++;
-($assig=$coll_comm)=~s/,.*//;
-	$collector{$assig}++;
-}
-if($low_range_m){
-	if($top_range_m){
-		$elevation="$low_range_m - $top_range_m m";
-	}
-	else{
-		$elevation="$low_range_m m";
-	}
-	}
-elsif($low_range_f){
-	if($top_range_f){
-		$elevation="$low_range_f - $top_range_f m";
-	}
-	else{
-		$elevation="$low_range_f m";
-	}
-	}
-
-if($ecol_notes=~s/[;.] +([Aa]ssoc.*)//){
-$assoc=$1;
-}
-
-
-if($long_minutes=~ s/(\d+)\.(\d)\d?/$1/){
-$minute_decimal=$2;
-$long_seconds= int(($minute_decimal * 60)/10);
-}
-if($lat_minutes=~ s/(\d+)\.(\d)\d?/$1/){
-$minute_decimal=$2;
-$lat_seconds= int(($minute_decimal * 60)/10);
-}
-
-
-($lat= "${lat_degrees} ${lat_minutes} ${lat_seconds}$N_or_S")=~s/ ([EWNS])/$1/;
-($long= "${long_degrees} ${long_minutes} ${long_seconds}$E_or_W")=~s/ ([EWNS])/$1/;
-$Unified_TRS="$Township$Range$section";
-$country="USA" if $country=~/U\.?S\.?/;
-print TABFILE <<EOP;
-Date: $month $day $year
-CNUM_prefix: ${Coll_no_prefix}
-CNUM: ${Coll_no}
-CNUM_suffix: ${Coll_no_suffix}
-Name: $name
-Accession_id: $Label_ID_no
-Family_Abbreviation: $family
-Country: $country
-State: $state
-County: $county_mpio
-Loc_other: $physiographic_region
-Location: $locality
-T/R/Section: $Unified_TRS
-USGS_Quadrangle: $topo_quad
-Elevation: $elevation
-Collector: $collector
-Other_coll: $other_coll
-Habitat: $ecol_notes
-Associated_with: $assoc
-Notes: $Plant_description
-Latitude: $lat
-Longitude: $long
-Decimal_latitude: $decimal_lat
-Decimal_longitude: $decimal_long
-
-EOP
-++$included;
-}
-foreach(sort(keys(%collector))){
-#print "$_\n" if $coll_comm{$_};
-s/\./. /g;
-s/  / /g;
-s/ *$//;
-next if $coll_comm{$_};
-print "$_\n";
-}
-
-foreach(sort(keys(%name))){
-	#print "$_\n" unless $taxon{$_};
-}
-print <<EOP;
-INCL: $included
-EXCL: $skipped{one};
-EOP
+open(IN,"../collectors_id") || die;
+#open(IN,"all_collectors_2005") || die;
+while(<IN>){
+chomp;
+s/\t.*//;
+$coll_comm{$_}++;
+}
+open(IN,"../tnoan.out") || die;
+while(<IN>){
+chomp;
+s/^.*\t//;
+$taxon{$_}++;
+}
+open(IN,"../riv_non_vasc") || die;
+while(<IN>){
+	chomp;
+	$exclude{$_}++;
+}
+open(IN,"../riv_alter_names") || die;
+while(<IN>){
+	chomp;
+	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
+	$alter{$riv}=$smasch;
+}
+open(IN,"../rsa/rsa_alter_names") || die;
+while(<IN>){
+	chomp;
+	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
+	$alter{$riv}=$smasch;
+}
+open(IN,"../rsa/rsa_alter_coll") || die;
+while(<IN>){
+	chomp;
+s/\cJ//;
+s/\cM//;
+	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
+	$alter_coll{$rsa}=$smasch;
+}
+open(IN,"riv_alter_coll") || die;
+while(<IN>){
+	chomp;
+s/\cJ//;
+s/\cM//;
+	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
+	$alter_coll{$rsa}=$smasch;
+}
+open(TABFILE,">parse_riverside.out") || die;
+open(OUT,">riv_problems") || die;
+$date=localtime();
+print OUT <<EOP;
+$date
+Report from running parse_riverside.pl
+Name alterations from file riv_alter_names
+Name comparisons made against SMASCH taxon names (which are not necessarily correct)
+Genera to be excluded from riv_non_vasc
+
+EOP
+
+open(IN,"new_riv.tab") || die;
+#$/="\cM";
+#open(IN,"probs") || die;
+while(<IN>){
+$assoc=$combined_collectors=$Collector_full_name= $elevation= $name=$lat=$long="";
+#next unless m/Annette Winn/;
+s/\cK+$//;
+s/\cK//g;
+s/\cM/ /g;
+s/’/'/g;
+s/Õ/'/g;
+s/Ò/"/g;
+s/Ó/"/g;
+	$line_store=$_;
+	++$count;
+	chomp;
+	@fields=split(/\t/);
+	if($fields[0]=~/^ *$/){
+		++$skipped{one};
+		print OUT<<EOP;
+
+No accession number, skipped: $_
+EOP
+		next;
+	}
+	if($fields[10]!~/^ *[A-Z]/){
+		++$skipped{one};
+		print OUT<<EOP;
+
+No generic name (name not beginning with capital), skipped: $_
+EOP
+		next;
+	}
+	if($seen{$fields[0]}++){
+		++$skipped{one};
+		warn "Duplicate number: $fields[0]<\n";
+		print OUT<<EOP;
+
+Duplicate accession number, skipped: $fields[0]
+EOP
+		next;
+	}
+	foreach $i (0 .. $#fields){
+		$_=$fields[$i];
+		s/ *$//;
+		s/^ *//;
+		if(length($_)>254){
+			$fields[$i]=substr($_, 0, 249) . " ...";
+			#print "$fields[$i]\n";
+		}
+		else{
+			$fields[$i]=$_;
+		}
+	}
+
+	################collector numbers
+	$fields[3]=~s/ *$//;
+	$fields[3]=~s/^ *//;
+	if($fields[3]=~s/-$//){
+		$fields[4]="-$fields[4]";
+	}
+	if($fields[3]=~s/^-//){
+		$fields[2].="-";
+	}
+	if($fields[3]=~s/^([0-9]+)(-[0-9]+)$/$2/){
+		$fields[2].=$1;
+	}
+	if($fields[3]=~s/^([0-9]+)(\.[0-9]+)$/$1/){
+		$fields[4]=$2 . $fields[4];
+	}
+	if($fields[3]=~s/^([0-9]+)([A-Za-z]+)$/$1/){
+		$fields[4]=$2 . $fields[4];
+	}
+	if($fields[3]=~s/^([0-9]+)([^0-9])$/$1/){
+		$fields[4]=$2 . $fields[4];
+	}
+	if($fields[3]=~s/^(S\.N\.|s\.n\.)$//){
+		$fields[4]=$1 . $fields[4];
+	}
+	if($fields[3]=~s/^([0-9]+-)([0-9]+)([A-Za-z]+)$/$2/){
+		$fields[4]=$3 . $fields[4];
+		$fields[2].=$1;
+	}
+	if($fields[3]=~m/[^\d]/){
+	$fields[3]=~s/(.*)//;
+		$fields[4]=$1 . $fields[4];
+	}
+		foreach($fields[31]){
+			s/\[//;
+			s/\]//;
+			s/  / /g;
+			s/ *\?$//;
+			s/ *\/.*//;
+			s/ *\(.*//;
+			s/-.*//;
+			s/East //;
+			s/Eldorado/El Dorado/;
+			s/Los angeles/Los Angeles/;
+			s/Angelos/Angeles/;
+			s/ County.*//;
+			s/Riveside/Riverside/;
+			s/S[Aa][Nn]/San/;
+			s/Berbardino/Bernardino/;
+			s/Bernadino/Bernardino/;
+			s/Brenardino/Bernardino/;
+			s/bernadrino/Bernardino/;
+			s/obispo/Obispo/;
+			s/Barbarba/Barbara/;
+			s/Ange;es/Angeles/;
+			s/DEL NORTE/Del Norte/;
+			s/MENDOCINO/Mendocino/;
+			s/MERCED/Merced/;
+			s/DIEGO/Diego/;
+			s/San Barbara/Santa Barbara/;
+			s/RIverside/Riverside/;
+			s/RIVERSIDE/Riverside/;
+			s/MONO/Mono/;
+			s/NAPA/Napa/;
+			s/bernardino/Bernardino/;
+		}
+		$county{$fields[31]}++;
+		foreach($fields[6]){
+			s/August/Aug/;
+			s/July/Jul/;
+			s/April/Apr/;
+			s/\.//;
+		}
+	
+		#$date{"$fields[6] $fields[7] $fields[5]"}++;
+		#$taxon{"$fields[10] $fields[11] $fields[12] $fields[13]"}++;
+
+(
+$Label_ID_no,
+$collector,
+$Coll_no_prefix,
+$Coll_no,
+$Coll_no_suffix,
+$year,
+$month,
+$day,
+$Associated_collectors,
+$family,
+$genus,
+$genus_doubted,
+$species,
+$sp_doubted,
+$subtype,
+$subtaxon,
+$subsp_doubted,
+$hybrid_category,
+$Snd_genus,
+$Snd_genusDoubted,
+$Snd_species,
+$Snd_species_doubted,
+$Snd_subtype,
+$Snd_subtaxon,
+$Snd_subtaxon_doubted,
+$determiner,
+$det_year,
+$det_mo,
+$det_day,
+$country,
+$state,
+$county_mpio,
+$physiographic_region,
+$topo_quad,
+$locality,
+$lat_degrees,
+$lat_minutes,
+$lat_seconds,
+$N_or_S,
+$decimal_lat,
+$long_degrees,
+$long_minutes,
+$long_seconds,
+$E_or_W,
+$decimal_long,
+$Township,
+$Range,
+$section,
+$Fraction_of_section,
+$Snd_township,
+$Snd_Range,
+$Snd_section,
+$Snd_Fraction_of_section,
+$UTM_grid_zone,
+$UTM_grid_cell,
+$UTM_E,
+$UTM_N,
+$name_of_UTM_cell,
+$low_range_m,
+$top_range_m,
+$low_range_f,
+$top_range_f,
+$ecol_notes,
+$Plant_description
+) = @fields;
+$Label_ID_no=~s/-//;
+$orig_lat_min=$lat_minutes;
+$orig_long_min=$long_minutes;
+$decimal_lat="" if $decimal_lat eq 0;
+$decimal_long="" if $decimal_long eq 0;
+$name=$genus ." " .  $species . " ".  $subtype . " ".  $subtaxon;
+$name=ucfirst(lc($name));
+$name=~s/'//g;
+$name=~s/`//g;
+$name=~s/ *$//;
+$name=~s/  +/ /g;
+$name=~s/ssp\./subsp./;
+$name=~s/ [Xx] / × /;
+if($exclude{$genus}){
+	print OUT <<EOP;
+
+Excluded, not a vascular plant: $name
+EOP
+		++$skipped{one};
+	next;
+}
+if($alter{$name}){
+	print OUT <<EOP;
+
+Spelling altered to $alter{$name}: $name 
+EOP
+	$name=$alter{$name};
+}
+unless($taxon{$name}){
+	$on=$name;
+	if($name=~s/subsp\./var./){
+		if($taxon{$name}){
+			print OUT <<EOP;
+
+Not yet entered into SMASCH taxon name table: $on entered as $name
+EOP
+		}
+		else{
+	print OUT <<EOP;
+
+Not yet entered into SMASCH taxon name table: $on skipped
+EOP
+		++$skipped{one};
+next;
+		}
+	}
+	elsif($name=~s/var\./subsp./){
+		if($taxon{$name}){
+			print OUT <<EOP;
+
+Not yet entered into SMASCH taxon name table: $on entered as $name
+EOP
+		}
+		else{
+			print OUT <<EOP;
+
+Not yet entered into SMASCH taxon name table: $on skipped
+EOP
+		++$skipped{one};
+next;
+		}
+	}
+	else{
+	print OUT <<EOP;
+
+Not yet entered into SMASCH taxon name table: $name skipped
+EOP
+		++$skipped{one};
+	next;
+	}
+}
+
+$name{$name}++;
+
+########################COLLECTORS
+	$Collector_full_name=$collector;
+	foreach($Collector_full_name){
+		s/ \./\./g;
+		s/([A-Z]\.)([A-Z]\.)([A-Z]\.)/$1 $2 $3 /g;
+		s/([A-Z]\.)([A-Z]\.)/$1 $2 /g;
+		s/([A-Z]\.)([A-Z][a-z])/$1 $2/g;
+		s/([A-Z]\.) ([A-Z]\.)([A-Z])/$1 $2 $3/g;
+		s/([A-Z]\.)([A-Z])/$1 $2/g;
+		s/,? (&|and) /, /;
+		s/([A-Z])([A-Z]) ([A-Z][a-z])/$1. $2. $3/g;
+		s/([A-Z]) ([A-Z][a-z])/$1. $2/g;
+		s/,([^ ])/, $1/g;
+		s/ *, *$//;
+		s/, ,/,/g;
+		s/  */ /g;
+		s/^J\. ?C\. $/J. C./;
+		s/John A. Churchill M. ?D. $/John A. Churchill M. D./;
+		s/L\. *F\. *La[pP]r./L. F. LaPre/;
+		s/B\. ?G\. ?Pitzer/B. Pitzer/;
+		s/J. André/J. Andre/;
+		s/ *$//;
+		$_= $alter_coll{$_} if $alter_coll{$_};
+			++$collector{$_};
+		if($Associated_collectors){
+$Associated_collectors=~s/D. *Charlton, *B. *Pitzer, *J. *Kniffen, *R. *Kniffen, *W. *W. *Wright, *Howie *Weir, *D. *E. *Bramlet/D. Charlton, et al./;
+$Associated_collectors=~s/Mark *Elvin, *Cathleen *Weigand, *M. *S. *Enright, *Michelle *Balk, *Nathan *Gale, *Anuja *Parikh, *K. *Rindlaub/Mark Elvin, et al./;
+$Associated_collectors=~s/P. *Mackay/P. MacKay/;
+$Associated_collectors=~s/P. *J. *Mackay/P. J. MacKay/;
+$Associated_collectors=~s/.*Boyd.*Bramlet.*Kashiwase.*LaDoux.*Provance.*Sanders.*White/et al./;
+$Associated_collectors=~s/.*Boyd.*Bramlet.*Kashiwase.*LaDoux.*Provance.*Sanders.*White/et al./;
+$Associated_collectors=~s/.*Boyd.*Kashiwase.*LaDoux.*Provance.*Sanders.*White.*Bramlet/et al./;
+			$Associated_collectors=~s/ \./\./g;
+			$Associated_collectors=~s/^w *\/ *//;
+			$Associated_collectors=~s/([A-Z]\.)([A-Z]\.)([A-Z]\.)/$1 $2 $3 /g;
+			$Associated_collectors=~s/([A-Z]\.)([A-Z]\.)/$1 $2 /g;
+			$Associated_collectors=~s/([A-Z]\.)([A-Z]\.)/$1 $2/g;
+			$Associated_collectors=~s/([A-Z]\.) ([A-Z]\.)([A-Z])/$1 $2 $3/g;
+			$Associated_collectors=~s/([A-Z]\.)([A-Z])/$1 $2/g;
+			$Associated_collectors=~s/,? (&|and) /, /g;
+			$Associated_collectors=~s/([A-Z])([A-Z]) ([A-Z][a-z])/$1. $2. $3/g;
+			$Associated_collectors=~s/([A-Z]) ([A-Z][a-z])/$1. $2/g;
+			$Associated_collectors=~s/, ,/,/g;
+			$Associated_collectors=~s/,([^ ])/, $1/g;
+		$Associated_collectors=~s/et\. ?al/et al/;
+		$Associated_collectors=~s/et all/et al/;
+		$Associated_collectors=~s/et al\.?/et al./;
+		$Associated_collectors=~s/etal\.?/et al./;
+		$Associated_collectors=~s/([^,]) et al\./$1, et al./;
+		$Associated_collectors=~s/ & others/, et al./;
+		$Associated_collectors=~s/, others/, et al./;
+		$Associated_collectors=~s/L\. *F\. *La[pP]r./L. F. LaPre/;
+		$Associated_collectors=~s/B\. ?G\. ?Pitzer/B. Pitzer/;
+		$Associated_collectors=~s/ +,/, /g;
+		$Associated_collectors=~s/  */ /g;
+		$Associated_collectors=~s/,,/,/g;
+		$Associated_collectors=~s/J. André/J. Andre/;
+		#warn $Associated_collectors;
+			if(length($_) > 1){
+				$combined_collectors="$_, $Associated_collectors";
+				if($alter_coll{$combined_collectors}){
+				$combined_collectors= $alter_coll{$combined_collectors};
+				}
+				++$collector{"$combined_collectors"};
+				#warn $Associated_collectors, $combined_collectors;
+			}
+			else{
+				if($alter_coll{$Associated_collectors}){
+				$Associated_collectors= $alter_coll{$Associated_collectors};
+				}
+				++$collector{$Associated_collectors};
+			}
+			#++$collector{$_};
+		}
+		else{
+			#if($alter_coll{$_}){
+			#$_= $alter_coll{$_};
+			#}
+			#++$collector{$_};
+		}
+	}
+
+if($low_range_m){
+	if($top_range_m){
+		$elevation="$low_range_m - $top_range_m m";
+	}
+	else{
+		$elevation="$low_range_m m";
+	}
+	}
+elsif($low_range_f){
+	#these incorrectly labelled "m" first loading!
+	if($top_range_f){
+		$elevation="$low_range_f - $top_range_f ft";
+	}
+	else{
+		$elevation="$low_range_f ft";
+	}
+	}
+
+if($ecol_notes=~s/[;.] +([Aa]ssoc.*)//){
+$assoc=$1;
+}
+
+
+$long_minutes=~ s/['`]//g;
+$lat_minutes=~ s/['`]//g;
+$lat_degrees=~ s/^(\d\d)[^\d]$/$1/g;
+$long_degrees=~ s/^(\d\d\d)[^\d]$/$1/g;
+if($long_minutes=~ s/^(\d*)(\.\d+)$/$1/){
+	$long_minutes="00" if $long_minutes eq "";
+$minute_decimal=$2;
+$long_seconds= int($minute_decimal * 60);
+}
+if($lat_minutes=~ s/^(\d*)(\.\d+)$/$1/){
+	$lat_minutes="00" if $lat_minutes eq "";
+$minute_decimal=$2;
+$lat_seconds= int($minute_decimal * 60);
+}
+
+if($lat_seconds=~/(\d+)\.[01234].*/){
+$lat_seconds=$1;
+}
+elsif($lat_seconds=~/(\d+)\.[56789].*/){
+$lat_seconds=${1}+1;
+}
+if($long_seconds=~/(\d+)\.[01234].*/){
+$long_seconds=$1;
+}
+elsif($long_seconds=~/(\d+)\.[56789].*/){
+	$long_seconds=${1}+1;
+}
+	if($lat_seconds==60){
+		$lat_seconds="00";
+		$lat_minutes +=1;
+		if($lat_minutes==60){
+			$lat_minutes="00";
+			$lat_degrees +=1;
+		}
+	}
+	if($long_seconds==60){
+		$long_seconds="00";
+		$long_minutes +=1;
+		if($long_minutes==60){
+			$long_minutes="00";
+			$long_degrees +=1;
+		}
+	}
+$lat_minutes=~ s/^ *(\d)\./0$1./;
+$lat_seconds=~ s/^ *(\d)\./0$1./;
+$long_minutes=~ s/^ *(\d)\./0$1./;
+$long_seconds=~ s/^ *(\d)\./0$1./;
+$lat_minutes=~ s/^ *(\d) *$/0$1/;
+$lat_seconds=~ s/^ *(\d) *$/0$1/;
+$long_minutes=~ s/^ *(\d) *$/0$1/;
+$long_seconds=~ s/^ *(\d) *$/0$1/;
+unless($lat_minutes eq $orig_lat_min){
+$coord_alter{"$orig_lat_min -> $lat_minutes $lat_seconds"}++;
+}
+unless($long_minutes eq $orig_long_min){
+$coord_alter{"$orig_long_min -> $long_minutes $long_seconds"}++;
+}
+
+($lat= "${lat_degrees} ${lat_minutes} ${lat_seconds}$N_or_S")=~s/ ([EWNS])/$1/;
+($long= "${long_degrees} ${long_minutes} ${long_seconds}$E_or_W")=~s/ ([EWNS])/$1/;
+$lat=~s/^ *([EWNS])//;
+$long=~s/^ *([EWNS])//;
+$lat=~s/^ *//;
+$long=~s/^ *//;
+
+if($long){
+unless ($long=~/\d\d\d \d\d? \d\d?W/ || $long=~/\d\d\d \d\d?W/ || $long=~/\d\d\d \d\d? \d\d?\.\dW/){
+print OUT "$Label_ID_no: Longitude $long config problem; lat and long nulled\n";
+$long="";
+$lat="";
+}
+if ($decimal_lat){
+if ($decimal_lat < 32.5 || $decimal_lat > 42.1){
+print OUT "$Label_ID_no: Latitude $decimal_lat outside CA box; lat and long nulled\n";
+$decimal_lat="";
+$decimal_long="";
+}
+}
+if ($decimal_long){
+if ($decimal_long > -114.0 || $decimal_long < -124.5){
+print OUT "$Label_ID_no: Longitude $decimal_long outside CA box; lat and long nulled\n";
+$decimal_long="";
+$decimal_lat="";
+}
+}
+unless($lat =~ /\d/){
+	$long="";
+		print OUT<<EOP;
+$Label_ID_no: Longitude no latitude config problem; long nulled
+
+EOP
+}
+}
+if($lat){
+unless ($lat=~/\d\d \d\d? \d\d?N/ || $lat=~/\d\d \d\d?N/ || $lat=~/\d\d \d\d? \d\d?\.\dN/){
+print OUT "$Label_ID_no: Latitude $lat config problem; Lat and long nulled\n";
+$lat="";
+$long="";
+}
+unless($long=~/\d/){
+	$lat="";
+		print OUT<<EOP;
+$Label_ID_no: Latitude no longitude config problem; lat nulled
+EOP
+}
+}
+$year=~s/ ?\?$//;
+$year=~s/^['`]+//;
+$year=~s/['`]+$//;
+unless($year=~/^(1[789]\d\d|20\d\d)$/){
+		print OUT<<EOP;
+$Label_ID_no: Date config problem $year $month $day: date nulled
+EOP
+	$year=$month=$day="";
+}
+unless($day=~/(^[0-3]?[0-9]$)|(^[0-3]?[0-9]-[0-3]?[0-9]$)|(^$)/){
+		print OUT<<EOP;
+$Label_ID_no: Date config problem $year $month $day: date nulled
+EOP
+	$year=$month=$day="";
+}
+$Unified_TRS="$Township$Range$section";
+$country="USA" if $country=~/U\.?S\.?/;
+print TABFILE <<EOP;
+Date: $month $day $year
+CNUM_prefix: ${Coll_no_prefix}
+CNUM: ${Coll_no}
+CNUM_suffix: ${Coll_no_suffix}
+Name: $name
+Accession_id: $Label_ID_no
+Family_Abbreviation: $family
+Country: $country
+State: $state
+County: $county_mpio
+Loc_other: $physiographic_region
+Location: $locality
+T/R/Section: $Unified_TRS
+USGS_Quadrangle: $topo_quad
+Elevation: $elevation
+Collector: $Collector_full_name
+Other_coll: $other_coll
+Combined_coll: $combined_collectors
+Habitat: $ecol_notes
+Associated_with: $assoc
+Notes: $Plant_description
+Latitude: $lat
+Longitude: $long
+Decimal_latitude: $decimal_lat
+Decimal_longitude: $decimal_long
+
+EOP
+++$included;
+}
+open(COLL,">missing_coll");
+foreach(sort(keys(%collector))){
+#print "$_\n" if $coll_comm{$_};
+	$key=$_;
+#s/\./. /g;
+s/\. ,/., /;
+s/  +/ /g;
+s/ *$//;
+next if $coll_comm{$_};
+print COLL "$_\t$collector{$key}\n";
+}
+
+foreach(sort(keys(%name))){
+	#print "$_\n" unless $taxon{$_};
+}
+print <<EOP;
+INCL: $included
+EXCL: $skipped{one};
+EOP
+
+foreach(sort(keys(%coord_alter))){
+	#print "$_\n";
+}
+__END__
+	foreach($collector, $other_coll){
+		s/B\. ?G\. ?Pitzer/B. Pitzer/;
+		s/\([^)]+\)//g;
+	s/([A-Z]\.[A-Z]\.)([A-Z][a-z])/$1 $2/g;
+	s/([A-Z]\.) ([A-Z]\.)/$1$2/g;
+s/l, L\./L./;
+s/T, T\./T./;
+s/c, Y\./Y./;
+s/Greg de Nevers/Greg De Nevers/;
+s/(Adrienne Russel)([^l])/$1l$2/;
+s/(D\.R\. Schram)([n])/$1m/;
+s/(D\.R\. Schram)([^m])/$1m$2/;
+s/D\.L Banks/D. L. Banks/;
+s/Frank Ambrey/Frank Aubrey/;
+s/G\. K Helmkamp/G. K. Helmkamp/;
+		s/Nevers,S\./Nevers, S./;
+		s/Thompson\./Thompson/;
+		s/James D. Morfield/James D. Morefield/;
+		s/K. Neisess/K. Neisses/;
+		s/Mc[cC][ou]lloh/McCulloh/;
+		s/L.C. Wheelr/L.C. Wheeler/;
+		s/Margariet Wetherwax/Margriet Wetherwax/;
+		s/P. Athley/P. Athey/;
+		s/R. F. .horne/R. F. Thorne/;
+		s/Annab le/Annable/;
+		s/Steve Boys/Steve Boyd/;
+		s/R. *A. Pimental/R. A. Pimentel/;
+		s/R. *R. Pimental/R. R. Pimentel/;
+		s/R. Riggens Pimental/R. Riggens Pimentel/;
+		s/S Ogg/S. Ogg/;
+		s/Koutnick/Koutnik/;
+		s/A\. Pignioli/A. Pigniolo/;
+		s/MIllet/Millett/;
+		s/Wiegand/Weigand/;
+		s/Tiliforth/Tilforth/;
+		s/MacKay\./MacKay,/;
+		s/Ochoterena/Ochoterana/;
+		s/Rigggins/Riggins/;
+		s/Walllace/Wallace/;
+		s/L\. *F\. *La[pP]r./L. F. LaPre/;
+		s/et\. al/et al/;
+		s/et all/et al/;
+		s/et al/et al./;
+		s/et al\.\./et al./;
+		s/ & others/, et al./;
+		s/, others/, et al./;
+		s/([A-Z]), ([A-Z][a-z])/$1. $2/g;
+		s/([A-Z])\. ([A-Z]) /$1. $2./g;
+		s/, *, /, /g;
+		s/ ,/,/g;
+		s/  / /g;
+s/anonymous/unknown/;
+s/Unknown/unknown/;
+	}
+	foreach($other_coll){
+s/D. *Charlton, *B. *Pitzer, *J. *Kniffen, *R. *Kniffen, *W. *W. *Wright, *Howie *Weir, *D. *E. *Bramlet/D. Charlton, et al./;
+s/Mark *Elvin, *Cathleen *Weigand, *M. *S. *Enright, *Michelle *Balk, *Nathan *Gale, *Anuja *Parikh, *K. *Rindlaub/Mark Elvin, et al./;
+s/P. *Mackay/P. MacKay/;
+s/P. *J. *Mackay/P. J. MacKay/;
+s/.*Boyd.*Bramlet.*Kashiwase.*LaDoux.*Provance.*Sanders.*White/et al./;
+s/.*Boyd.*Bramlet.*Kashiwase.*LaDoux.*Provance.*Sanders.*White/et al./;
+s/.*Boyd.*Kashiwase.*LaDoux.*Provance.*Sanders.*White.*Bramlet/et al./;
+}
+$collector{$collector}++;
+if(length($other_coll) > 2){
+	$coll_comm= "$collector, $other_coll";
+	foreach($coll_comm){
+		s/, , /, /g;
+		s/,, /, /g;
+	}
+
+				$combined_collectors=$coll_comm;
+	$collector{$coll_comm}=$line_store;
+	($assig=$coll_comm)=~s/,.*//;
+	$collector{$assig}=$line_store;
+}
