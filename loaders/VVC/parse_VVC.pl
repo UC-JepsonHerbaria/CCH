@@ -52,7 +52,7 @@ my $barcode;
 my %GUID_barcode;
 my %duplicate;
 
-open(OUT, ">VVC_out.txt") || die;
+open(OUT, ">/JEPS-master/CCH/Loaders/VVC/VVC_out.txt") || die;
 
 
 #############
@@ -81,7 +81,7 @@ open(OUT, ">VVC_out.txt") || die;
 
 
 #process converted text file
-my $file="VVC_FEB2018.txt";
+my $file="/JEPS-master/CCH/Loaders/VVC/VVC_FEB2018.txt";
 
 warn "reading from $file\n";
 
@@ -1845,7 +1845,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'VVC_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/VVC/VVC_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
