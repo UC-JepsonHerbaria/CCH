@@ -24,8 +24,8 @@ $today_JD = &get_today_julian_day;
 
 my %month_hash = &month_hash;
 
-open(OUT,">YOSE_out.txt") || die;
-open(OUT2,">YOSE_dwc.txt") || die;
+open(OUT,">/JEPS-master/CCH/Loaders/YOSE/YOSE_out.txt") || die;
+open(OUT2,">/JEPS-master/CCH/Loaders/YOSE/YOSE_dwc.txt") || die;
 
 #print OUT2 "Accession_id\tscientificName\tverbatimEventDate\tEJD\tLJD\trecordedBy\tother_coll\tverbatimCollectors\tCNUM\tCNUM_prefix\tCNUM_suffix\tcountry\tstateProvince\tcounty\tlocality\thabitat\tTRS\tdecimalLatitude\tdecimalLongitude\tdatum\tgeoreferenceSource\terrorRadius\terrorUnits\tCCH_elevationInMeters\tverbatimElevation\tverbatim_county\tMacromorphology\tNotes\tCultivated\tHybrid_annotation\tAnnotation\tGUID\n";
 
@@ -45,7 +45,7 @@ my $YOSE_CO;
 my $ALTER;
 my %ALTER;
 
-my $file = 'FY2014_CCH_data_MOD.txt';
+my $file = '/JEPS-master/CCH/Loaders/YOSE/FY2014_CCH_data_MOD.txt';
 
 ###open the county conversion file, unique to YOSE
 open(IN, "YM_out_county.txt") || die "couldnt open YM_out_county.txt\n";
@@ -2265,7 +2265,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'YOSE_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/YOSE/YOSE_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
