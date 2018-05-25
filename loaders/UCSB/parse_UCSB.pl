@@ -1,265 +1,217 @@
-#Load names of non-vascular genera to be excluded
-open(IN, "/Users/richardmoe/4_cdl_buffer/smasch/mosses") || die;
-open(OUT, ">UCSB.out") || die;
-while(<IN>){
-	chomp;
-	s/ .*//;
-	$exclude{$_}++;
-}
-close(IN);
-use Time::JulianDay;
-open(ERR, ">UCSB_ERROR.txt") || die;
-&load_noauth_name; #FROM CCH.pm
-use lib '/Users/richardmoe/4_data/CDL';
-use CCH;
+use utf8;
+use Text::Unidecode; #to transliterate unicode characters to plan ASCII
+use Geo::Coordinates::UTM;
+use strict;
+#use warnings;
+use lib '/Users/davidbaxter/DATA';
+use CCH; #loads alter_names has %alter, non-vascular genus has %exclude, county %max_elev hash, and various processing subroutines
+$today_JD = &get_today_julian_day;
+&load_noauth_name; #load taxonID-to-scientificName hash %TID
 
-Record: while(<>){
+open(OUT,">UCSB.out") || die;
+my $error_log = "log.txt";
+unlink $error_log or warn "making new error log file $error_log";
+
+#my $file = 'UCSB_103014.txt';
+my $file = 'CCBER_CCH_20160425';
+
+open(IN,$file) || die;
+
+Record: while(<IN>){
 	chomp;
+	s/\x9a/&ouml;/g;
+	s/\x96/&ntilde;/g;
+	s/\xca//g;
 	@fields=split(/\t/, $_, 100);
-	grep(s/^"//,@fields);
-	grep(s/"$//,@fields);
-	unless($#fields==19){
-		die   "$_\n Fields should be 19; I count $#fields\n";
+	unless($#fields==23){
+		die   "$_\n Fields should be 23; I count $#fields\n";
 	}
-#"Cataloged Date"	"Catalog Number"	"Collector Number"	"Start Date"	"End Date"	"Verbatim Date"	"County"	"Locality Name"	"Associate Species/Habitat"	"Verbatim Elevation (m)"	"Latitude1"	"Longitude1"	"Coordinates Source"	"Annotation"	"Family"	"Genus"	"Species"	"subspecies"	"variety"	"Collectors [Aggregated]"
-($Cataloged_Date, $Catalog_Number, $CollectorNumber, $Start_Date, $End_Date, $Verbatim_Date, $County, $Locality_Name, $Locality_and_Habitat_Notes, $Elevation, $Latitude1, $Longitude1, $Determination_Remarks, $Annotation, $Family, $Genus, $Species, $subspecies, $variety, $Collectors)=@fields;
-#print <<EOP;
-#Determination_Remarks $Determination_Remarks
-#Annotation $Annotation
-#
-#EOP
-#next;
-	$SpecimenNumber="UCSB$Catalog_Number";
-	if($Start_Date && ($Start_Date eq $End_Date)){
-		$date=$Start_Date;
-	}
-	elsif($Start_Date && $End_Date){
-		$date="$Start_Date - $End_Date";
-	}
-	elsif($Start_Date){
-		$date="$Start_Date";
-	}
-	elsif($End_Date){
-		$date="$Start_Date";
-	}
-	elsif($Verbatim_Date){
-		$date="$Verbatim_Date";
-	}
-	else{
-		print ("$Catalog_Number: Unexpected date $Start_Date, $End_Date, $Verbatim_Date\n");
-		$date="";
-	}
-	$name="$Genus $Species";
-	if($subspecies){
-		$name .= " subsp. $subspecies";
-	}
-	elsif($variety){
-		$name .= " var. $variety";
-	}
-	$name=~s/  */ /g;
-print "$name\n";
+($cchuploadId, #unique ID for the CCH upload. Not sure if persistent, so I don't use
+$catalogNumber, 
+$fieldNumber, 
+$eventDate,
+$stateProvince,
+$county, 
+$locality, 
+$eventRemarks, 
+$organismRemarks, #specimen description
+$verbatimElevation, # Without units. Units are assumed to be meters
+$verbatimLatitude, #always decimal degrees, so no processing
+$verbatimLongitude,#always decimal degrees, so no processing except checking for minus sign
+$georeferenceSources,
+$coordinateUncertaintyInMeters,
+$remarks, 
+$family, #currently not used in CCH
+$genus, 
+$specificEpithet, 
+$subspecies, 
+$variety, 
+$recordedBy,
+$organismID, #GUID for %GUID hash
+$Cataloged_Date, #currently not used in CCH
+$Cultivated #currently not used; all blank in 2016-03 export
+)=@fields; #GUID added. Not used for CCH but will be useful for GBIF export
 
 
-
-		if($name=~/^\s+$/){
-			&log("Skipped $SpecimenNumber No name\n");
-			next;
-		}
-		$CoordinateUncertainty="" if $CoordinateUncertainty==0;
-		$name=&strip_name($name);
-
-		if($name=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
-                 	$hybrid_annotation=$name;
-                 	warn "$1 from $name\n";
-                 	&log("$1 from $name");
-                 	$name=$1;
-        	}
-        	else{
-           	$hybrid_annotation="";
-        	}
-
-		($genus=$name)=~s/\s.*//;
-
-		if($exclude{$Genus}){
-        		&log("Excluded, not a vascular plant: $name");
-        		++$skipped{one};
-        		next Record;
-		}
-
-		%infra=( 'var.','subsp.','subsp.','var.');
-
-#print "N>$name<\n";
-		$test_name=&strip_name($name);
-#print "TN>$test_name<\n";
-
-		if($TID{$test_name}){
-        		$name=$test_name;
-		}
-		elsif($alter{$test_name}){
-        		&log("$SpecimenNumber $name altered to $alter{$test_name}");
-                	$name=$alter{$test_name};
-		}
-		elsif($test_name=~s/(var\.|subsp\.)/$infra{$1}/){
-        		if($TID{$test_name}){
-                		&log("$SpecimenNumber $name not in SMASCH  altered to $test_name");
-                		$name=$test_name;
-        		}
-        		elsif($alter{$test_name}){
-                		&log("$SpecimenNumber $name not in smasch  altered to $alter{$test_name}");
-                		$name=$alter{$test_name};
-        		}
-        		else{
-                		&log ("$SpecimenNumber $name ($Genus $Species) is not yet in the master list: $name skipped");
-                		++$skipped{one};
-                		next Record;
-        		}
-		}
-		else{
-        			&log ("$SpecimenNumber $name ($Genus $Species) is not yet in the master list: $name skipped");
-        			#print "$Determination is not yet in the master list: $name skipped";
-        			++$skipped{one};
-        			next Record;
-		}
-
-
-foreach($Elevation){
-s/\.\d+//;
-
-#print "$_\t";
-s/ elev.*//;
-s/ <([^>]+)>/ $1/;
-s/^\+//;
-s/^\~/ca. /;
-s/zero/0/;
-s/,//g;
-s/(Ft|ft|FT|feet|Feet)/ ft/;
-s/(m|M|meters?|Meters?)/ m/;
-s/\.$//;
-s/  +/ /g;
-s/ *$//;
-#print "$_\n";
+####CATALOG NUMBER
+$catalogNumber=~s/ //g;
+unless($catalogNumber=~/\d/){
+	&log_skip("No UCSB Catalog Number number\t$_");
+	next Record;
 }
-$Elevation .=" m" if $Elevation;
-#next;
-		if($CollectorNumber){
-			($prefix, $CNUM,$suffix)=&parse_CNUM($CollectorNumber);
-			#print "1 $prefix\t2 $CNUM\t3 $suffix\n";
-		}
-		else{
-			$prefix= $CNUM=$suffix="";
-		}
- 		foreach($County){
-			s/^$/Unknown/;
-                	unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)$/){
-                        	$v_county= &verify_co($_);
-                        	if($v_county=~/SKIP/){
-                                	&log("SKIPPED NON-CA county? $_\n");
-                                	next Record;
-                        	}   
-	
-                        	unless($v_county eq $_){
-                                	&log("$SpecimenNumber $_ -> $v_county\n");
-                                	$_=$v_county;
-                        	}   
-                	}   
-        	}   
+$id="UCSB$catalogNumber"; #add "UCSB" prefix
 
-		if($hybrid{$SpecimenNumber}){
-			($name=$hybrid{$SpecimenNumber})=~s/ .*//;
-			$hybrid_anno= "$hybrid{$SpecimenNumber}   hybrid parentage";
-		}
-		else{
-			$hybrid_anno= "";
-		}
-		if($Longitude1=~/^1\d\d/){
-			print "$SpecimenNumber $Longitude1\n";
-			$Longitude1=~s/^/-/;
-			&log("$SpecimenNumber: minus added to longitude");
-		}
-	
-		$note{$SpecimenNumber}=~s/^[ .]*$//;
+####DATE####
+###eventDate comes in properly formatted, so just put it through the subroutines
+($YYYY, $MM, $DD)=&atomize_ISO_8601_date($eventDate);
+($EJD, $LJD)=&make_julian_days($YYYY, $MM, $DD, $id);
+($EJD, $LJD)=&check_julian_days($EJD, $LJD, $today_JD, $id);
+
+#######make GUID hash
+$GUID{$id}=$organismID;
+#######
+
+####Construct scientific name from fields
+$scientificName="$genus $specificEpithet";
+if($subspecies){
+	$scientificName .= " subsp. $subspecies";
+}
+elsif($variety){
+	$scientificName .= " var. $variety";
+}
+$scientificName=~s/  */ /g;
+$scientificName=~s/^ *//g;
+$scientificName=~s/ *$//g;
+
+###validate name
+$scientificName=&strip_name($scientificName);
+$scientificName=unidecode($scientificName);
+$scientificName = &validate_scientific_name($scientificName, $id);
 
 
-	#($Cataloged_Date, $Catalog_Number, $CollectorNumber, $Start_Date, $End_Date, $Verbatim_Date, $County, $Locality_Name, $Locality_and_Habitat_Notes, $Elevation, $Latitude1, $Longitude1, $Determination_Remarks, $Family, $Genus, $Species, $subspecies, $variety, $Collectors)=@fields;
-	$collector="";
-	$combined_colls="";
-	foreach($Collectors){
-		s/  ,/,/g;
-		@colls=split(/; */,$_);
-		foreach(@colls){
-			s/(.*), *(.*)/$2 $1/;
-		}
+########ELEVATIONS
+foreach($verbatimElevation){
+	s/\.\d+//; #remove the decimal place and everything after it
+	s/ elev.*//;
+	s/ <([^>]+)>/ $1/;
+	s/^\+//;
+	s/^\~/ca. /;
+	s/zero/0/;
+	s/,//g;
+	s/(Ft|ft|FT|feet|Feet)/ ft/;
+	s/(m|M|meters?|Meters?)/ m/;
+	s/\.$//;
+	s/  +/ /g;
+	s/ *$//;
 	}
-	$collector=$colls[0];
-	$combined_colls=join(", ",@colls);
+$verbatimElevation .=" m" if $verbatimElevation;
+
+####COLLECTOR NUMBER
+if($fieldNumber){
+	($prefix, $CNUM,$suffix)=&parse_CNUM($fieldNumber);
+}
+else{
+	$prefix= $CNUM=$suffix="";
+}
+
+######COUNTY
+foreach($county){
+	s/^$/Unknown/;
+   	unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown)$/){
+		$v_county= &verify_co($_);
+		if($v_county=~/SKIP/){
+			&log_skip("SKIPPED NON-CA county? $_\t$id");
+			next Record;
+		}   
+		unless($v_county eq $_){
+			&log_change("$_ -> $v_county\t$id");
+			$_=$v_county;
+	    }   
+	}
+}   
+
+#####Latitude, Longitude, Datum, source, error radius
+$Datum="";
+
+if($verbatimLatitude=~/^-?1\d\d/){
+	$hold=$verbatimLatitude;
+	$verbatimLatitude=$verbatimLongitude;
+	$verbatimLatitude=$hold;
+	&log_change("lat and long reversed; corrected for CCH\t$id");
+}
+
+if(($verbatimLatitude=~/\d/  || $verbatimLongitude=~/\d/)){ #If decLat and decLong are both digits
+	$Datum = "not recorded"; #since they aren't sending a datum yet, set it for records with coords
+
+	if ($verbatimLongitude > 0) {
+		$verbatimLongitude="-$verbatimLongitude";	#make decLong negative if positive
+		&log_change("longitude made negative\t$id")
+	}
+	if($verbatimLatitude > 42.1 || $verbatimLatitude < 32.5 || $verbatimLongitude > -114 || $verbatimLongitude < -124.5){ #if the coordinate range is not within the rough box of california...
+		&log_change("coordinates set to null, Outside California: >$verbatimLatitude< >$verbatimLongitude<\t$id");	#print this message in the error log...
+		$verbatimLatitude =$verbatimLongitude=$Datum=$georeferenceSources="";	#null everything
+	}
+}
+elsif ($verbatimLatitude || $verbatimLongitude){
+	&log_change("non-numeric or incomplete coordinates >$verbatimLatitude< >$verbatimLongitude< nulled\t$id");
+	$verbatimLatitude =$verbatimLongitude=$Datum=$georeferenceSources="";
+}
+
+if ($coordinateUncertaintyInMeters){
+	$coordinateUncertaintyInMeters=~s/\..*//; #remove decimal places
+	$UncertaintyUnits = "meters";
+}
+else {$UncertaintyUnits = ""; }
+
+
+#####COLLECTORS#######
+$collector="";
+$combined_colls="";
+foreach($recordedBy){
+	s/  ,/,/g;
+	@colls=split(/; */,$_);
+	foreach(@colls){
+		s/(.*), *(.*)/$2 $1/;
+	}
+}
+$collector=$colls[0];
+$other_coll=join(", ",@colls[1 .. $#colls]);
+$combined_colls=join(", ",@colls);
+
+#print ti output file
 		print OUT <<EOP;
-Accession_id: $SpecimenNumber
-Name: $name
+Accession_id: $id
+Name: $scientificName
 Collector: $collector
-Date: $date
+Date: $eventDate
+EJD: $EJD
+LJD: $LJD
 CNUM: $CNUM
 CNUM_prefix: $prefix
 CNUM_suffix: $suffix
 Country: USA
-State: CA
-County: $County
-Location: $Locality_Name
-Elevation: $Elevation
-Other_coll: 
+State: $stateProvince
+County: $county
+Location: $locality
+Elevation: $verbatimElevation
+Other_coll: $other_coll
 Combined_coll: $combined_colls
-Decimal_latitude: $Latitude1
-Decimal_longitude: $Longitude1
-Lat_long_ref_source: $CoordinateSource
+Decimal_latitude: $verbatimLatitude
+Decimal_longitude: $verbatimLongitude
+Lat_long_ref_source: $georeferenceSources
 Datum: $Datum
-Max_error_distance: $CoordinateUncertainty
-Max_error_units: $CoordinateUncertaintyUnit
-Hybrid_annotation: $hybrid_anno
-Habitat: $Locality_and_Habitat_Notes
-Annotation: $Annotation
+Max_error_distance: $coordinateUncertaintyInMeters
+Max_error_units: $UncertaintyUnits
+Hybrid_annotation: $hybrid_annotation
+Habitat: $eventRemarks
+Annotation: $remarks
 
 EOP
-
-
-
 }
+close OUT;
 
-
-
-
-
-sub parse_CNUM{
-			local($_)=shift;
-			if(m/^\s+$/){
-				return("","","");
-	}
- 	s/ *$//;
-        s/^ *//;
-        if(m/^([^0-9]*)([0-9]+)([^0-9]*)$/){
-return("$1",$2,$3);
-        }
-        elsif(m/^(\d\d+)-(\d+)$/){
-return("$1-",$2,"");
-        }
-        elsif(m/(.*[12]\d\d\d[^0-9])(\d+)([^0-9]*)/){
-return("$1",$2,$3);
-        }
-        elsif(m/(.*[-\/ ])(\d+)([^0-9].*)/){
-return("$1",$2,$3);
-        }
-        elsif(m/([A-Z]+)(\d+)$/){
-return("$1",$2,"");
-        }
-        elsif(m/([A-Z]+)(\d+)([^0-9].*)/){
-return("$1",$2,$3);
-        }
-else{
-	return ("$_","","");
+####create GUID file for GBIF processing
+open(OUT,">AID_GUID_UCSB.txt") || die;
+foreach(keys(%GUID)){
+	print OUT "$_\t$GUID{$_}\n";
 }
-}
-
-sub log {
-	print ERR "@_\n";
-}
-
-__END__
-JEPS59501	Mimulus moschatus Douglas ex Lindl.	Ezra Brainerd and Viola B. Baird	256	Jul 17 1915	1915-07-17 04:00:00		1 mi above Bear Rock (cliffs e of river); Sierra Nevada Mts., Truckee River	Placer	6700 ft									0	
