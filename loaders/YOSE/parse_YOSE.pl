@@ -40,6 +40,7 @@ while(<IN>){
 
 $/="\n";
 open(IN,"YOSE_2011.tab.csv") || die;
+#open(IN,"new_y.csv") || die;
 open(OUT,">YOSE_data.tab") || die;
 open(ERR,">YOSE_data.err") || die;
 
@@ -71,7 +72,7 @@ EOP
 	next RECORD
 }
 unless($#fields == 43){
-die "$#fields bad field number $_ \n";
+die "$#fields bad field number not 43  $_ \n";
 }
 if($fields[13]=~/DATUM IS ([^ ]+)/i){
 $datum=$1;
@@ -407,7 +408,7 @@ Accession_id: $Catalog_id
 Date: $Collection_Date
 Name: $name
 Collector: $Collector
-Combined_coll: $Combined_Collectors
+Combined_collector: $Combined_Collectors
 CNUM: $CNUM
 CNUM_prefix: $CNUM_prefix
 CNUM_suffix: $CNUM_suffix
