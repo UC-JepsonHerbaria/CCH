@@ -1,33 +1,53 @@
-use lib '/Users/richardmoe/4_data/CDL';
-use CCH;
-$today=`date "+%Y-%m-%d"`;
-chomp($today);
-($today_y,$today_m,$today_d)=split(/-/,$today);
-&load_noauth_name;
-##meters to feet conversion
-$meters_to_feet="3.2808";
 
-open(TABFILE,">NPR.txt") || die;
-open(ERR,">NPR_problems") || die;
+use lib '/Users/davidbaxter/DATA';
+use CCH;
+my $today_JD;
+
+$| = 1; #forces a flush after every write or print, so the output appears as soon as it's generated rather than being buffered.
+
+$today_JD = &get_today_julian_day;
+&load_noauth_name; #loads taxon id master list into an array
+
+my %month_hash = &month_hash;
+
+open(OUT,">CATA.out") || die;
+my $error_log = "log.txt";
+unlink $error_log or warn "making new error log file $error_log";
+
+my $included;
+my %skipped;
+my $line_store;
+my $count;
+my $seen;
+my %seen;
+
+my $file = 'CATA_data_2015-10.txt';
+
+
+open(TABFILE,">VV.txt") || die;
+open(ERR,">VV_problems") || die;
 
 print ERR <<EOP;
 $today
 Report from running parse_VV.pl
-Name alterations from file ~/data/CDL/alter_names
-Name comparisons made against ~/taxon_ids/smasch_taxon_ids (SMASCH taxon names, which are not necessarily correct)
-Genera to be excluded from riv_non_vasc
+Name alterations from file ~/DATA/alter_names
+Name comparisons made against ~/DATA/smasch_taxon_ids (SMASCH taxon names, which are not necessarily correct)
+Genera to be excluded from ~/mosses
 
 EOP
-open(IN,"../RSA/oldrsa/RSA/rsa_alter_coll") || die;
-while(<IN>){
-	chomp;
-	s/\cJ//;
-	s/\cM//;
-	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-	$alter_coll{$rsa}=$smasch;
-}
+#####I don't have this file, so I'm skipping this step
+#open(IN,"../RSA/oldrsa/RSA/rsa_alter_coll") || die;
+#while(<IN>){
+#	chomp;
+#	s/\cJ//;
+#	s/\cM//;
+#	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
+#	$alter_coll{$rsa}=$smasch;
+#}
 
-open(IN,"VictorValleyCollege20121108.tab" ) || die;
+my $datafile="VVC.out";
+
+open(IN,$datafile ) || die;
 
 #2901VVC	
 Record: while(<IN>){
@@ -91,8 +111,8 @@ s/([^V]+)VVC/VVC$1/;
 		$fields[3]=~s/(.*)//;
 		$fields[4]=$1 . $fields[4];
 	}
-	foreach($fields[31]){
-		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)$/){
+	foreach($fields[32]){
+		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|Ensenada|Mexicali|Rosarito, Playas de|Tecate|Tijuana|unknown)$/){
 			$v_county= &verify_co($_);
 			if($v_county=~/SKIP/){
 				&log("NON-CA county? $_ skipped");
@@ -128,6 +148,7 @@ $month,
 $day,
 $Associated_collectors,
 $family,
+$family_abbrev, #This was added since the last update in 2012
 $genus,
 $genus_doubted,
 $species,
@@ -182,12 +203,12 @@ $low_range_m,
 $top_range_m,
 $low_range_f,
 $top_range_f,
-$ecol_notes,
-$Plant_description,
-$plant,
-$phenology,
-$culture,
-$origin,
+$ecol_notes
+#$Plant_description, #the Oct2014 export matches up to ecolNotes, then instead of these last five there is just georef source.
+#$plant,
+#$phenology,
+#$culture,
+#$origin,
 ) = @fields;
 if($state=~/^(NV|OR|AZ)$/){
 print ERR "Bad state $1: $_\n";
@@ -540,14 +561,14 @@ foreach(sort(keys(%name))){
 }
 print <<EOP;
 INCL: $included
-EXCL: $skipped{one};
+EXCL: $skipped{one}
 EOP
 
-open(OUT,">NPR_new_names_needed") || die;
+open(OUT,">VV_new_names_needed") || die;
 foreach(sort {$needed_name{$a} <=> $needed_name{$b}}(keys(%needed_name))){
 print OUT "$_ $needed_name{$_}\n";
 }
-open(OUT,">NPR_ucr_field_check") || die;
+open(OUT,">VV_ucr_field_check") || die;
 foreach(sort(keys(%Plant_description))){
 	print OUT "PD: $_\n";
 }
