@@ -1,27 +1,46 @@
+##meters to feet conversion
+$meters_to_feet="3.2808";
+
+open(IN, "/Users/rlmoe/data/CDL/max_county_elev.txt") || die;
+while(<IN>){
+	@fields=split(/\t/);
+	$fields[3]=~s/\+//;
+	$fields[3]=~s/,//;
+	$max_elev{$fields[1]}=$fields[3];
+}
+
 open(IN,"../../CDL/collectors_id") || die;
-#open(IN,"all_collectors_2005") || die;
-while(<IN>){
-chomp;
-s/\t.*//;
-$coll_comm{$_}++;
-}
-open(IN,"../../CDL/tnoan.out") || die;
-while(<IN>){
-chomp;
-s/^.*\t//;
-$taxon{$_}++;
-}
-open(IN,"../../CDL/riv_non_vasc") || die;
 while(<IN>){
 	chomp;
-	$exclude{$_}++;
+	s/\t.*//;
+	$coll_comm{$_}++;
 }
-#open(IN,"../../CDL/riv_alter_names") || die;
+#open(IN,"/users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
 #while(<IN>){
 	#chomp;
-	#next unless ($riv,$smasch)=m/(.*)\t(.*)/;
-	#$alter{$riv}=$smasch;
+	#s/^.*\t//;
+	#$taxon{$_}++;
 #}
+open(IN,"/Users/rlmoe/data/taxon_ids/smasch_taxon_ids.txt") || die;
+while(<IN>){
+	chomp;
+($code,$name,@rest)=split(/\t/);
+	$taxon{$name}++;
+}
+open(IN,"/Users/rlmoe/data/CDL/riv_non_vasc") || die;
+while(<IN>){
+	chomp;
+	if(m/\cM/){
+		die "^M in file\n";
+	}
+	$exclude{$_}++;
+}
+
+
+
+
+
+
 open(IN,"../../CDL/alter_names") || die;
 while(<IN>){
 	chomp;
@@ -31,54 +50,50 @@ while(<IN>){
 open(IN,"../../RSA/oldrsa/RSA/rsa_alter_coll") || die;
 while(<IN>){
 	chomp;
-s/\cJ//;
-s/\cM//;
+	s/\cJ//;
+	s/\cM//;
 	next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
 	$alter_coll{$rsa}=$smasch;
 }
-#open(IN,"/../../../CDL/riv_alter_coll") || die;
-#while(<IN>){
-	#chomp;
-#s/\cJ//;
-#s/\cM//;
-	#next unless ($rsa,$smasch)=m/(.*)\t(.*)/;
-	#$alter_coll{$rsa}=$smasch;
-#}
-open(TABFILE,">parse_riverside_2009.out") || die;
-open(OUT,">riv_2009_problems") || die;
+
+open(TABFILE,">parse_riverside_2012.out") || die;
+open(OUT,">riv_2012_JUN_problems") || die;
 $date=localtime();
 print OUT <<EOP;
 $date
 Report from running parse_riverside.pl
-Name alterations from file riv_alter_names
+Name alterations from file alter_names
 Name comparisons made against SMASCH taxon names (which are not necessarily correct)
 Genera to be excluded from riv_non_vasc
 
 EOP
 
+#open(IN,"riv_oct_2009" ) || die;
 #open(IN,"clinkers" ) || die;
-open(IN,"UCRdata092008.tab" ) || die;
-#$/="\cM";
-#open(IN,"probs") || die;
+#open(IN,"../UCRData010312" ) || die;
+#open(IN,"../2012_1.tab") || die;
+open(IN,"UCRData062012" ) || die;
+
 Record: while(<IN>){
-$assoc=$combined_collectors=$Collector_full_name= $elevation= $name=$lat=$long="";
-#next unless m/Annette Winn/;
-s/\cK+$//;
-s/\cK//g;
-s/\cM/ /g;
-s/’/'/g;
-s/Õ/'/g;
-s/Ò/"/g;
-s/Ó/"/g;
+	$annotation=$assoc=$combined_collectors=$Collector_full_name= $elevation= $name=$lat=$long=$decimal_lat=$decimal_long="";
+	$zone=$easting=$northing="";
+	s/\cK+$//;
+	s/\cK//g;
+	s/\cM/ /g;
+	s/\x91/'/g;
+	s/’/'/g;
+	s/Õ/'/g;
+	s/Ò/"/g;
+	s/Ó/"/g;
 	$line_store=$_;
 	++$count;
 	chomp;
 	@fields=split(/\t/);
-	if($fields[0]=~/^ *$/){
+	unless($fields[0]=~/^UCR/){
 		++$skipped{one};
 		print OUT<<EOP;
 
-No accession number, skipped: $_
+No UCR accession number, skipped: $_
 EOP
 		next;
 	}
@@ -142,11 +157,11 @@ EOP
 		$fields[2].=$1;
 	}
 	if($fields[3]=~m/[^\d]/){
-	$fields[3]=~s/(.*)//;
+		$fields[3]=~s/(.*)//;
 		$fields[4]=$1 . $fields[4];
 	}
-		foreach($fields[31]){
-unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
+	foreach($fields[31]){
+		unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
 		print OUT<<EOP;
 
 		Unknown California county $fields[0]: $_
@@ -184,8 +199,9 @@ EOP
 			s/MONO/Mono/;
 			s/NAPA/Napa/;
 			s/bernardino/Bernardino/;
-unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
-		print OUT<<EOP;
+			s/Shassta/Shasta/;
+			unless(m/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Unknown|Ventura|Yolo|Yuba|unknown)/i){
+				print OUT<<EOP;
 		Unknown California county not reconciled $fields[0]: $_ skipped
 EOP
 		next Record;
@@ -243,11 +259,13 @@ $lat_minutes,
 $lat_seconds,
 $N_or_S,
 $decimal_lat,
+$lat_uncertainty,
 $long_degrees,
 $long_minutes,
 $long_seconds,
 $E_or_W,
 $decimal_long,
+$long_uncertainty,
 $Township,
 $Range,
 $section,
@@ -272,6 +290,17 @@ $phenology,
 $culture,
 $origin,
 ) = @fields;
+if($long_uncertainty || $lat_uncertainty){
+$extent= ($long_uncertainty || $lat_uncertainty);
+$ExtUnits="m";
+}
+else{
+$extent= "";
+$ExtUnits="";
+}
+$lat_degrees= $lat_minutes= $lat_seconds= $N_or_S= $long_degrees= $long_minutes= $long_seconds= "";
+#print "$UTM_E, $UTM_N $UTM_grid_zone, $UTM_grid_cell, $name_of_UTM_cell\n" if $UTM_E;
+#print "DLT: $decimal_lat DLG: $decimal_long\n";
 $Plant_description{$Plant_description}++;
 $plant{$plant}++;
 $phenology{$phenology}++;
@@ -285,15 +314,21 @@ $decimal_long="" if $decimal_long eq 0;
 $name=$genus ." " .  $species . " ".  $subtype . " ".  $subtaxon;
 #print "\nTEST $name<\n";
 $name=ucfirst(lc($name));
-$name=~s/'//g;
+#$name=~s/'//g;
 $name=~s/`//g;
 $name=~s/\?//g;
 $name=~s/ *$//;
 $name=~s/  +/ /g;
 $name=~s/ssp\./subsp./;
-$name=~s/ [Xx] / × /;
+$name=~s/ x / X /;
+$name=~s/ × / X /;
 #print "TEST $name<\n";
-if($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
+if($name=~/Pectocarya anisocarpa/){
+	$name="Pectocarya";
+	$annotation="Pectocarya anisocarpa Veno, ined.";
+        print OUT "Pectocarya anisocarpa converted to $name\n";
+}
+elsif($name=~/([A-Z][a-z-]+ [a-z-]+) × /){
                  $hybrid_annotation=$name;
                  warn "$1 from $name\n";
                  print OUT "$1 from $name\n";
@@ -476,6 +511,24 @@ elsif($low_range_f){
 		$elevation="$low_range_f ft";
 	}
 	}
+$elev_test=$elevation;
+		$elev_test=~s/.*- *//;
+		$elev_test=~s/ *\(.*//;
+		$elev_test=~s/ca\.? *//;
+		if($elev_test=~s/ (meters?|m)//i){
+			$metric="(${elev_test} m)";
+			$elev_test=$elev_test * $meters_to_feet;
+			$elev_test= " feet";
+		}
+		else{
+			$metric="";
+		}
+		if($elev_test=~s/ +(ft|feet)//i){
+
+			if($elev_test > $max_elev{$fields[31]}){
+				print OUT "$Label_ID_no\t$fields[31]\t ELEV: $elevation $metric greater than max: $max_elev{$fields[31]} discrepancy=", $elev_test-$max_elev{$fields[31]},"\n";
+			}
+		}
 
 if($ecol_notes=~s/[;.] +([Aa]ssoc.*)//){
 $assoc=$1;
@@ -553,20 +606,20 @@ print OUT "$Label_ID_no: Longitude $long config problem; lat and long nulled\n";
 $long="";
 $lat="";
 }
-if ($decimal_lat){
-if ($decimal_lat < 32.5 || $decimal_lat > 42.1){
-print OUT "$Label_ID_no: Latitude $decimal_lat outside CA box; lat and long nulled\n";
-$decimal_lat="";
-$decimal_long="";
-}
-}
-if ($decimal_long){
-if ($decimal_long > -114.0 || $decimal_long < -124.5){
-print OUT "$Label_ID_no: Longitude $decimal_long outside CA box; lat and long nulled\n";
-$decimal_long="";
-$decimal_lat="";
-}
-}
+#if ($decimal_lat){
+#if ($decimal_lat < 32.5 || $decimal_lat > 42.1){
+#print OUT "$Label_ID_no: Latitude $decimal_lat outside CA box; lat and long nulled\n";
+#$decimal_lat="";
+#$decimal_long="";
+#}
+#}
+#if ($decimal_long){
+#if ($decimal_long > -114.0 || $decimal_long < -124.5){
+#print OUT "$Label_ID_no: Longitude $decimal_long outside CA box; lat and long nulled\n";
+#$decimal_long="";
+#$decimal_lat="";
+#}
+#}
 unless($lat =~ /\d/){
 	$long="";
 		print OUT<<EOP;
@@ -605,17 +658,61 @@ EOP
 }
 $Unified_TRS="$Township$Range$section";
 $country="USA" if $country=~/U\.?S\.?/;
-if($determiner){
+if($annotation=~/Pectocarya anisocarpa/){
+	$annotation="$annotation; Ron Kelly; 2012 March 30";
+}
+elsif($determiner){
 	$annotation="$name; $determiner; $det_year $det_mo $det_day";
 }
 else{
 	$annotation="";
 }
+$zone=$UTM_grid_zone;
+$zone=uc($zone);
+#$UTM_grid_cell,
+#$UTM_E,
+#$UTM_N,
+#$name_of_UTM_cell,
+unless(($decimal_lat || $decimal_long)){
+	if($zone){
+		use Geo::Coordinates::UTM;
+		$easting=$UTM_E;
+		$northing=$UTM_N;
+		$ellipsoid=23;
+		if($zone=~/(9|10|11|12)S/ && $easting=~/\d\d\d\d\d\d/ && $northing=~/\d\d\d\d\d/){
+			print "$ellipsoid,$zone,$easting,$northing\n";
+			($decimal_lat,$decimal_long)=utm_to_latlon($ellipsoid,$zone,$easting,$northing);
+			print "$Label_ID_no UTM $decimal_lat, $decimal_long\n";
+		}
+		else{
+			print "$Label_ID_no UTM problem $zone $easting $northing\n";
+		}
+
+
+		$decimal_long="-$decimal_long" if $decimal_long > 0;
+	}  
+}
+	if($decimal_lat){
+	if($decimal_lat > 42.1 || $decimal_lat < 32.5 || $decimal_long > -114 || $decimal_long < -124.5){
+		if($zone){
+			print OUT "$Label_ID_no coordinates set to null, Outside California: $accession_id: UTM is $zone $easting $northing --> $decimal_lat $decimal_long\n";
+		}
+		else{
+			print OUT "$Label_ID_no coordinates set to null, Outside California: D_lat is $decimal_lat D_long is $decimal_long lat is $lat long is $long\n";
+		}
+	$decimal_lat =$decimal_long="";
+}   
+}
+
+
+
+
+
 print TABFILE <<EOP;
 Date: $month $day $year
-CNUM_PREFIX: ${Coll_no_prefix}
+CNUM_prefix: ${Coll_no_prefix}
 CNUM: ${Coll_no}
-CNUM_SUFFIX: ${Coll_no_suffix}
+CNUM_suffix: ${Coll_no_suffix}
 Name: $name
 Accession_id: $Label_ID_no
 Family_Abbreviation: $family
@@ -629,14 +726,16 @@ USGS_Quadrangle: $topo_quad
 Elevation: $elevation
 Collector: $Collector_full_name
 Other_coll: $other_coll
-Combined_coll: $combined_collectors
+Combined_collector: $combined_collectors
 Habitat: $ecol_notes
-Associated_with: $assoc
+Associated_species: $assoc
 Notes: $Plant_description
 Latitude: $lat
 Longitude: $long
 Decimal_latitude: $decimal_lat
 Decimal_longitude: $decimal_long
+Max_error_distance: $extent
+Max_error_units: $ExtUnits
 Annotation: $annotation
 Hybrid_annotation: $hybrid_annotation
 
@@ -687,147 +786,61 @@ foreach(sort(keys(%origin))){
 	print OUT "O: $_\n";
 }
 __END__
-Latitude 33 45.75N
-UCR151096
-UCR151097
-UCR151098
-UCR151099
-UCR151100
-UCR151101
-UCR151102
-UCR151103
-UCR151104
-
-Longitude 117 10 49W
-UCR153440
-UCR153441
-UCR153442
-UCR153443
-
-Longitude 117 20 0.2W
-UCR164850
-UCR164919
-
-Latitude 34 12 0.5N
-UCR165226
-
-Longitude 115 31 52W
-UCR165474
-UCR165477
-UCR165484
-UCR165497
-UCR165498
-UCR165499
-UCR165500
-UCR165501
-UCR165502
-UCR165503
-UCR165507
-UCR165508
-UCR165509
-UCR165510
-UCR165511
-UCR165512
-UCR165513
-UCR165514
-UCR165806
-UCR165808
-
-Longitude -120.1663888888888889
-UCR168257
-
-Longitude 116 32 18W
-UCR171699
-
-Longitude 116 54 0.5W
-UCR171753
-
-Longitude 117 06 37.8 W
-UCR171802
-
-Latitude 33 46 08N
-UCR172733
-UCR172734
-UCR172735
-UCR172736
-UCR172737
-UCR172738
-UCR172739
-UCR172740
-UCR172741
-
-Longitude 116.7652777777777778
-UCR177213
-nulled
-
-Latitude 32 51 15N
-UCR177538
-UCR177539
-UCR177540
-UCR177610
-UCR177611
-UCR177612
-UCR177613
-UCR177781
-UCR177782
-UCR177783
-UCR177788
-UCR177791
-
-Longitude 117 59 03W
-UCR178923
-UCR178925
-UCR179229
-UCR179230
-UCR179231
-UCR179232
-UCR179233
-UCR179274
-
-Longitude 117 27 36W
-UCR180068
-
-Longitude 117 27 27W
-UCR180077
-
-Longitude 117 27 42W
-UCR180085
-
-Longitude 117 27 08W
-UCR180086
-
-Latitude 34 19 14.2N
-Longitude 116 51 15W
-UCR184622
-
-Longitude 115 41 0.2W
-UCR185050
-UCR185051
-UCR185052
-UCR185103
-UCR185104
-UCR185105
-UCR185106
-UCR185107
-UCR185118
-
-Longitude 120 32 08W
-UCR185198
-
-Longitude 120 46 02W
-UCR185199
-
-Longitude -118.4038888888888889
-UCR25840
-UCR26009
-UCR26038
-UCR26039
-
-Latitude 34 17 13N
-UCR27112
-
-Latitude 39.8361111111111111
-UCR47728
-
-Longitude 117 02 28W
-UCR95717
+1.	Inyo	Mount Whitney	14,495 	Sequoia Sierra Nevada
+1.	Tulare	Mount Whitney	14,495 	Sequoia Sierra Nevada
+3.	Mono	White Mountain Peak	14,246 	West Great Basin Ranges
+4.	Fresno	North Palisade	14,242 	Central Sierra Nevada
+5.	Siskiyou	Mount Shasta	14,162 	California Cascades
+6.	Madera	Mount Ritter	13,143 	Yosemite-Ritter Sierra Nevada
+7.	Tuolumne	Mount Lyell	13,114 	Yosemite-Ritter Sierra Nevada
+8.	Mariposa	Parsons Peak-Northwest Ridge	12,040+	Yosemite-Ritter Sierra Nevada
+9.	San Bernardino	San Gorgonio Mountain	11,499 	Transverse Ranges
+10.	Alpine	Sonora Peak	11,459 	Lake Tahoe-Sonora Pass Sierra Nevada
+11.	El Dorado	Freel Peak	10,881 	Lake Tahoe-Sonora Pass Sierra Nevada
+12.	Riverside	San Jacinto Peak	10,839 	Peninsular Southern California Ranges
+13.	Shasta	Lassen Peak	10,457 	California Cascades
+14.	Los Angeles	Mount San Antonio	10,064 	Transverse Ranges
+15.	Modoc	Eagle Peak	9892 	Northwest Great Basin Ranges
+16.	Amador	Thunder Mountain	9410 	Lake Tahoe-Sonora Pass Sierra Nevada
+17.	Tehama	Brokeoff Mountain	9235 	California Cascades
+18.	Nevada	Mount Lola	9148 	Northern Sierra Nevada
+19.	Placer	Mount Baldy-West Ridge	9040+	Lake Tahoe-Sonora Pass Sierra Nevada
+20.	Trinity	Mount Eddy	9025 	Klamath Mountains
+21.	Sierra	Mount Lola-North Ridge Peak	8844 	Northern Sierra Nevada
+22.	Ventura	Mount Pinos	8831 	Transverse Ranges
+23.	Kern	Sawmill Mountain	8818 	Transverse Ranges
+24.	Lassen	Hat Mountain	8737 	Northwest Great Basin Ranges
+25.	Plumas	Mount Ingalls	8372 	Northern Sierra Nevada
+26.	Calaveras	Corral Hollow Hill	8170 	Lake Tahoe-Sonora Pass Sierra Nevada
+27.	Glenn	Black Butte	7448 	Northern California Coast Range
+28.	Butte	Butte County High Point	7120+	Northern Sierra Nevada
+29.	Colusa	Snow Mountain	7056 	Northern California Coast Range
+29.	Lake	Snow Mountain	7056 	Northern California Coast Range
+31.	Humboldt	Salmon Mountain	6956 	Klamath Mountains
+32.	Mendocino	Anthony Peak	6954 	Northern California Coast Range
+33.	Santa Barbara	Big Pine Mountain	6800+	Transverse Ranges
+34.	San Diego	Hot Springs Mountain	6533 	Peninsular Southern California Ranges
+35.	Del Norte	Bear Mountain-Del Norte CoHP	6400+	Klamath Mountains
+36.	Monterey	Junipero Serra Peak	5862 	Central California Coast Ranges
+37.	Orange	Santiago Peak	5687 	Peninsular Southern California Ranges
+38.	San Benito	San Benito Mountain	5241 	Central California Coast Ranges
+39.	San Luis Obispo	Caliente Mountain	5106 	Central California Coast Ranges
+40.	Yuba	Yuba County High Point	4825+	Northern Sierra Nevada
+41.	Imperial	Blue Angels Peak	4548 	Northern Baja California
+42.	Sonoma	Cobb Mountain-Southwest Peak	4480+	Northern California Coast Range
+43.	Santa Clara	Copernicus Peak	4360+	Central California Coast Ranges
+44.	Napa	Mount Saint Helena-East Peak	4200+	Northern California Coast Range
+45.	Contra Costa	Mount Diablo	3849 	Central California Coast Ranges
+46.	Alameda	Valpe Ridge-Rose Flat	3840+	Central California Coast Ranges
+47.	Stanislaus	Mount Stakes	3804 	Central California Coast Ranges
+48.	Merced	Laveaga Peak	3801 	Central California Coast Ranges
+49.	San Joaquin	Boardman North	3626 	Central California Coast Ranges
+50.	Kings	Table Mountain	3473 	Central California Coast Ranges
+51.	Santa Cruz	Mount Bielewski	3231 	Central California Coast Ranges
+52.	Yolo	Little Blue Ridge	3120+	Northern California Coast Range
+53.	Solano	Mount Vaca	2819 	Northern California Coast Range
+54.	San Mateo	Long Ridge	2600+	Central California Coast Ranges
+55.	Marin	Mount Tamalpais	2571 	Northern California Coast Range
+56.	Sutter	South Butte	2120+	Northern Sierra Nevada
+57.	San Francisco	Mount Davidson	925+	Central California Coast Ranges
+58.	Sacramento	Carpenter Benchmark	828 	Lake Tahoe-Sonora Pass Sierra Nevada
