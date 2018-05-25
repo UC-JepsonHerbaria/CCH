@@ -15,10 +15,10 @@ my %month_hash = &month_hash;
 
 ####INSERT NAMES OF SEINET FILES and assign variables
 
-my $images_file='UCSC_SymbiotaDownloads/images.tab';
-my $dets_file='UCSC_SymbiotaDownloads/identifications.tab';
-my $records_file='UCSC_SymbiotaDownloads/occurrences.tab';
-my $temp_file='UCSC_temp.txt'; #file without the large number of unwanted records filtered from step 1
+my $images_file='/JEPS-master/CCH/Loaders/UCSC/UCSC_SymbiotaDownloads/images.tab';
+my $dets_file='/JEPS-master/CCH/Loaders/UCSC/UCSC_SymbiotaDownloads/identifications.tab';
+my $records_file='/JEPS-master/CCH/Loaders/UCSC/UCSC_SymbiotaDownloads/occurrences.tab';
+my $temp_file='/JEPS-master/CCH/Loaders/UCSC/UCSC_temp.txt'; #file without the large number of unwanted records filtered from step 1
 
 my $included;
 my %skipped;
@@ -44,10 +44,10 @@ my $old_AID;
 my $id;
 my $id_nonCode;
 
-open(OUT,">UCSC_out.txt") || die;
-open(OUT2,">UCSC_AID.txt") || die; #text file for UCSC accession conversion from leading zeros to no leading zeros
-open(OUT3,">AID_GUID_UCSC.txt") || die; #text file for OBI accession conversion 
-open(TEMP,">UCSC_temp.txt") || die;
+open(OUT,">/JEPS-master/CCH/Loaders/UCSC/UCSC_out.txt") || die;
+open(OUT2,">/JEPS-master/CCH/Loaders/UCSC/UCSC_AID.txt") || die; #text file for UCSC accession conversion from leading zeros to no leading zeros
+open(OUT3,">/JEPS-master/CCH/Loaders/UCSC/AID_GUID_UCSC.txt") || die; #text file for OBI accession conversion 
+open(TEMP,">$temp_file") || die;
 #log.txt is used by logging subroutines in CCH.pm
 my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
@@ -871,6 +871,9 @@ my $identificationRemarks;
 my $det_orig;
 my $tempName;
 my $catnon;
+my %GUID_sym;
+my $GUID_sym;
+my $catnum;
 
 		$line_store=$_;
 		++$count;		
@@ -1042,8 +1045,15 @@ foreach ($informationWithheld){
 
 ################ACCESSION_ID#############
 
-#remove any white space
-foreach ($catalogNumber){
+$id = $catalogNumber;
+$catnum = $catalogNumber;  #the record ID format for all OBI specimens in these data
+
+#remove leading zeroes, 
+	if($catnum=~m/UCSC0+/){
+		$catnum=~s/UCSC0+/UCSC/;
+	}
+
+foreach ($catnum){
 	s/ //g;	#remove all spaces 
 	s/ucsc/UCSC/;	#fix lower case errors
 	s/uCSC/UCSC/;
@@ -1051,50 +1061,51 @@ foreach ($catalogNumber){
 	s/^00010261/UCSC00010261/;	#fix one case where code is left off	
 }
 
-$GUID_old{'$catalogNumber'}=$occurrenceID;
 
-
-$id = $catalogNumber;
-#remove leading zeroes, 
-	if($id=~m/UCSC0+/){
-		$id=~s/UCSC0+/UCSC/;
-	}
-	else{
-		&log_change("CATALOG NUMBER: NOT modified\t$id");
-	}
-
-	
 #check for nulls
-if($id =~ m/^UCSC\d+/){
-#do nothing
+if($catnum !~ m/^UCSC\d+/){ 
+	#$catnum = $idnum; #use only if  herbarium wants to change to the SEINET unique record ID for the catalog number
+	warn "Missing catalogNumber number:\t$id\n";
+	&log_skip("ACCESSION: Catalog number missing or problematic, skipped==>$_");
+	++$skipped{one};
+	next Record;
 }
-else{
-	&log_change("CATALOG NUMBER: No catalog number $_");
-	$id = "UCSC$id_nonCode";
-	}
-
-$GUID{'$id'}=$occurrenceID;
-
-
-
-
 
 
 #Remove duplicates
-if($seen{$id}++){
-	warn "Duplicate number: $id<\n";
-	&log_change("Duplicate ID number==>$id, $catnon");
-	$id = "UCSC$id_nonCode"; #change to the SEINET unique record ID for the catalog number 
-	#++$skipped{one}; #dont skip the record
-	#next Record;
+if($id =~ m/^UCSC0+/){ 
+	if($seen{$catnum}++){
+	warn "Catalog number is a duplicate with another record without leading zeros: $catnum\t$id\n";
+	&log_skip("ACCESSION: Catalog number is a duplicate with another record without leading zeros, skipped==>$catnum\t$id");
+	++$skipped{one};
+	next Record;
+	}
+}
+else {
+	if($seen{$catnum}++){
+	warn "Duplicate number: \t$id\n";
+	&log_skip("ACCESSION: Duplicate ID number, skipped==>$id");
+	++$skipped{one};
+	next Record;
+	}
 }
 
-foreach ($id){
-	print OUT2 "$id\t$catalogNumber\t$id_nonCode\n";
+foreach ($catalogNumber){
+	print OUT2 "$catnum\t".$catalogNumber."\t$id_nonCode\n";
 }
 
-print OUT3 "$id\t$GUID{'$id'}\n";
-print OUT3 "$catalogNumber\t$GUID_old{'$catalogNumber'}\n";
+
+
+
+$GUID_old{'$id'}=$occurrenceID;
+
+$GUID{'$catnum'}=$occurrenceID;
+
+$GUID_sym{'$id_nonCode'}=$occurrenceID;
+
+print OUT3 "$catnum\t$GUID{'$catnum'}\n";
+print OUT3 "$id\t$GUID_old{'$id'}\n";
+print OUT3 $institutionCode.$id_nonCode."\t".$GUID_sym{'$id_nonCode'}."\n";
 
 ##########Begin validation of scientific names
 
@@ -1139,10 +1150,10 @@ foreach ($name,$verbatimScientificName){
 #	s/ spp. / subsp. /g;
 #	s/ ssp / subsp. /g;
 #	s/ ssp. / subsp. /g;
-#	s/ var / var. /g;
+	s/pro\. +sp\.//g;
 	s/[uU]nknown/ /g; #added to try to remove the word "unknown" for some records
 	s/;$//g;
-#	s/cf.//g;
+	s/ ined\.//g;
 	s/ [xX×] / X /;	#change  " x " or " X " to the multiplication sign
 	s/[×] /X /;	#change  " x " in genus name to the multiplication sign
 	s/No name/ /g;
@@ -1165,7 +1176,9 @@ foreach ($name,$verbatimScientificName){
 		$tempName = $name;
 	}
 	elsif((length($name) == 0) && (length($verbatimScientificName) >= 1)){ 
-		$tempName = $verbatimScientificName;
+		&log_skip("TAXON: Taxon problem, name missing from name field, verbatim $verbatimScientificName only==>($name)\t($verbatimScientificName)\t$id");
+		next Record;
+		$tempName = "";
 	}
 	else{
 		&log_skip("TAXON: Taxon problem, name NULL==>($name)\t($verbatimScientificName)\t$id");
@@ -1177,132 +1190,163 @@ foreach ($name,$verbatimScientificName){
 
 #Fix records with unpublished or problematic name determination that should not be fixed in AlterNames
 #allows name to pass through to CCH; the name is only corrected herein and not global in case name is published
-if (($id_nonCode =~ m/^(14294018|14294026)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC11113|UCSC11112)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Piperia unalascensis subsp\. unalascensis/Platanthera unalascensis subsp\. unalascensis/; #fix special case
 	&log_change("Scientific name error - No published subtaxa within Piperia unalascensis, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(13310497|13752157|13752300|14451857)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10667|UCSC10666|UCSC10690|UCSC11160)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium wormskioldii subsp\. spinulosum/Trifolium wormskioldii/; #fix special case
 	&log_change("Scientific name error - Trifolium wormskioldii subsp. spinulosum not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(10422846)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10515)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium ciliolatum var\. discolor/Trifolium ciliolatum/; #fix special case
 	&log_change("Scientific name error - Trifolium ciliolatum var. discolor not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(14386533|14386576|14386598|14386616|14386647|14386668)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC4759|UCSC5261|UCSC5263|UCSC5301|UCSC5400|UCSC6308|UCSC6309|UCSC6316|UCSC10322|UCSC10323|UCSC10324|UCSC10325|UCSC10326|UCSC10327)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium depauperatum var\. crypticum/Trifolium depauperatum/; #fix special case
 	&log_change("Scientific name error - Trifolium depauperatum var. crypticum not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(11100967|11100975|11100981|11100988|14409655|14409658|14409661)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC6021|UCSC0*10330|UCSC0*10329|UCSC0*10328|UCSC0*10331|UCSC0*10334|UCSC0*10333|UCSC0*10332)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium fucatum var\. pictum/Trifolium fucatum/; #fix special case
 	&log_change("Scientific name error - Trifolium fucatum var. pictum not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(14176621|15384265|15384424|15384551|15384615)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC4754|UCSC4769|UCSC5276|UCSC5277|UCSC5908|UCSC5909|UCSC6021)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Trifolium fucatum var\. grande/Trifolium fucatum/; #fix special case
+	&log_change("Scientific name error - Trifolium fucatum var. pictum not a published name, modified to\t$tempName\t--\t$id\n");
+}
+
+if (($catnum =~ m/^(UCSC0*10628|UCSC0*10629|UCSC0*10630|UCSC0*10631|UCSC10881)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium imberbe var\. gianonei/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium imberbe var. gianonei not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(15383253|15383424|15383596|15383632)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC0*10632|UCSC0*10633|UCSC0*10634|UCSC0*10635)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium imberbe var\. imberbe/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium imberbe var. imberbe not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(14176689|13682826|9428624)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC0*10860|UCSC0*8475|UCSC0*10878)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium imberbe/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium imberbe not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(15476739|15476753|15476766|15476784|15477475)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC0*10640|UCSC0*10641|UCSC0*10642|UCSC0*10643|UCSC0*10644|UCSC10435|)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium janus var\. jolonense/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium janus var. jolonense not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(11176042|12654413|12654459|12654467|14409914|9428439)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC0*10441|UCSC0*10434|UCSC0*10435|UCSC0*10442|UCSC0*10440|UCSC0*6092|UCSC0*6091|UCSC0*8287)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium janus/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium janus not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(9428533|9428538|9428539|9428540|9428541|9428542|9428543)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC0*8384|UCSC0*8384|UCSC0*8389|UCSC0*8390|UCSC0*8391|UCSC0*8392|UCSC0*8393|UCSC0*8394|UCSC0*8394)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium junior var\. minor/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium janus not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(14410127)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC0*11028)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium olivaceum var\. viride/Trifolium olivaceum/; #fix special case
 	&log_change("Scientific name error - Trifolium olivaceum var. viride not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(9425296|9425894|9426674)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC9370|UCSC9383|UCSC9507)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Trifolium fax/Trifolium/; #fix special case
+	&log_change("Scientific name error - Trifolium fax not a published name, modified to\t$tempName\t--\t$id\n");
+}
+if (($catnum =~ m/^(UCSC0*6150|UCSC0*11134|UCSC0*5361|UCSC4758|UCSC5362)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium stenophyllum var\. minutiflorum/Trifolium stenophyllum/; #fix special case
 	&log_change("Scientific name error - Trifolium stenophyllum var. minutiflorum not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(11179468|12759017|14176592|14294062|9422972|9425298|9425709|9425813|9425832|9425893|9425901|9425908|9426199|9426269|9426713|9426864|9427442)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10507|UCSC10508|UCSC10920|UCSC11090|UCSC1701|UCSC4760|UCSC5176|UCSC5280|UCSC5299|UCSC5361|UCSC5369|UCSC5376|UCSC5675|UCSC5745|UCSC6189|UCSC6349|UCSC7080)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium stenophyllum var\. stenophyllum/Trifolium stenophyllum/; #fix special case
 	&log_change("Scientific name error - Trifolium stenophyllum var. stenophyllum not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(9426827|9426837)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC0*11132|UCSC0*11135|UCSC0*6322|UCSC0*6312)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium stenophyllum var\. truncatum/Trifolium stenophyllum/; #fix special case
 	&log_change("Scientific name error - Trifolium stenophyllum var. truncatum not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(14410014|14410096|14410118|14410144|14410161)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10308|UCSC10309|UCSC10310|UCSC10311|UCSC10312)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium willdenovii var\. ahartii/Trifolium willdenovii/; #fix special case
 	&log_change("Scientific name error - Trifolium willdenovii var. ahartii not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(12777001|12777002|12777003)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC0*10570|UCSC0*10568|UCSC0*10569)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium bayense/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium bayense not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(14063303|14063507|9428770)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10649|UCSC10683|UCSC8626)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium griseum/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium griseum not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(13245320|13245381|13245387|13245398)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10588|UCSC10589|UCSC10590|UCSC10591|UCSC10624|UCSC10625|UCSC10626|UCSC10627)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium lazarus/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium lazarus not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(13244094|13244095|13244097|13244101|13284265)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC8473|UCSC8476|UCSC9009|UCSC10425|UCSC10426|UCSC10427|UCSC10430|UCSC10433|UCSC10651|UCSC10652|UCSC10653|UCSC10654|UCSC10655|UCSC10679|UCSC10680|UCSC10681|UCSC10682|UCSC10684|UCSC10685|UCSC10699)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium obispoense/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium obispoense not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(11176012|12654520|12758981|12758993|13283554|13283627)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC6093|UCSC6026|UCSC6020)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Trifolium paravirens var\. boreale/Trifolium/; #fix special case
+	&log_change("Scientific name error - Trifolium paravirens not a published name, modified to\t$tempName\t--\t$id\n");
+}
+if (($catnum =~ m/^(UCSC10053|UCSC10411|UCSC10412|UCSC10509|UCSC10510|UCSC10703|UCSC10704|UCSC4744|UCSC5368|UCSC6007)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium paravirens/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium paravirens not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(12776950|12776959|12776968|12776970|12776999|13243997|13244001|13244005|14176759)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10558|UCSC10559|UCSC10560|UCSC10562|UCSC10576|UCSC10650|UCSC10656|UCSC10657|UCSC10913)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium rupicola/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium rupicola not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(12410058)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10359)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium sivlestre/Trifolium/; #fix special case
-	&log_change("Scientific name error - Trifolium silvestre not a published name, modified to\t$tempName\t--\t$id\n");
+	&log_change("Scientific name error - Trifolium sivlestre not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(11180694|12409882|12409980|12410130|12776979|12776986|12776992|12776995|12776998|14410013|12410058)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10356|UCSC10357|UCSC10358|UCSC10360|UCSC10571|UCSC10572|UCSC10573|UCSC10574|UCSC10575|UCSC11031)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium silvestre/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium silvestre not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(12410204)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10361)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolim silvestre/Trifolium/; #fix special case
-	&log_change("Scientific name error - Trifolium silvestre not a published name, modified to\t$tempName\t--\t$id\n");
+	&log_change("Scientific name error - Trifolim silvestre not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(9429220|9429519|9429521|9429522)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC9080|UCSC9379|UCSC9381|UCSC9382)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium turbinatum/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium turbinatum not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(12777307|12777322|12777325|12777328|9428585|9428586|9428595|9428596|9428597|9428598|9428599|9428619)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10561|UCSC10563|UCSC10564|UCSC10565|UCSC8436|UCSC8437|UCSC8446|UCSC8447|UCSC8448|UCSC8449|UCSC8450|UCSC8470)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Trifolium ultramaficum/Trifolium/; #fix special case
 	&log_change("Scientific name error - Trifolium ultramaficum not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(9427779|9427900|9427977)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC7544|UCSC7421|UCSC7622)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Pseudognaphalium gianonei/Pseudognaphalium/; #fix special case
 	&log_change("Scientific name error - Pseudognaphalium gianonei not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(9427966|9427968)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC7613|UCSC7611)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Nemophila gianonei/Nemophila/; #fix special case
 	&log_change("Scientific name error - Nemophila gianonei not a published name, modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(9430125)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC10089)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Mondardella glomeratum/Monardella undulata/; #fix special case
 	&log_change("Scientific name error - Monardella glomeratum not published, probably not Cerastium glomeratum Thuill., modified to\t$tempName\t--\t$id\n");
 }
-if (($id_nonCode =~ m/^(13173284)$/) && (length($TID{$tempName}) == 0)){ 
+if (($catnum =~ m/^(UCSC8357|UCSC9135)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Quercus X wootteni/Quercus/; #fix special case
 	&log_change("Scientific name error - Quercus X wootteni not a published name, modified to\t$tempName\t--\t$id\n");
 }
-
-
+if (($catnum =~ m/^(UCSC10636|UCSC10637|UCSC10638|UCSC10639)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Trifolium buckwestiorum var\. nanum/Trifolium buckwestiorum/; #fix special case
+	&log_change("Scientific name error - Trifolium buckwestiorum var. nanum not a published name, modified to\t$tempName\t--\t$id\n");
+}
+if (($catnum =~ m/^(UCSC9380)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Trifolium californicum var\. hirsutum/Trifolium californicum/; #fix special case
+	&log_change("Scientific name error - Trifolium californicum var. hirsutum not a published name, modified to\t$tempName\t--\t$id\n");
+}
+if (($catnum =~ m/^(UCSC11128|UCSC11129)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Trifolium obtusiflorum var\. latifolium/Trifolium obtusiflorum/; #fix special case
+	&log_change("Scientific name error - Trifolium obtusiflorum var. latifolium not a published name, modified to\t$tempName\t--\t$id\n");
+}
+if (($catnum =~ m/^(UCSC6042|UCSC5367|UCSC5385|UCSC6380)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Trifolium minor .*/Trifolium/; #fix special case
+	&log_change("Scientific name error - Trifolium minor, T. m. var. madonna and T. m. var. major not published names, modified to\t$tempName\t--\t$id\n");
+}
+if (($catnum =~ m/^(UCSC10645|UCSC10646|UCSC10647|UCSC10648)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Trifolium lilacinum var. solano/Trifolium lilacinum/; #fix special case
+	&log_change("Scientific name error - Trifolium lilacinum var. solano not a published name, modified to\t$tempName\t--\t$id\n");
+}
 
 #format hybrid names
 if($tempName=~m/([A-Z][a-z-]+ [a-z-]+) X /){
@@ -1363,10 +1407,10 @@ foreach ($cultivationStatus){
 
 
 # flag known problematic cultivated specimens that have been missed in the past, add "P" for purple flag to Cultivated field in case it is still being skipped	
-	if(($cultivationStatus !~ m/^(1|P)$/) && ($id =~ m/^(4604252|6328916|10887586|10719982|5581928|863212|893304|768990|10609192|10894381|10948816|10520203|10604471|10604540|4133804|10546740|10546609|892656|892658|10485622|4604252|10532490|10531499|10794454|10612368|10825513|7880454|7880453|1907402|1907440|955757|10717813|956247|10970534|10870705|10745264|5765061|741645|956162)$/)){
-		$cultivationStatus = "P";
-		&log_change("CULT: Cultivated specimen with problematic locality data, now purple flagged==>$cultivationStatus)\t($scientificName)\t$id\n");	
-	}
+	#if(($cultivationStatus !~ m/^(1|P)$/) && ($id =~ m/^()$/)){
+	#	$cultivationStatus = "P";
+	#	&log_change("CULT: Cultivated specimen with problematic locality data, now purple flagged==>$cultivationStatus)\t($scientificName)\t$id\n");	
+	#}
 
 
 ##########COLLECTION DATE##########
@@ -1388,63 +1432,74 @@ foreach ($eventDate){
 	s/-00$/-/g;	#julian date processor cannot handle 00 as filler for missing values
 	s/,/ /g;
 	s/\./ /g;
-	s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-	s/^ $//;
+	s/^ *//g;
+	s/ *$//g;
+	s/  +//g;
 	}
 	
 foreach ($verbatimEventDate){
 	s/0000//g;
 	s/,/ /g;
 	s/\./ /g;
-	s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-	s/^ $//;
+	s/^ *//g;
+	s/ *$//g;
+	s/  +//g;
 	}
 
 foreach ($year){
-	s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-	s/^ $//;
+	s/^ *//g;
+	s/ *$//g;
+	s/  +//g;
 }
+
 foreach ($day){
 	s/^0$//g;
+	s/^ *//g;
+	s/ *$//g;
 	s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-	s/^ $//;
 }
 
 foreach ($month){
 	s/^0$//g;
+	s/^ *//g;
+	s/ *$//g;
 	s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-	s/^ $//;
-}	
+	}
+
+
+#fix some odd date errors
+
+#if (($catnum =~ m/^(OBI80566)$/) && ($verbatimEventDate=~m/^2\?3 May 1992/i)){
+#	&log_change("Date: error, EventDate and Y M D fields not parsed correctly and an error present in verbatim date ==>$verbatimEventDate\t$eventDate==>$id\n");
+
+#	$verbatimEventDate = "2-3 May 1992";
+#	$eventDate = ""; #event date incorrect, now NULL; parser will use corrected verbatim date
+#}
+
 
 #combine dates for values that are in the split date fields, and to a 3rd date field
 	if((length($year) > 1) && (length($day) >= 1) && (length($month_rev) >= 1)){
-		$eventDate_parse = $year ."-" . $month_rev . "-". $day;
+			$eventDate_parse = $year ."-" . $month_rev . "-". $day;
+			&log_change("Date parse (1): $year-$month-$day==>$id\n");
 		}
 	elsif((length($year) > 1) && (length($day) == 0) && (length($month_rev) >= 1)){
 		$eventDate_parse = $year ."-" . $month_rev;
+			&log_change("Date parse (2): $year-$month-$day==>$id\n");
 		}
 	elsif((length($year) > 1) && (length($day) == 0) && (length($month_rev) == 0)){
 		$eventDate_parse = $year;
+			&log_change("Date parse (3): $year-$month-$day==>$id\n");
 		}
 	elsif((length($year) > 1) && (length($day) >= 1) && (length($month_rev) == 0)){
 		$eventDate_parse = $year;
+					&log_change("Date parse (4): $year-$month-$day==>$id\n");
 		}
 	elsif((length($year)== 0) && (length($day) == 0) && (length($month_rev) == 0)){
 		$eventDate_parse = "";
-		&log_change("Date: YYYY-MM-DD fields NULL\t$id\n");
+		&log_change("Date: YYYY-MM-DD fields NULL==>$id\n");
 		}
 	else{
-		&log_change("Date: YYYY-MM-DD fields missing values, cannot process: Y($year)-M($month)-D($day)\t$id\n");
+		&log_change("Date: YYYY-MM-DD fields missing values, cannot process: Y($year)-M($month)-D($day)==>$id\n");
 		$eventDate_parse = "";
 	}
 
@@ -1454,16 +1509,15 @@ foreach ($eventDate_parse){
 	s/-00$/-/g;
 	s/-0-/--/g;	#julian date processor cannot handle 00 as filler for missing values
 	s/-0$/-/g;
+	s/^ *//g;
+	s/ *$//g;
 	s/  +/ /g;
-	s/^ +//;		
-	s/ +$//;	
-	s/^ $//;
 }	
 
 
 #find what fields have a date value, choose one and add to $eventDateAlt
 	if((length($eventDate) > 1) && (length($verbatimEventDate) > 1) && (length($eventDate_parse) > 1)){
-		$eventDateAlt = $eventDate_parse;
+		$eventDateAlt = $eventDate;
 		&log_change("Date (1): eventDate selected for\t$id\n");
 		}
 	elsif((length($eventDate) > 1) && (length($verbatimEventDate) == 0) && (length($eventDate_parse) == 0)){
@@ -1474,24 +1528,28 @@ foreach ($eventDate_parse){
 		$eventDateAlt = $verbatimEventDate;
 		&log_change("Date (3): alternate fields empty, verbatimEventDate selected for\t$id\n");
 		}
+	elsif((length($eventDate) == 0) && ($verbatimEventDate =~ m/^\d+-\d+/) && (length($eventDate_parse) > 1)){
+		$eventDateAlt = $verbatimEventDate;
+		&log_change("Date (4): date range detected in verbatim date field, Y M D fields skipped, verbatimEventDate selected for\t$id\n");
+		}
 	elsif((length($eventDate) == 0) && (length($verbatimEventDate) == 0) && (length($eventDate_parse) > 1)){
 		$eventDateAlt = $eventDate_parse;
-		&log_change("Date (4): alternate fields empty, eventDate_parse selected for\t$id\n");
+		&log_change("Date (5): alternate fields empty, eventDate_parse selected for\t$id\n");
 		}
 	elsif((length($eventDate) > 1) && (length($verbatimEventDate) == 0) && (length($eventDate_parse) > 1)){
 		$eventDateAlt = $eventDate;
-		&log_change("Date (5): verbatimEventDate empty, eventDate selected for\t$id\n");
+		&log_change("Date (6): verbatimEventDate empty, eventDate selected for\t$id\n");
 		}
 	elsif((length($eventDate) > 1) && (length($verbatimEventDate) >= 1) && (length($eventDate_parse) == 0)){
 		$eventDateAlt = $eventDate;
-		&log_change("Date (6): eventDate selected for\t$id\n");
+		&log_change("Date (7): eventDate selected for\t$id\n");
 		}
 	elsif((length($eventDate) == 0) && (length($verbatimEventDate) == 0) && (length($eventDate_parse) == 0)){
 		$eventDateAlt = "";
 		&log_change("Date NULL: all date fields without data\t$id\n");
 		}
 	else{
-		&log_change("Date problem, cannot process: ($eventDate)\t($verbatimEventDate)\t($eventDate_parse)\t$id\n");
+		&log_change("Date problem, cannot process: ($eventDate)\t($verbatimEventDate)\t($eventDate_parse)\t\t$id\n");
 		$eventDateAlt="";
 	}
 
@@ -1634,7 +1692,7 @@ foreach ($eventDate_parse){
 		$DD2 = "31";
 	warn "(15)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{4})$/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{4})$/){
 		$DD = "";
 		$MM = $1;
 		$YYYY=$2;
@@ -1642,7 +1700,7 @@ foreach ($eventDate_parse){
 		$DD2 = "";
 	warn "(5)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{2})([0-9]{4})$/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{2})([0-9]{4})$/){
 		$DD = $2;
 		$MM = $1;
 		$YYYY= $3;
@@ -1666,7 +1724,7 @@ foreach ($eventDate_parse){
 		$MM="";
 	#warn "(18)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([0-9]{4})-([0-9]{1,2})[- ]*$/){
+	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([0-9]{1,2})[- ]*$/){
 		$MM=$2;
 		$YYYY=$1;
 		$MM2 = "";
@@ -1961,7 +2019,7 @@ foreach($tempCounty){
 
 
 #fix additional problematic counties
-	if(($id_nonCode=~/^14626935$/) && ($tempCounty=~m/Selena/)){ #fix some really problematic county records
+	if(($catnum=~/^UCSC11171$/) && ($tempCounty=~m/Selena/)){ #fix some really problematic county records
 #14626935	UCSC			PreservedSpecimen	f1906d65-ae00-4253-9075-2bc4396a50bb	UCSC011171		Plantae	Magnoliophyta		Fabales	Fabaceae	Trifolium willdenovii	Sprengel	Trifolium	willdenovii										Randy Morgan			4370	2005-04-07	2005	4	7	97			Abundant at Coyote Ridge, same form as in Hamilton Range																		USA	California	Selena		Coyote Ridge																						ebarnett	2017-06-15 14:25:50		313	urn:uuid:f1906d65-ae00-4253-9075-2bc4396a50bb	http://swbiodiversity.org/seinet/collections/individual/index.php?occid=14626935
 		$tempCounty=~s/Selena/Santa Clara/;
 		$locality=~s/^.*$/Selena, Coyote Ridge/;	
@@ -2337,13 +2395,24 @@ foreach ($latitude, $longitude){
 
 #fix some problematic records with bad latitude and longitude in home database
 
-if (($id =~ m/^(UCSC8353)$/) && ($longitude =~ m/121\./)){ 
+if (($catnum =~ m/^(UCSC8353)$/) && ($longitude =~ m/121\./)){ 
 #9428502	UCSC			PreservedSpecimen	802050e1-d75f-4537-8262-682aeb9a95dd	UCSC008353	8353	Plantae	Magnoliophyta		Fabales	Fabaceae	Trifolium monanthum var. monanthum	A. Gray	Trifolium	monanthum	var.	monanthum								Lowell Ahart			11259	2004-07-17	2004	7	17	199		17-Jul-04	On dry soil, near a small stream. Normal size plants, on dry soil. Uncommon, flowers white, mixed evergreen forest.																		United States	California	Nevada		Very upper reaches of Steephollow Creek, about 100 yards west of Highway 20 and Lowell Hill Road, about 2 miles northwest of Bear Valley, about 3 miles southeast of the Omega Rest Area, about 16 air miles northeast of Nevada City				39.306028	-121.714528			T17N, R11E SW 1/4 Section 26						1463					4800 ft			Emily Barnett	2016-05-20 19:58:37		313	urn:uuid:802050e1-d75f-4537-8262-682aeb9a95dd	http://swbiodiversity.org/seinet/collections/individual/index.php?occid=9428502
 	$latitude = "39.306028";
 	$longitude = "-120.714528";
 	&log_change("COORD: latitude and longitude ($verbatimLatitude; $verbatimLongitude) in error, maps N of Yuba City in Sutter County, coordinates changed to ($latitude; $longitude)==>$county\t$location\t--\t$id\n");
 	#the original is in error and maps to the Sacramento Valley bioregion, N of Yuba City in Yuba County, causing a yellow flag
 }
+if (($catnum =~ m/^(UCSC8942)$/) && ($latitude =~ m/36\.0/)){ 
+#9429084	UCSC			PreservedSpecimen	f98d3689-4695-4d63-a0ec-deb99ba4d073	UCSC008942	8942	Plantae	Magnoliophyta		Liliales	Liliaceae	Scoliopus bigelovii	Torr.	Scoliopus	bigelovii										Timothy Kang			Kang 013	2015-02-13	2015	2	13	44		13-Feb-15	Plant 19cm tall. On slope with humus, sandy loam soil. In herb layer of grove understory of redwood, Quercus agrifolia, Bay Laurel. Associated species: S. mollis, C. praegracilis, T. ovatum.																		United States	California	Santa Cruz		Santa Cruz, Grove along west side of Empire Grade, near UC Santa Cruz west entrance.				36.059616	-122.124751	WGS84														Plant Systematics			2016-05-20 19:58:37		313	urn:uuid:f98d3689-4695-4d63-a0ec-deb99ba4d073	http://nansh.org/portal/collections/individual/index.php?occid=9429084
+#copied from UCSB22607==>36.99480 -122.06922
+	$georeferenceSource = "(copied from UCSB22607)";
+	$latitude = "36.9948";
+	$longitude = "-122.06922";
+	&log_change("COORD: latitude and longitude ($verbatimLatitude; $verbatimLongitude) in error, maps into the Pacific Ocean, coordinates changed to ($latitude; $longitude)==>$county\t$location\t--\t$id\n");
+	#the original is in error and maps maps into the Pacific Ocean, causing a yellow flag
+}
+
+
 
 
 #use combined Lat/Long field format for UCSC
@@ -2804,7 +2873,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'UCSC_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/UCSC/UCSC_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){
