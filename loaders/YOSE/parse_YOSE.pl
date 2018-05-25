@@ -19,19 +19,19 @@ while(<DATA>){
 	$fields[3]=~s/,//;
 	$max_elev{$fields[1]}=$fields[3];
 }
-open(IN,"/users/rlmoe/CDL_buffer/buffer/tnoan.out") || die;
+open(IN,"/Users/davidbaxter/DATA/smasch_taxon_ids.txt") || die;
 while(<IN>){
 	chomp;
 	s/^.*\t//;
 	$taxon{$_}++;
 }
-open(IN,"../CDL/riv_non_vasc") || die;
+open(IN,"/Users/davidbaxter/DATA/mosses") || die;
 while(<IN>){
 	chomp;
 	$exclude{$_}++;
 }
 
-open(IN,"../CDL/alter_names") || die;
+open(IN,"/Users/davidbaxter/DATA/alter_names") || die;
 while(<IN>){
 	chomp;
 	next unless ($riv,$smasch)=m/(.*)\t(.*)/;
@@ -39,9 +39,10 @@ while(<IN>){
 }
 
 $/="\n";
-open(IN,"YOSE_2011.tab.csv") || die;
+open(IN,"FY2014_CCH_data.csv") || die;
+#open(IN,"YOSE_2011.tab.csv") || die;
 #open(IN,"new_y.csv") || die;
-open(OUT,">YOSE_data.tab") || die;
+open(OUT,">YM.out") || die;
 open(ERR,">YOSE_data.err") || die;
 
 RECORD:
@@ -49,8 +50,9 @@ while(<IN>){
 $line=$_;
 	s/^"//;
 	s/"$//;
-	s/\t"/\t/g;
-	s/"\t/\t/g;
+#	s/\t"/\t/g;
+#	s/"\t/\t/g;
+	s/","/\t/g; #in 2014, they gave it as comma-separated instead of tab-separated
 	chomp;
 	@fields=split(/\t/,$_,100);
 if ($fields[2]=~/Paleo/i){
@@ -156,12 +158,12 @@ $name=~s/  */ /g;
 $name=~s/ sp\.//;
 $name=~s/ $//;
 
-			if($name=~/([A-Z][a-z-]+ [a-z-]+) � /){
+			if($name=~/([A-Z][a-z-]+ [a-z-]+) ◊ /){
 				$hybrid_annotation=$name;
 				warn "$1 from $name\n";
 				$name=$1;
 			}
-			elsif($name=~/([A-Z][a-z-]+ [a-z-]+ (var\.|subsp\.) [a-z-]+) � /){
+			elsif($name=~/([A-Z][a-z-]+ [a-z-]+ (var\.|subsp\.) [a-z-]+) ◊ /){
 				$hybrid_annotation=$name;
 				warn "$1 from $name\n";
 				$name=$1;
@@ -442,10 +444,10 @@ s/Hook\. f./Hook./g;
 s/Rech\. f./Rech./g;
 s/Schult\. f./Schult./g;
 s/Schultes f./Schultes/g;
-#Name: Quercus ×macdonaldii Greene
+#Name: Quercus √ómacdonaldii Greene
 s/^([A-Z][A-Za-z]+) (X?[-a-z]+).*(subsp\.|ssp\.|var\.|f\.) ([-a-z]+).*/$1 $2 $3 $4/ ||
-s/^([A-Z][A-Za-z]+) × ?([-a-z]+) .+/$1 × $2/||
-s/^([A-Z][A-Za-z]+) × ?([-a-z]+)/$1 × $2/||
+s/^([A-Z][A-Za-z]+) √ó ?([-a-z]+) .+/$1 √ó $2/||
+s/^([A-Z][A-Za-z]+) √ó ?([-a-z]+)/$1 √ó $2/||
 s/^([A-Z][A-Za-z]+) (X?[-a-z]+) .+/$1 $2/||
 s/^([A-Z][A-Za-z]+) (indet\.|sp\.)/$1 indet./||
 s/^([A-Z][A-Za-z]+) (X?[-a-z]+)/$1 $2/||
