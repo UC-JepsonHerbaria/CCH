@@ -1,35 +1,11 @@
-#consort_bulkload.pl
 @time=localtime(time);
 $this_year=$time[5] + 1900;
-
-open(IN, "/Users/richardmoe/4_CDL_BUFFER/smasch/mosses") || die;
-while(<IN>){
-        chomp;
-s/\t.*//;
-        s/ .*//;
-        $exclude{$_}++;
-}
-close(IN);
-
-
 open(IN, "CDL_skip_these" ) || die;
 while(<IN>){
-	chomp;
-	$skip_it{$_}++;
+chomp;
+$skip_it{$_}++;
 }
 close(IN);
-{
-local($/)="";
-open(IN, "/Users/richardmoe/4_data/Interchange/_input/cpn_out.txt" ) || die "couldn't get list of genera from CPN_out.txt";
-while(<IN>){
-($genus)=m/^([^ ]+)/;
-$seen_ICPN_genus{$genus}++;
-}
-}
-foreach (keys(%seen_ICPN_genus)){
-print if m/Catharanthus/;
-}
-
 use Smasch;
 open(WARNINGS,">consort_bulkload_warn") || die;
 #use utf8;
@@ -116,33 +92,27 @@ open(ERR, ">accent_err") || die;
 ######################################
 &load_collectors();
 &load_noauth_name();
-#&load_be();
+&load_be();
 
 
 #"revised_coords.out",
 
 #skip_genera
-open(IN, "/Users/richardmoe/4_CDL_BUFFER/smasch/mosses") || die;
+open(IN, "/Users/rlmoe/data/CDL/riv_non_vasc") || die;
 while(<IN>){
 chomp;
-s/ .*//;
 $non_vasc{$_}++;
 }
 @datafiles=(
-"SEINET.out",
-"ucla.out",
-"VV.out",
-"new_CAS",
-"OBI.out",
 "CDA_out",
+"new_CAS",
 "SD.out",
 "RSA_out_new.tab",
 "parse_sbbg_export.out",
 "IRVC_new.out",
 "parse_davis.out",
 "PG.out",
-"parse_riverside_2012.out",
-"parse_clark.out",
+ "parse_riverside_2012.out",
 "parse_chico.out",
 "parse_hsc.out",
 "SDSU_out_new",
@@ -151,14 +121,11 @@ $non_vasc{$_}++;
 "parse_csusb.out",
 "new_HUH",
 "YOSE_data.tab",
-"sagehen.txt",
-"UCSC_2012.out",
-"CSPACE.out",
-"JOTR.out",
-"UCSB.out",
-"SFV.out",
-"UCSCUCSB_from_smasch.txt"
+"sagehen.txt"
 );
+#@datafiles=(
+#"parse_chico.out"
+#);
 foreach $datafile (@datafiles){
 next if $datafile=~/#/;
 	#%seen_dups=();
@@ -570,14 +537,6 @@ $vdate=""; $JD=""; $EJD="";
 					$JD=julian_day($1, 1, 1);
 					$LJD=julian_day($2, 12, 31);
 					}
-			elsif(m|^(\d+)[*-](\d+)[*-]([12][0789]\d\d)$|){
-					$monthno=$monthno{$1};
-					$s_day_month=$2;
-					$year=$3;
-					$JD=julian_day($year, $monthno, $s_day_month);
-					$LJD=julian_day($year, $monthno, $s_day_month);
-#$par="11a";
-			}
 			else{
 				#warn "$hn Unexpected date; setting jdate to null $ds\n";
 				$null_date{$ds}=$hn;
@@ -607,58 +566,12 @@ $vdate=""; $JD=""; $EJD="";
 	if(m/Name: +(.*)/){
 		$old_name=$name=$1;
 		($gen=$name)=~s/ [a-z]+.*//;
-$gen=~s/ X$//;
-		if($exclude{$name}){
-warn "Excluded name: $name\n";
-			print WARNINGS "$hn EXCLUDED NAME" . $name, &strip_name($name) ."\n";
-			return(0);
-		}
-		if($exclude{$gen}){
-warn "Excluded name: $gen\n";
-			print WARNINGS "$hn EXCLUDED NAME" . $name, &strip_name($name) ."\n";
-			return(0);
-		}
-		if($name=~/^ *$/){
-warn "No name: $name\n";
-			print WARNINGS "$hn NO NAME" . $name, &strip_name($name) ."\n";
-			return(0);
-		}
-
-		if($name=~/aceae/){
-warn "FAMILY: $name\n";
-			print WARNINGS "$hn FAMILY" . $name, &strip_name($name) ."\n";
-			#return(0);
-		}
 		if($non_vasc{$gen}){
 			print WARNINGS "$hn THIS CAN'T BE STORED: NON VASC>" . $name, &strip_name($name) ."\n";
 			return(0);
 		}
-	unless($seen_ICPN_genus{$gen}){
-			#print WARNINGS "$hn $gen not in ICPN>" . $name, &strip_name($name) ."\n";
-			#warn "$hn $gen not in ICPN, but I continue $name\n";
-$not_in_ICPN{$gen}++;
-		}
 
 		foreach($name){
-s/([A-Z][a-z-]+) . ([a-z-]+)/$1 X $2/; 
-####################
-s/\327/X/g;
-####################
-  s/Antirrhinum vexillo-calyculatum subsp. breweri/Antirrhinum vexillocalyculatum subsp. breweri/;
-  s/Antirrhinum vexillo-calyculatum subsp. intermedium/Antirrhinum vexillocalyculatum subsp. intermedium/;
-  s/Antirrhinum vexillo-calyculatum subsp. vexillo-calyculatum/Antirrhinum vexillocalyculatum subsp. vexillocalyculatum/;
-  s/Antirrhinum vexillo-calyculatum/Antirrhinum vexillocalyculatum/;
-   s/Atriplex joaquiniana/Atriplex joaquinana/;
-  s/Gnaphalium luteo-album/Gnaphalium luteoalbum/;
-   s/Purshia stansburiana/Purshia stansburyana/;
-
-s/Calamagrostis canadensis var\. langsdorfii/Calamagrostis canadensis var\. langsdorffii/;
-s/Viola langsdorfii/Viola langsdorffii/;
-s/Sambucus cerulea var. cerulea/Sambucus caerulea var. caerulea/;
-s/Sambucus cerulea/Sambucus caerulea/;
-s/Croton setigerus/Croton setiger/;
-s/Quercus X moreha/Quercus X morehus/;
-s/Eremocarpus setigerus/Eremocarpus setiger/;
 s/Machaeranthera amophila/Machaeranthera ammophila/;
 		s/Eriophyllum lanatum var. achillaeoides/Eriophyllum lanatum var. achilleoides/;
 s/Linanthus pungens subsp. pulchriflorus/Leptodactylon pungens subsp. pulchriflorum/;
@@ -690,7 +603,6 @@ s/Arabis macdonaldiana/Arabis mcdonaldiana/;
 s/Castilleja gleasonii/Castilleja gleasoni/;
 s/Marah fabaceus var. agrestis/Marah fabacea var. agrestis/;
 s/Marah fabaceus/Marah fabacea/;
-s/Heuchera cespitosa/Heuchera caespitosa/;
 s/Marah horridus/Marah horrida/;
 s/Marah macrocarpus var. macrocarpus/Marah macrocarpa var. macrocarpa/;
 s/Marah macrocarpus var. major/Marah macrocarpa var. major/;
@@ -700,31 +612,19 @@ s/Monotropa hypopithys/Monotropa hypopitys/;
 s/Opuntia curvospina/Opuntia curvispina/;
 s/Ciclospermum/Cyclospermum/;
 s/kinselae/kinseliae/;
-s/Aster adscendens/Aster ascendens/;
-s/Crypsis niliaca/Crypsis niliacea/;
-s/Orobanche ludoviciana var. latilobus/Orobanche ludoviciana var. latiloba/;
-
-unless($seen_name{$name}++){
 		print "$old_name -> $name\n" unless $old_name eq $name;
-}
 		}
-if($name=~/Myoporum 'Pacificum'/){
-			$S_folder{'taxon_id'}= 93808;
-}
-		elsif($PARENT{&strip_name($name)}=~/^\d+$/){
+		if($PARENT{&strip_name($name)}=~/^\d+$/){
 			$S_folder{'taxon_id'}= $PARENT{&strip_name($name)};
 	#warn $T_line{'Name'}, &strip_name($name) ."\n";
 		}
 		else{
 			print WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with PARENT >" . $name, &strip_name($name) ."\n";
-			$stripped=  &strip_name($name);
-print "$hn cant find $name stripped as $stripped\n";
-return(0);
+			return(0);
 		}
 		unless($S_folder{'genus_id'}= $PARENT{&get_genus($name)}){
-			print  WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with >" . $name . "with respect to genus_id extraction\n";
-print "$hn $name genus problem\n";
-return(0);
+			print  WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with >" . $T_line{'Name'} . "with respect to genus_id extraction\n";
+			return(0);
 		}
 
 #$S_folder{'genus'}= &get_genus($T_line{'Name'});
@@ -817,7 +717,7 @@ print WARNINGS "$hn: coordinates nulled $S_accession{'loc_lat_decimal'} $S_acces
 		$S_accession{'loc_long_decimal'} = "";
 }
 }
-    #if($decimal_latitude > 42.1 || $decimal_latitude < 32.5 || $decimal_longitude > -114 || $decimal_longitude < -124.5){}
+    #if($decimal_latitude > 42.1 || $decimal_latitude < 32.5 || $decimal_longitude > -114 || $decimal_longitude < -124.5){
 
 	if($T_line{Country}){
 		$T_line{Country}="US" if $T_line{Country} eq "U.S.A.";
@@ -906,8 +806,7 @@ print WARNINGS "$hn: coordinates nulled $S_accession{'loc_lat_decimal'} $S_acces
 	$S_accession{'late_jdate'}= $LJD;
 	$S_accession{'catalog_date'} = $catdate;
 	$S_accession{'catalog_by'} = "Bload";
-	$S_accession{'lat_long_ref_source'}= $T_line{'Source'} if $T_line{'Source'};
-	$S_accession{'lat_long_ref_source'}= $T_line{'Lat_long_ref_source'} if $T_line{'Lat_long_ref_source'};
+	$S_accession{'lat_long_ref_source'}= $T_line{'Lat_long_ref_source'};
 	$S_accession{'max_error_distance'}= $T_line{'Max_error_distance'};
 	$S_accession{'max_error_units'}= $T_line{'Max_error_units'};
 	($S_accession{'inst_abbr'}=  $T_line{'Accession'})=~s/ *[-\d]+//;
@@ -1225,11 +1124,6 @@ foreach(keys(%null_date)){
 print OUT "bad date: $null_date{$_}: $_ \n";
 }
 close(OUT);
-open(OUT, ">not_in_icpn.txt") || die;
-foreach(sort(keys(%not_in_ICPN))){
-print OUT "$_ $not_in_ICPN{$_}\n";
-}
-close(OUT);
 #UND
 sub modify_collector {
 s/,? Jr\.?//;
@@ -1246,7 +1140,6 @@ s/&([a-z])[a-z]*;/$1/g;
 			s/^[A-Z]\. ?[A-Z]\. and [A-Z]\. ?[A-Z]\. (.*)/$1/;
 			s/^[A-Z]\. and [A-Z]\. (.*)/$1/;
 			s! \(?(w/|with|and|&) .*!!;
-			s! \[(w/|with|and|&) .*!!;
 			s/[;,] .*//;
 			#s/, .*//;
 			s/^.* //;
@@ -1263,9 +1156,6 @@ s/Åna/Ana/;
 s/.zelk.k/Ozelkuk/;
 s/\xC7anyon/Canyon/;
 s/River\x85on/River --- on/;
-s/\xc3\xa1/&aacute;/g;
-s/\xc3\xa2\xe2\x82\xac\xe2\x80\x9c/"/g;
-
 s/V\x87cr\x87t\x97t/V&aacute;cr&aacute;t&oacute;t/;
 s/\xC3\xA2\xE2\x82\xAC\xE2\x80\x9C/---/g;
 s/\xC3\x83\xC21\/4/&uuml;/g;
