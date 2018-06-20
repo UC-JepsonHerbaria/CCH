@@ -3,9 +3,10 @@
 $this_year=$time[5] + 1900;
 use Time::JulianDay;
 use Time::ParseDate;
+use Smasch;
 use lib '/Users/davidbaxter/DATA/';
 use CCH;
-use Smasch;
+#use strict;
 
 #there is a load_noauth_name in both Smasch.pm and CCH.pm.
 #this is using the CCH one
@@ -64,13 +65,13 @@ while (<IN>) {
 @datafiles=(
 "BLMAR_out.txt",
 "UCR_out.txt",
-"CAS_out.txt",
+"CAS.out",
 "CATA_out.txt",
-"CDA_out.txt",
-"CHSC_out.txt",
+"CDA.out",
+"CHSC.out",
 "CLARK_2015.out", #CLARK sends their files in confusing chunks, so I'm including the newest parse (2015) along with the last one (2014)
 "CLARK_2014.out",
-"CSPACE_out.txt",
+"CSPACE.out",
 "CSUSB.out",
 "GMDRC_out.txt",
 "HSC.out",
@@ -84,24 +85,24 @@ while (<IN>) {
 "OBI.out",
 "PASA.out",
 "PGM.out",
-"RSA_specify_out.txt", #load all files from RSA's current database load
-"RSA_fmp_out.txt", #then load any other records that are still only in their old FMP database
+"RSA_specify.out", #load all files from RSA's current database load
+"RSA_fmp.out", #then load any other records that are still only in their old FMP database
 "SACT.out",
 "SBBG.out",
-"SCFS_out.txt",
+"SCFS.txt",
 "SD_out.txt",
-"SDSU_out.txt",
-"SEINET_out.txt",
+"SDSU.out",
+"SEINET.out",
 "SFV.out",
 "SJSU.out",
-"UCD_out.txt",
+"UCD.out",
 "UCSB.out",
 "UCSB_from_smasch.txt", #if there are duplications in this from SMASCH file, the one from the other file will be taken since it is processed first in this list
-"UCSC_out.txt",
+"UCSC.out",
 "VVC.out",
 "YM.out"
 );
-$data_files_path = "data_files";
+$data_files_path = "/Users/davidbaxter/DATA/bulkload_data/data_files";
 
 foreach $datafile (@datafiles){
 	next if $datafile=~/#/;
@@ -175,19 +176,51 @@ $oc="";
 #1: $collector
 #EOP
 		foreach($collector){
-
+s/Z\372\361iga/Z&uacute;&ntilde;iga/g;
+			s/André/Andr&eacute;/;
+			s/Andrée/Andr&eacute;/;
+			s/AndrÈ/Andr&eacute;/;
+			s/AndrÔæé/Andr&eacute;/;
+			s/Beaupr√©/Beaupr&eacute;/;
+			s/Bo√´r/Bo&euml;r/;
+			s/Brinkmann-Busí/Brinkmann-Bus&eacute;/;
+			s/García/Garc&iacute;a/;
+			s/H√∂lzer/H&ouml;zer/;
+			s/LaPré/LaPr&eacute;/;
+			s/LaPrÈ/LaPr&eacute;/;
+			s/LaPrÔæé/LaPr&eacute;/;
+			s/LaPrÔøΩ/LaPr&eacute;/;
+			s/Laferri√®re/Laferri&egrave;re/;
+			s/Muñoz/Mu&ntilde;oz/;
+			s/MuÔæñoz/Mu&ntilde;oz/;
+			s/Niedermüller/Niederm&uuml;ller/;
+			s/Nordenskiöld/Nordenski&ouml;ld/;
+			s/Ord√≥√±ez/Ord&oacute;&ntilde;ez/;
+			s/OÔøΩ/O'/;
+			s/OÔøΩBerg/O'Berg/;
+			s/OÔøΩBrien/O'Brien/;
+			s/Peñalosa/Pe&ntilde;alosa/;
+			s/PeÒalosa/Pe&ntilde;alosa/;
 			s/Renée/Renee/;
 			s/RenÈe/Renee/;
 			s/Steve Boyd`/Steve Boyd/;
 			s/Vern` Yadon/Vern Yadon/;
-
+			s/Villanseñor/Villase&ntilde;or/;
+			s/Villaseñor/Villase&ntilde;or/;
+			s/VillaseÔæñor/Villase&ntilde;or/;
+			s/VillaseÒor/Villase&ntilde;or/;
 			s/“Corky”/"Corky"/;
 			s/ˇhorne/Thorne/;
 			
+			s/\xc3\xbc/&uuml;/g;
+			s/\xc3\xb1/&ntilde;/g;
 			s/\xc2\xbd/1\/2/g;
-
+			s/\xc3\xa9/&eacute;/g;
+			s/√±/&ntilde;/g;
 			s/\xc2\xbc/1\/4/g;
-
+			s/\xc3\xb6/&ouml;/g;
+			s/\xc3\xb3/&oacute;/g;
+			s/\xc3\xad/&iacute;/g;
 		
 			s/LaDoux/La Doux/; #because Tasha La Doux is sometimes incorrectly recorded as LaDoux
 		}
@@ -221,10 +254,16 @@ if($oc){
 			}
 		}
 
-
+		$collector=~s/\.([A-Z])/. $1/g;
+		$collector=~s/([A-Z]\.)([A-Z]) ([A-Z])/$1 $2. $3/;
+		$collector=~s/([A-Z]\.)([A-Z]\.)([A-Z]\.)/$1 $2 $3/g;
+		$collector=~s/([A-Z]\.)([A-Z]\.)/$1 $2/g;
+		$collector=~s/(Fr.)([A-Z]\.)/$1 $2/g;
+		$collector=~s/([A-Z]\.)([A-Z]')/$1 $2/g;
 		$collector=~s/Sent in for det: //;
 		$collector=~s/Submitted for det: //;
-
+		$collector=~s/(B. Crampton), 1247, May 11, 1953.*/$1/;
+		$collector=~s/R & J. Kniffen/R. Kniffen, J. Kniffen/;
 		$collector=~s/ s\.n.*//;
 		$collector=~s/Unknown, Bot. 108/unknown/;
 		$collector=~s/collector unknown/unknown/;
@@ -233,7 +272,7 @@ if($oc){
 		$collector=~s/,,/,/g;
 		$collector=~s/, others/, and others/;
 		$collector=~s/, C. N. P. S./, and C. N. P. S./;
-
+		$collector=~s/([A-Z]\.)(-[A-Z]\.)/$1 $2/;
 		$all_collectors=$collector;
 #print <<EOP;
 #6: $collector
@@ -272,13 +311,13 @@ if($vdate=~/([12][890]\d\d)/){
 $vyear=$1;
 if ($vyear < 1800){
 warn "BAD YEAR $vyear $_\n";
-				print WARNINGS "$hn Misentered date $vdate; setting jdate to null $ds\n";
-#$vdate=""; $JD=""; $EJD="";
+				print WARNINGS "Misentered date $vdate; setting jdate to null $ds\t--\t$hn\n";
+$vdate=""; $JD=""; $EJD="";
 }
 if ($vyear > $this_year){
 warn "BAD YEAR$vyear $_\n";
-				print WARNINGS "$hn Misentered date $vdate; setting jdate to null $ds\n";
-#$vdate=""; $JD=""; $EJD="";
+				print WARNINGS "$Misentered date $vdate; setting jdate to null $ds\t--\t$hn\n";
+$vdate=""; $JD=""; $EJD="";
 }
 }
 
@@ -292,7 +331,7 @@ warn "BAD YEAR$vyear $_\n";
 					$T_line{Date}=  "";
 					}
 			if($JD > $today_JD){
-				print WARNINGS "$hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
+				print WARNINGS "Misentered date $JD > $today_JD; setting jdate to null $ds\t--\t$hn\n";
 				$null_date{$ds}=$hn;
 				$LJD=$JD="";
 			}
@@ -321,12 +360,12 @@ if($vdate=~/([12][890]\d\d)/){
 $vyear=$1;
 if ($vyear < 1800){
 warn "BAD YEAR $vyear $_\n";
-				print WARNINGS "$hn Misentered date $vdate; setting jdate to null $ds\n";
+				print WARNINGS "Misentered date $vdate; setting jdate to null $ds\t--\t$hn\n";
 $vdate=""; $JD=""; $EJD="";
 }
 if ($vyear > $this_year){
 warn "BAD YEARav$year $_\n";
-				print WARNINGS "$hn Misentered date $vdate; setting jdate to null $ds\n";
+				print WARNINGS "Misentered date $vdate; setting jdate to null $ds\t--\t$hn\n";
 $vdate=""; $JD=""; $EJD="";
 }
 }
@@ -505,7 +544,7 @@ $vdate=""; $JD=""; $EJD="";
 				$LJD=$JD="";
 			}
 			if($JD > $today_JD){
-				print WARNINGS "$hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
+				print WARNINGS "Misentered date $JD > $today_JD; setting jdate to null $ds\t--\t$hn\n";
 				$null_date{$ds}=$hn;
 				$LJD=$JD="";
 			}
@@ -528,71 +567,203 @@ $vdate=""; $JD=""; $EJD="";
 	if(m/Name: +(.*)/){
 		$old_name=$name=$1;
 		($gen=$name)=~s/ [a-z]+.*//;
-$gen=~s/ X$//;
+		$gen=~s/ X$//;
+		
 		if($exclude{$name}){
-warn "Excluded name: $name\n";
-			print WARNINGS "$hn EXCLUDED NAME" . $name, &strip_name($name) ."\n";
+			warn "Excluded name found: $name\n";
+			print WARNINGS "EXCLUDED NAME FOUND:" . $name ."--\t$hn\n\n";
 			return(0);
-		}
+			}
 		if($exclude{$gen}){
-warn "Excluded name: $gen\n";
-			print WARNINGS "$hn EXCLUDED NAME" . $name, &strip_name($name) ."\n";
+warn "Excluded name found: $gen\n";
+			print WARNINGS "EXCLUDED GENUS NAME FOUND:" . $name ."--\t$hn\n\n";
 			return(0);
 		}
 		if($name=~/^ *$/){
-warn "No name: $name\n";
-			print WARNINGS "$hn NO NAME" . $name, &strip_name($name) ."\n";
+warn "No name in SMASCH: $name\n";
+			print WARNINGS "NO NAME in SMASCH" . $name ."--\t$hn\n\n";
 			return(0);
 		}
 
 		if($name=~/aceae/){
-warn "FAMILY: $name\n";
-			print WARNINGS "$hn FAMILY" . $name, &strip_name($name) ."\n";
+warn "Determined only to FAMILY: $name\n";
+			print WARNINGS "Determined only to FAMILY: " . $name."--\t$hn\n\n";
 			#return(0);
 		}
 		if($exclude{$gen}){
-			print WARNINGS "$hn THIS CAN'T BE STORED: NON VASC>" . $name, &strip_name($name) ."\n";
+			print WARNINGS "THIS CAN'T BE STORED: NON VASC>" . $name ."--\t$hn\n\n";
 			return(0);
 		}
-#	unless($seen_ICPN_genus{$gen}){
-			#print WARNINGS "$hn $gen not in ICPN>" . $name, &strip_name($name) ."\n";
-			#warn "$hn $gen not in ICPN, but I continue $name\n";
-#$not_in_ICPN{$gen}++;
-#		}
+		#unless(&process_name{$gen}){
+		#	print WARNINGS "$hn $gen not in ICPN>" . $name, &strip_name($name) ."\n";
+		#	warn "$hn $gen not in ICPN: $name\n";
+		#$not_in_ICPN{$gen}++;
+		#}
 
-		foreach($name){
+foreach($name){
+s/([A-Z][a-z-]+) . ([a-z-]+)/$1 X $2/; 
+####################
+s/\327/X/g;
 
+#################### These were added by David as presumably a processing shortcut... Instead they need to be vetted and corrected in native database during loading process 
+#s/Castilleja applegatei subsp. martinii/Castilleja applegatei subsp. martini/;
+#s/Nama aretioides var. californicum/Nama aretioides var. californica/;
+#s/Nama aretioides var. multiflorum/Nama aretioides var. multiflora/;
+#s/Nama argenteum/Nama argentea/;
+#s/Nama arizonicum/Nama arizonica/;
+#s/Nama californicum/Nama californica/;
+#s/Nama carnosum/Nama carnosa/;
+#s/Nama demissum/Nama demissa/;
+#s/Nama demissum var. covillei/Nama demissa var. covillei/;
+#s/Nama demissum var. demissum/Nama demissa var. demissa/;
+#s/Nama demissum var. deserti/Nama demissa var. deserti/;
+#s/Nama densum/Nama densa/;
+#s/Nama densum var. densum/Nama densa var. densa/;
+#s/Nama densum var. parviflorum/Nama densa var. parviflora/;
+#s/Nama depressum/Nama depressa/;
+#s/Nama dichotomum/Nama dichotoma/;
+#s/Nama dichotomum var. dichotomum/Nama dichotoma var. dichotoma/;
+#s/Nama foliosum/Nama foliosa/;
+#s/Nama hispidum/Nama hispida/;
+#s/Nama hispidum var. hispidum/Nama hispida var. hispida/;
+#s/Nama hispidum var. mentzelii/Nama hispida var. mentzelii/;
+#s/Nama hispidum var. revolutum/Nama hispida var. revoluta/;
+#s/Nama hispidum var. spathulatum/Nama hispida var. spathulata/;
+#s/Nama humifuscum/Nama humifusca/;
+#s/Nama humifusum/Nama humifusa/;
+#s/Nama jamaicense/Nama jamaicensis/;
+#s/Nama linearis/Nama linearis/;
+#s/Nama lobbii/Nama lobbii/;
+#s/Nama macranthum/Nama macrantha/;
+#s/Nama origanifolium/Nama origanifolia/;
+#s/Nama origanifolium var. origanifolium/Nama origanifolia var. origanifolia/;
+#s/Nama origanifolium var. pedunculatum/Nama origanifolia var. pedunculata/;
+#s/Nama parvifolium/Nama parvifolia/;
+#s/Nama pusillum/Nama pusilla/;
+#s/Nama retrorsum/Nama retrorsa/;
+#s/Nama sandwicense/Nama sandwicensis/;
+#s/Nama sandwicense var. laysanicum/Nama sandwicensis var. laysanica/;
+#s/Nama sandwicense var. sandwicense/Nama sandwicensis var. sandwicensis/;
+#s/Nama spathulatum/Nama spathulata/;
+#s/Nama stenocarpum/Nama stenocarpa/;
+#s/Nama stenophyllum/Nama stenophylla/;
+#s/Nama stenophyllum var. egenum/Nama stenophylla var. egena/;
+#s/Nama stenophyllum var. flavescens/Nama stenophylla var. flavescens/;
+#s/Nama stenophyllum var. stenophyllum/Nama stenophylla var. stenophylla/;
+#s/Nama systylum/Nama systyla/;
+#s/Nama tenue/Nama tenuis/;
+#s/Nama torynophyllum/Nama torynophylla/;
+#s/Nama undulatum/Nama undulata/;
+#s/Nama xylopodum/Nama xylopoda/;
 
-unless($seen_name{$name}++){
+#s/Nama demissa var. demissum/Nama demissa var. demissa/;
+
+#s/Koeleria gerardii/Koeleria gerardi/;
+
+#  s/Antirrhinum vexillo-calyculatum subsp. breweri/Antirrhinum vexillocalyculatum subsp. breweri/;
+#  s/Antirrhinum vexillo-calyculatum subsp. intermedium/Antirrhinum vexillocalyculatum subsp. intermedium/;
+#  s/Antirrhinum vexillo-calyculatum subsp. vexillo-calyculatum/Antirrhinum vexillocalyculatum subsp. vexillocalyculatum/;
+#  s/Antirrhinum vexillo-calyculatum/Antirrhinum vexillocalyculatum/;
+#   s/Atriplex joaquiniana/Atriplex joaquinana/;
+#  s/Gnaphalium luteo-album/Gnaphalium luteoalbum/;
+#   s/Purshia stansburiana/Purshia stansburyana/;
+
+#s/Planodes virginicum/Planodes virginica/;
+#s/Calamagrostis canadensis var\. langsdorfii/Calamagrostis canadensis var\. langsdorffii/;
+#s/Viola langsdorfii/Viola langsdorffii/;
+#s/Sambucus cerulea var. cerulea/Sambucus caerulea var. caerulea/;
+#s/Sambucus cerulea/Sambucus caerulea/;
+#s/Croton setigerus/Croton setiger/;
+#s/Quercus X moreha/Quercus X morehus/;
+#s/Eremocarpus setigerus/Eremocarpus setiger/;
+#s/Machaeranthera amophila/Machaeranthera ammophila/;
+#		s/Eriophyllum lanatum var. achillaeoides/Eriophyllum lanatum var. achilleoides/;
+#s/Linanthus pungens subsp. pulchriflorus/Leptodactylon pungens subsp. pulchriflorum/;
+#s/Leptosiphon androsaceus subsp. micranthus/Linanthus androsaceus subsp. micranthus/;
+#s/Trifolium willdenowii/Trifolium willdenovii/;
+#s/Solanum xanthii/Solanum xanti/;
+#s/Mimulus equinnus/Mimulus equinus/;
+#s/Salsola . gobicola/Salsola gobicola/;
+#s/Cylindropuntia californica subsp. parkeri/Cylindropuntia californica var. parkeri/;
+#s/Cylindropuntia . munzii/Cylindropuntia munzii/;
+#s/Ceanothus.*otayensis/Ceanothus otayensis/;
+#s/Ceanothus.*arcuatus/Ceanothus arcuatus/;
+#			s/Eriophyllum stoechadifolium/Eriophyllum staechadifolium/;
+#			s/(Eriophyllum staechadifolium.*)stoechadifolium/$1staechadifolium/;
+#			s/Viguiera purissimae/Viguiera purisimae/;
+#			s/Erechtites minima/Erechtites minimus/;
+#			s/Erechtites glomerata/Erechtites glomeratus/;
+#			s/Erechtites arguta/Erechtites argutus/;
+#			s/Arabis.*divaricarpa/Arabis divaricarpa/;
+#			s/Dudleya cespitosa/Dudleya caespitosa/;
+#			s/Spergularia bocconii/Spergularia bocconi/;
+#			s/gussonianum/gussoneanum/;
+#			s/Stylocline gnaphalioides/Stylocline gnaphaloides/;
+#			s/Juncus lesueurii/Juncus lescurii/;
+#s/Chenopodium berlandieri var. zschackii/Chenopodium berlandieri var. zschackei/;
+#s/Ampelodesmos mauritanica/Ampelodesmos mauritanicus/;
+#s/Elytrigia juncea subsp. boreali-atlantica/Elytrigia juncea subsp. boreo-atlantica/;
+#s/Arabis macdonaldiana/Arabis mcdonaldiana/;
+#s/Castilleja gleasonii/Castilleja gleasoni/;
+#s/Marah fabaceus var. agrestis/Marah fabacea var. agrestis/;
+#s/Marah fabaceus/Marah fabacea/;
+#s/Heuchera cespitosa/Heuchera caespitosa/;
+#s/Marah horridus/Marah horrida/;
+#s/Marah macrocarpus var. macrocarpus/Marah macrocarpa var. macrocarpa/;
+#s/Marah macrocarpus var. major/Marah macrocarpa var. major/;
+#s/Marah macrocarpus/Marah macrocarpa/;
+#s/Marah oreganus/Marah oregana/;
+#s/Monotropa hypopithys/Monotropa hypopitys/;
+#s/Opuntia curvospina/Opuntia curvispina/;
+#s/Ciclospermum/Cyclospermum/;
+#s/kinselae/kinseliae/;
+#s/Aster adscendens/Aster ascendens/;
+#s/Crypsis niliaca/Crypsis niliacea/;
+#s/Orobanche ludoviciana var. latilobus/Orobanche ludoviciana var. latiloba/;
+
+#s/Festuca rubra subsp. falax/Festuca rubra subsp. fallax/;
+#s/Cordylanthus rigidus subsp. setigerus/Cordylanthus rigidus subsp. setiger/;
+
+	unless($seen_name{$name}++){
 		print "$old_name -> $name\n" unless $old_name eq $name;
+	}
 }
-		}
 
-
+#	if($name=~/Myoporum 'Pacificum'/){
+#		$S_folder{'taxon_id'}= 93808;
+#	}
 	if($TID{&strip_name($name)}=~/^\d+$/){
 		$S_folder{'taxon_id'}= $TID{&strip_name($name)};
 		#warn $T_line{'Name'}, &strip_name($name) ."\n";
 	}
 	else{
-		print WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with TID >" . $name, &strip_name($name) ."\n";
+		print WARNINGS "THIS CAN'T BE STORED: Something wrong with TID >" . $name."--\t$hn\n\n\n";
 		$stripped=  &strip_name($name);
-		print "HERE:  $hn cant find $name stripped as $stripped\n";
+		print "TAXON TID Not Found: cant find $stripped--\t$hn\n\n";
 		return(0);
 	}
 	
-	unless($S_folder{'genus_id'}= $TID{&get_genus($name)}){
-			print  WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with >" . $name . "with respect to genus_id extraction\n";
-print "$hn $name genus problem\n";
-return(0);
-		}
+	#unless($S_folder{'genus_id'}= $TID{&get_genus($name)}){
+	#		print  WARNINGS "THIS CAN'T BE STORED: Something wrong with >" . $name . "with respect to genus_id extraction--\t$hn\n\n";
+	#		print "$name\t--\tgenus problem\t--$hn\n";
+	#	}
 
 #$S_folder{'genus'}= &get_genus($T_line{'Name'});
 
-#$name=~s/Quercus ×macdonaldii/Quercus × macdonaldii/;
+#$name=~s/Quercus ×macdonaldii/Quercus × macdonaldii/;  These should be in alter names and fixed
 #print "$name\n" if $name=~/alvordiana/;
-
+#		$name=~s/Quercus [^a-z] ?alvordiana/Quercus X alvordiana/;
+#		$name=~s/Quercus [^a-z] ?kinselae/Quercus X kinseliae/;
+#		$name=~s/Equisetum [^a-z] ?ferrissii/Equisetum X ferrissii/;
+#		$name=~s/Eriogonum [^a-z] ?blissianum/Eriogonum X blissianum/;
+#		$name=~s/Pelargonium [^a-z] ?hortorum/Pelargonium X hortorum/;
+#		$name=~s/Hook\. f\./Hook./g;
+#		$name=~s/Desf. ex //;
+#		$name=~s/Argyranthemum foeniculum/Argyranthemum foeniculaceum/;
+#		$name=~s/Gilia austrooccidentalis/Gilia austro-occidentalis/;
+#		$name=~s/Micropus amphibola/Micropus amphibolus/;
 		foreach($name){
-			#print $S_folder{'taxon_id'}, "\n" if m/alvordiana/;
+			print $S_folder{'taxon_id'}, "\n" if m/alvordiana/; #if this code is working, 40533 (the taxon id) will print 
 			$TID_TO_NAME{$S_folder{'taxon_id'}}=$name;
 			s/subsp\. //;
 			s/var\. //;
@@ -606,6 +777,14 @@ return(0);
 			next unless length($infra)>1;
 			$name_list{lc($infra)}.= "$hn\t";
 		}
+if(m/Hybrid_annotation: ([A-Z][a-z-]+).* ([a-z][a-z-]+)$/m){
+$h_name="$1 $2";
+warn "Hybrid name found: $h_name\n";
+			$name_list{lc($h_name)}.= "$hn\t";
+			($sp=$h_name)=~s/[^ ]+ +//;
+			next unless length($sp)>1;
+			$name_list{lc($sp)}.= "$hn\t";
+}
 
 #next;
 	}
@@ -667,39 +846,42 @@ if($S_accession{'loc_lat_decimal'}){
 
 
 ############Country, etc.
-	if($T_line{Country}){
-		$T_line{Country}="US" if $T_line{Country} eq "U.S.A.";
+	if($T_line{'Country'} =~ m/(US|USA)/){
+		$T_line{'Country'}="USA" if $T_line{'Country'} eq "U.S.A.";
 	}
-	else{$T_line{Country}="US";}
-	$T_line{CNUM}=~s/(\d),(\d\d\d)/$1$2/;
-	if($T_line{CNUM_PREFIX}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
-	$T_line{CNUM_PREFIX}="";
-	$T_line{CNUM}="$1$2";
-	warn "$T_line{CNUM} from prefix\n";
+	elsif($T_line{'Country'} =~ m/(MX|Mexico|MEX)/){
+		$T_line{'Country'}="Mexico";
+	}	
+	else{$T_line{'Country'}="NULL";}
+	$T_line{'CNUM'}=~s/(\d),(\d\d\d)/$1$2/;
+	if($T_line{'CNUM_PREFIX'}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
+	$T_line{'CNUM_PREFIX'}="";
+	$T_line{'CNUM'}="$1$2";
+	warn "$T_line{'CNUM'} from prefix\n";
 	}
-	if($T_line{CNUM_SUFFIX}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
-	$T_line{CNUM_SUFFIX}="";
-	$T_line{CNUM}="$1$2";
+	if($T_line{'CNUM_SUFFIX'}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
+	$T_line{'CNUM_SUFFIX'}="";
+	$T_line{'CNUM'}="$1$2";
 	warn "$T_line{CNUM} from suffix\n";
 	}
-	if($T_line{CNUM}=~s/^([A-Z]*[0-9]+)-([0-9]+)([A-Za-z]+)/$2/){
-		$T_line{CNUM_PREFIX}=$1;
-		$T_line{CNUM_SUFFIX}=$3;
+	if($T_line{'CNUM'}=~s/^([A-Z]*[0-9]+)-([0-9]+)([A-Za-z]+)/$2/){
+		$T_line{'CNUM_PREFIX'}=$1;
+		$T_line{'CNUM_SUFFIX'}=$3;
 	}
-	if($T_line{CNUM}=~s/^([A-Z]*[0-9]+-)([0-9]+)(-.*)/$2/){
-		$T_line{CNUM_PREFIX}=$1;
-		$T_line{CNUM_SUFFIX}=$3;
+	if($T_line{'CNUM'}=~s/^([A-Z]*[0-9]+-)([0-9]+)(-.*)/$2/){
+		$T_line{'CNUM_PREFIX'}=$1;
+		$T_line{'CNUM_SUFFIX'}=$3;
 	}
-	if($T_line{CNUM}=~s/^([^0-9]+)//){
-		$T_line{CNUM_PREFIX}=$1;
+	if($T_line{'CNUM'}=~s/^([^0-9]+)//){
+		$T_line{'CNUM_PREFIX'}=$1;
 	}
-	if($T_line{CNUM}=~s/^(\d+)([^\d].*)/$1/){
-		$T_line{CNUM_SUFFIX}=$2;
+	if($T_line{'CNUM'}=~s/^(\d+)([^\d].*)/$1/){
+		$T_line{'CNUM_SUFFIX'}=$2;
 	}
-	if($T_line{CNUM}=~s/^[Ss]\.? *[nN]\.?//){
+	if($T_line{'CNUM'}=~s/^[Ss]\.? *[nN]\.?//){
 		$assignor="unknown";
 	}
-	if($T_line{CNUM}=~s/^\s*$//){
+	if($T_line{'CNUM'}=~s/^\s*$//){
 		$assignor="unknown";
 	}
 
@@ -803,13 +985,17 @@ foreach(split(/[ \|\/-]+/, $location_field)){
 		$S_accession{'notes'}="" unless $S_accession{'notes'};
 		$S_accession{'notes'}.= "USGS quad: $T_line{USGS_Quadrangle}; ";
 	}
-	if($T_line{'Notes'}){
+	if($T_line{'Verbatim_elevation'}){
 		$S_accession{'notes'}="" unless $S_accession{'notes'};
-		$S_accession{'notes'}.= "$T_line{Notes}; ";
+		$S_accession{'notes'}.= "Verbatim elevation: $T_line{Verbatim_elevation}; ";
 	}
 	if($T_line{'UTM'}){
 		$S_accession{'notes'}="" unless $S_accession{'notes'};
-		$S_accession{'notes'}.= "$T_line{UTM}; ";
+		$S_accession{'notes'}.= "UTM: $T_line{UTM}; ";
+	}
+	if($T_line{'Notes'}){
+		$S_accession{'notes'}="" unless $S_accession{'notes'};
+		$S_accession{'notes'}.= "Other Notes:$T_line{Notes}; ";
 	}
 	$T_line{'CNUM_SUFFIX'}="" unless $T_line{'CNUM_SUFFIX'};
 	$T_line{'CNUM_PREFIX'}="" unless $T_line{'CNUM_PREFIX'};
@@ -869,22 +1055,22 @@ foreach(split(/[ \|\/-]+/, $location_field)){
 					if(m/(\d+)-(\d+)/){
 						if ($1 > $2){
 				print WARNINGS "$hn Elevation skipped $_\n";
-						#next;
+						next;
 						}
 					}
 					elsif(m/(\d\d\d\d\d+) f/){
 						if ($1 > 14500){
 				print WARNINGS "$hn Elevation skipped $_\n";
-				#next;
+				next;
 				}
 					}
 					elsif(m/(-\d\d\d+) f/){
 						if ($1 < -300){
 				print WARNINGS "$hn Elevation skipped $_\n";
-				#next;
+				next;
 				}
 					}
-					#$S_accession{'loc_elevation'}=$_;
+					$S_accession{'loc_elevation'}=$_;
 				print WARNINGS "$hn Elevation added $_  ($pre_e): $location_field\n";
 				}
 			}
@@ -962,31 +1148,46 @@ $CDL_notes{$hn}=&get_entities($S_accession{'notes'});
                 push(@cdl_anno,"$S_folder{'accession_id'}\n$anno\n");
         
 	}
-	if($T_line{'Habitat'} ||
-		$T_line{'Associated_species'} ||
-		$T_line{'Color'} ||
-		$T_line{'Physical_environment'} ||
-		$T_line{'Other_label_numbers'} ||
-		$T_line{'Reproductive_biology'} ||
-		$T_line{'Odor'} ||
-		$T_line{'Type_status'} ||
-		$T_line{'Population_biology'} ||
-		$T_line{'Phenology'} ||
-		$T_line{'Type_status'} ||
-		$T_line{'Genbank_code'} ||
-		$T_line{'Verbatim_coordinates'} ||
-		$T_line{'Other_data'} ||
-		$T_line{'Macromorphology'}){
-			foreach $voucher (keys(%vouchers)){
-				if($T_line{$voucher}=~/[a-zA-Z0-9]/){
-					$cdl_voucher{$S_folder{'accession_id'}}.= "\t$vouchers{$voucher}\t$T_line{$voucher}";
-				}
-			}
+
+	if($T_line{'Habitat'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t52\t$T_line{'Habitat'}";
 	}
-	return $_;
+	if($T_line{'Associated_species'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t53\t$T_line{'Associated_species'}";
+	}
+	if($T_line{'Physical_environment'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t66\t$T_line{'Physical_environment'}";
+	}
+	if($T_line{'Population_biology'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t24\t$T_line{'Population_biology'}";
+	}
+	if($T_line{'Reproductive_biology'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t21\t$T_line{'Reproductive_biology'}";
+	}
+	if($T_line{'Phenology'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t26\t$T_line{'Phenology'}";
+	}
+	if($T_line{'Type_status'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t56\t$T_line{'Type_status'}";
+	}
+	if($T_line{'Color'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t50\t$T_line{'Color'}";
+	}
+	if($T_line{'Odor'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t43\t$T_line{'Odor'}";
+	}
+	if($T_line{'Verbatim_coordinates'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t73\t$T_line{'Verbatim_coordinates'}";
+	}
+	if($T_line{'Genbank_code'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t45\t$T_line{'Genbank_code'}";
+	}
+	if($T_line{'Other_data'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t72\t$T_line{'Other_data'}";
+	}
+
+
 }
-
-
 #possible fields to add:
 #"16","secondary product chemistry",
 #"17","cytology",
@@ -1029,9 +1230,6 @@ $CDL_notes{$hn}=&get_entities($S_accession{'notes'});
 #"71","U.C. Botanical Garden",
 #"72","other",
 #"73","verbatim coordinates",
-
-
-
 sub get_genus{
 	local($_)=@_;
 	s/([a-z]) .*/$1/;
