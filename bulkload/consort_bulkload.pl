@@ -196,14 +196,9 @@ $oc="";
 			s/\.+/./g;
 			s///g;
 			s/`/ /g;
-#			s/_+[a-z] *[a-z]*//; #Miss ____ley illegible
 			s/\//, /;
 			s/ +[;,.] +/, /;
 			s/^LeNeve Brian ?.Carol/Brian LeNeve, Carol LeNeve/;
-#			s/^(Logan Farm Adviser|Farm Adv\.?|Farm Advisor)/Unknown/;
-
-#			s/^(Agr[,.] Comm\. Office|SB Co Dept Agric|County Dept\.? of Agriculture)/Unknown/;			
-#			s/Vernal Pool Team \d+,?/ /;
 			s/Wm\. /William /;
 			s/Wlliam/William/;
 			s/et\.? al\.?//i;
@@ -217,9 +212,7 @@ $oc="";
 			s/“Corky”/Corky/;
 			s/ˇhorne/Thorne/;
 			s/Chas\.? /C. /;
-#			s/\xc2\xbd/1\/2/g;
 			s/  +/ /;
-#			s/\xc2\xbc/1\/4/g;
 			s/(Uknown\.?|Unk\.?|Uknowunknown|Unknown\.|Unkown|Unlisted|Unspecified)/Unknown/;
 		
 			s/LaDoux/La Doux/; #because Tasha La Doux is sometimes incorrectly recorded as LaDoux
@@ -584,31 +577,38 @@ print WARNINGS "6. $hn Misentered date $vdate; setting jdate to null $ds\n";
 		($gen=$name)=~s/ [a-z]+.*//;
 $gen=~s/ X$//;
 		if($exclude{$name}){
-warn "Excluded name: $name\n";
-			print WARNINGS "$hn EXCLUDED NAME" . $name, &strip_name($name) ."\n";
+warn "Excluded taxon name found: $name\n";
+			print WARNINGS "$hn EXCLUDED NAME FOUND" . $name." stripped as ".&strip_name($name) ."\n";
 			return(0);
 		}
 		if($exclude{$gen}){
-warn "Excluded name: $gen\n";
-			print WARNINGS "$hn EXCLUDED NAME" . $name, &strip_name($name) ."\n";
+warn "Excluded Genus name: $gen\n";
+			print WARNINGS "$hn EXCLUDED GENUS NAME FOUND" . $name." stripped as ".&strip_name($name) ."\n";
 			return(0);
 		}
 		if($name=~/^ *$/){
-warn "No name: $name\n";
-			print WARNINGS "$hn NO NAME" . $name, &strip_name($name) ."\n";
+warn "No name in SMASCH: $name\n";
+			print WARNINGS "$hn NO NAME in SMASCH" . $name." stripped as ".&strip_name($name) ."\n";
 			return(0);
 		}
 
 		if($name=~/aceae/){
-#warn "FAMILY: $name\n";
-			print WARNINGS "$hn FAMILY" . $name, &strip_name($name) ."\n";
+#warn "Determined only to FAMILY: $name\n";
+			print WARNINGS "$hn Determined only to FAMILY" . $name." stripped as ".&strip_name($name) ."\n";
 			#return(0);
+			#specimens determined only to family were kicked out in the past
+			#I see no reason to continue with this
 		}
 		if($exclude{$gen}){
+warn "THIS CAN'T BE STORED: NON VASC==>$name\n";
 			print WARNINGS "$hn THIS CAN'T BE STORED: NON VASC>" . $name, &strip_name($name) ."\n";
 			return(0);
 		}
-#	unless($seen_ICPN_genus{$gen}){
+#this is commented out
+#with a lack of full-time editor, not all new genus names are being added to ICPN
+#This throws quite a few errors now and nothing can be dont about it
+#this is commented out for now
+#	unless($seen_ICPN_genus{$gen}){ 
 			#print WARNINGS "$hn $gen not in ICPN>" . $name, &strip_name($name) ."\n";
 			#warn "$hn $gen not in ICPN, but I continue $name\n";
 #$not_in_ICPN{$gen}++;
@@ -616,13 +616,15 @@ warn "No name: $name\n";
 
 		foreach($name){
 
+#################### These were added by David as presumably a processing shortcut... 
+#####those that are left cannot be vetted and corrected until the original database loading script is modernized 
 s/Trifolium virescens subsp\. boreale/Trifolium virescens/; #fix unpublished names here until the older scripts have been updated
 s/Trifolium virescens subsp\. virescens/Trifolium virescens/;
 s/Oxytropis viscida subsp\. viscida/Oxytropis viscida var. viscida/;
 s/Arabis divaricarpa var\. typica/Arabis divaricarpa/;
 s/Arabis lemmonii var\. typica/Arabis lemmonii var. lemmonii/;
 s/Hordeum marinum subsp\. gussonianum/Hordeum marinum subsp. gussoneanum/;
-s/Chamaesyce serpyllifolia subsp. hirtella/Chamaesyce serpyllifolia subsp. hirtula/;
+s/Chamaesyce serpyllifolia subsp. hirtella/Chamaesyce serpillifolia subsp. hirtula/;
 s/Achnatherum coronatum var. depauperatum/Achnatherum coronatum/;
 
 unless($seen_name{$name}++){
@@ -638,23 +640,22 @@ unless($seen_name{$name}++){
 	else{
 		print WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with TID >" . $name, &strip_name($name) ."\n";
 		$stripped=  &strip_name($name);
-		print "HERE:  $hn cant find $name stripped as $stripped\n";
+		print "TAXON TID Not Found: $hn cant find $name stripped as $stripped\n";
 		return(0);
 	}
 	
 	unless($S_folder{'genus_id'}= $TID{&get_genus($name)}){
-			print  WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with >" . $name . "with respect to genus_id extraction\n";
-print "$hn $name genus problem\n";
-return(0);
-		}
+		print  WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with >" . $name . "with respect to genus_id extraction\n";
+		print "$hn: $name==>something wrong with genus name\n";
+		return(0);
+	}
 
 #$S_folder{'genus'}= &get_genus($T_line{'Name'});
 
-#$name=~s/Quercus ×macdonaldii/Quercus × macdonaldii/;
 #print "$name\n" if $name=~/alvordiana/;
 
 		foreach($name){
-			#print $S_folder{'taxon_id'}, "\n" if m/alvordiana/;
+			print $S_folder{'taxon_id'}, "\n" if m/alvordiana/; #if this code is working, 40533 (the taxon id) will print 
 			$TID_TO_NAME{$S_folder{'taxon_id'}}=$name;
 
 			$full_name_list{$name}.= "$hn\t";
@@ -737,9 +738,11 @@ if($S_accession{'loc_lat_decimal'}){
 
 ############Country, etc.
 	if($T_line{Country}){
-		$T_line{Country}="US" if $T_line{Country} eq "U.S.A.";
+		$T_line{Country}="US" if $T_line{Country} =~ m/^(USA|U. ?S. ?A.)/i);
+		$T_line{Country}="Mexico" if $T_line{Country} =~ m/^(MX|Mexico|MEX)/i);
 	}
-	else{$T_line{Country}="US";}
+	else{$T_line{Country}="NULL";
+	}
 	$T_line{CNUM}=~s/(\d),(\d\d\d)/$1$2/;
 	if($T_line{CNUM_PREFIX}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
 	$T_line{CNUM_PREFIX}="";
@@ -850,8 +853,7 @@ if ($S_accession{'cultivated'}) {
 ####
 
 ##################################
-#DD check for correct county spelling some time!
-		$S_accession{'loc_county'}=~s/-/--/;#standardize multi-county dashes
+	$S_accession{'loc_county'}=~s/-/--/;#standardize multi-county dashes
 	$S_accession{'loc_county'}=~s/-+/--/;
 	$S_accession{'loc_county'}=~s/ +municip[a-z]+$//i; #substitute the end of a field with a space followed by the word, including misspellings, "municipality" with "" (case insensitive)
 	$S_accession{'loc_county'}=~s/ +[Cc]ount[ryies]+$//;#Butte County, deletes the County, also Country, Counties, various misspellings in older unprocessed datasets
@@ -1236,7 +1238,8 @@ $CDL_notes{$hn}=&get_entities($S_accession{'notes'});
 #"71","U.C. Botanical Garden",
 #"72","other",
 #"73","verbatim coordinates",
-
+#"74","verbatim county",
+#"75","verbatim elevation",
 
 
 sub get_genus{
