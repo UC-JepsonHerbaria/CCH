@@ -3,10 +3,9 @@
 $this_year=$time[5] + 1900;
 use Time::JulianDay;
 use Time::ParseDate;
-use Smasch;
-use lib '/Users/davidbaxter/DATA/';
+use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH;
-#use strict;
+use Smasch;
 
 #there is a load_noauth_name in both Smasch.pm and CCH.pm.
 #this is using the CCH one
@@ -64,45 +63,46 @@ while (<IN>) {
 
 @datafiles=(
 "BLMAR_out.txt",
+"RSA_out.txt",
 "UCR_out.txt",
-"CAS.out",
+"CAS_out.txt",
 "CATA_out.txt",
-"CDA.out",
-"CHSC.out",
+"CDA_out.txt",
+"CHSC_out.txt",
+"CSPACE_out.txt",
+"GMDRC_out.txt",
+"HSC_out.txt",
+"HUH_out.txt",
+"JOTR_out.txt",
+"JROH_out.txt",
+"OBI_out.txt",
+"SBBG_out.txt",
+"SCFS_out.txt",
+"SD_out.txt",
+"SDSU_out.txt",
+"SEINET_out.txt",
+"SJSU_out.txt",
+"UCD_out.txt",
+"UCSC_out.txt",
+"PGM_out.txt",
+"VVC_out.txt",
+"YOSE_out.txt",
+#"RSA_specify_out.txt", #load all files from RSA's current database load ++> these are the old files no longer used for RSA
+#"RSA_fmp_out.txt", #then load any other records that are still only in their old FMP database
 "CLARK_2015.out", #CLARK sends their files in confusing chunks, so I'm including the newest parse (2015) along with the last one (2014)
 "CLARK_2014.out",
-"CSPACE.out",
-"CSUSB.out",
-"GMDRC_out.txt",
-"HSC.out",
-"HUH.out",
 "IRVC.out",
-"JOTR.out",
-"JROH_out.txt",
+"CSUSB.out",
 "LA.out",
 "MACF.out",
 "NY.out",
-"OBI.out",
 "PASA.out",
-"PGM.out",
-"RSA_specify.out", #load all files from RSA's current database load
-"RSA_fmp.out", #then load any other records that are still only in their old FMP database
 "SACT.out",
-"SBBG.out",
-"SCFS.txt",
-"SD_out.txt",
-"SDSU.out",
-"SEINET.out",
 "SFV.out",
-"SJSU.out",
-"UCD.out",
 "UCSB.out",
-"UCSB_from_smasch.txt", #if there are duplications in this from SMASCH file, the one from the other file will be taken since it is processed first in this list
-"UCSC.out",
-"VVC.out",
-"YM.out"
+"UCSB_from_smasch.txt" #if there are duplications in this from SMASCH file, the one from the other file will be taken since it is processed first in this list
 );
-$data_files_path = "/Users/davidbaxter/DATA/bulkload_data/data_files";
+$data_files_path = "/JEPS-master/CCH/bulkload/input";
 
 foreach $datafile (@datafiles){
 	next if $datafile=~/#/;
@@ -123,6 +123,16 @@ foreach $datafile (@datafiles){
 		if (s/Accession_id: (...*)/Accession: $1/){
 			if($skip_it{$1}){
 				print WARNINGS "skipping $1 on skip list CDL_skip_these\n";
+				next;
+			}
+			if (m/County: *(Loreto|La ?Paz|Muleg.|Comond.|Los ?Cabos)/){
+				print WARNINGS "skipping Mexico records that have mistakenly passsed through parsing an are being recorded as California specimens\n";
+				warn "Skipping non-California specimen ==>$1";
+				next;
+			}
+			if (m/County: *(Maricopa|Routt|Larimer|Mesa|Wawona|Douglas|Albany)/){
+				print WARNINGS "skipping Other US records from other states that have mistakenly passed through parsing and are being recorded as California specimens\n";
+				warn "Skipping non-California specimen ==>$1";
 				next;
 			}
 			if($seen_dups{$1}){
@@ -154,12 +164,7 @@ $oc="";
 	$all_collectors="";
 	local($/)="";
 	$_ = shift;
-	foreach($_){
-		s/\0//g; #remove any and all null bytes
-		s/\x00//g; #remove any and all null bytes
-		#### I think this works at this level, to remove all null bytes from each paragraph
-		#### but I haven't confirmed it yet, because the null byte would hide after bulkload and re-emerge in the DwC-A on the IPT
-	}
+
 	
 	
 	++$countprocess;
@@ -176,51 +181,46 @@ $oc="";
 #1: $collector
 #EOP
 		foreach($collector){
-s/Z\372\361iga/Z&uacute;&ntilde;iga/g;
-			s/André/Andr&eacute;/;
-			s/Andrée/Andr&eacute;/;
-			s/AndrÈ/Andr&eacute;/;
-			s/AndrÔæé/Andr&eacute;/;
-			s/Beaupr√©/Beaupr&eacute;/;
-			s/Bo√´r/Bo&euml;r/;
-			s/Brinkmann-Busí/Brinkmann-Bus&eacute;/;
-			s/García/Garc&iacute;a/;
-			s/H√∂lzer/H&ouml;zer/;
-			s/LaPré/LaPr&eacute;/;
-			s/LaPrÈ/LaPr&eacute;/;
-			s/LaPrÔæé/LaPr&eacute;/;
-			s/LaPrÔøΩ/LaPr&eacute;/;
-			s/Laferri√®re/Laferri&egrave;re/;
-			s/Muñoz/Mu&ntilde;oz/;
-			s/MuÔæñoz/Mu&ntilde;oz/;
-			s/Niedermüller/Niederm&uuml;ller/;
-			s/Nordenskiöld/Nordenski&ouml;ld/;
-			s/Ord√≥√±ez/Ord&oacute;&ntilde;ez/;
-			s/OÔøΩ/O'/;
-			s/OÔøΩBerg/O'Berg/;
-			s/OÔøΩBrien/O'Brien/;
-			s/Peñalosa/Pe&ntilde;alosa/;
-			s/PeÒalosa/Pe&ntilde;alosa/;
+
+			s/\(//;
+			s/\)//;
+			s/\[//;
+			s/\]//;
+			s/\?+//;
+			s/ ([,;_".])/$1/g;
+			s/,/, /g;
+			s/, [",.-_]/, /g;
+			s/\./. /g;
+			s/"/ /g;
+			s/;/; /g;
+			s/\.+/./g;
+			s///g;
+			s/`/ /g;
+#			s/_+[a-z] *[a-z]*//; #Miss ____ley illegible
+			s/\//, /;
+			s/ +[;,.] +/, /;
+			s/^LeNeve Brian ?.Carol/Brian LeNeve, Carol LeNeve/;
+#			s/^(Logan Farm Adviser|Farm Adv\.?|Farm Advisor)/Unknown/;
+
+#			s/^(Agr[,.] Comm\. Office|SB Co Dept Agric|County Dept\.? of Agriculture)/Unknown/;			
+#			s/Vernal Pool Team \d+,?/ /;
+			s/Wm\. /William /;
+			s/Wlliam/William/;
+			s/et\.? al\.?//i;
 			s/Renée/Renee/;
+			s/Riefer/Reifner/;
+			s/Riefner/Reifner/;
 			s/RenÈe/Renee/;
 			s/Steve Boyd`/Steve Boyd/;
 			s/Vern` Yadon/Vern Yadon/;
-			s/Villanseñor/Villase&ntilde;or/;
-			s/Villaseñor/Villase&ntilde;or/;
-			s/VillaseÔæñor/Villase&ntilde;or/;
-			s/VillaseÒor/Villase&ntilde;or/;
-			s/“Corky”/"Corky"/;
+			s/6.2.1987 ?Unknown/Unknown/;
+			s/“Corky”/Corky/;
 			s/ˇhorne/Thorne/;
-			
-			s/\xc3\xbc/&uuml;/g;
-			s/\xc3\xb1/&ntilde;/g;
-			s/\xc2\xbd/1\/2/g;
-			s/\xc3\xa9/&eacute;/g;
-			s/√±/&ntilde;/g;
-			s/\xc2\xbc/1\/4/g;
-			s/\xc3\xb6/&ouml;/g;
-			s/\xc3\xb3/&oacute;/g;
-			s/\xc3\xad/&iacute;/g;
+			s/Chas\.? /C. /;
+#			s/\xc2\xbd/1\/2/g;
+			s/  +/ /;
+#			s/\xc2\xbc/1\/4/g;
+			s/(Uknown\.?|Unk\.?|Uknowunknown|Unknown\.|Unkown|Unlisted|Unspecified)/Unknown/;
 		
 			s/LaDoux/La Doux/; #because Tasha La Doux is sometimes incorrectly recorded as LaDoux
 		}
@@ -254,25 +254,33 @@ if($oc){
 			}
 		}
 
+
 		$collector=~s/\.([A-Z])/. $1/g;
 		$collector=~s/([A-Z]\.)([A-Z]) ([A-Z])/$1 $2. $3/;
 		$collector=~s/([A-Z]\.)([A-Z]\.)([A-Z]\.)/$1 $2 $3/g;
 		$collector=~s/([A-Z]\.)([A-Z]\.)/$1 $2/g;
 		$collector=~s/(Fr.)([A-Z]\.)/$1 $2/g;
 		$collector=~s/([A-Z]\.)([A-Z]')/$1 $2/g;
-		$collector=~s/Sent in for det: //;
-		$collector=~s/Submitted for det: //;
-		$collector=~s/(B. Crampton), 1247, May 11, 1953.*/$1/;
-		$collector=~s/R & J. Kniffen/R. Kniffen, J. Kniffen/;
-		$collector=~s/ s\.n.*//;
-		$collector=~s/Unknown, Bot. 108/unknown/;
-		$collector=~s/collector unknown/unknown/;
-		$collector=~s/Unknown collector/unknown/;
-		$collector=~s/ *$//;
-		$collector=~s/,,/,/g;
 		$collector=~s/, others/, and others/;
 		$collector=~s/, C. N. P. S./, and C. N. P. S./;
 		$collector=~s/([A-Z]\.)(-[A-Z]\.)/$1 $2/;
+		$collector=~s/Sent in for det: //;
+		$collector=~s/Submitted for det: //;
+		$collector=~s/\+?F\d+//g; #fix some errors that were in collectors table
+		$collector=~s/\+?E\d+//g; #fix some errors that were in collectors table
+		$collector=~s/\+?L2\d+//g; #fix some errors that were in collectors table
+		$collector=~s/ s\.?n\.?$//;
+		$collector=~s/Unknown, Bot. 108/unknown/;
+		$collector=~s/collector unknown/unknown/;
+		$collector=~s/Unknown collector/unknown/;
+		$collector=~s/^ +$/Unknown/;
+		$collector=~s/([A-Z]\.)(-[A-Z]\.)/$1 $2/;
+
+		$collector=~s/  +/ /;
+		$collector=~s/ +$//;
+		$collector=~s/^ +//;
+		$collector=~s/^ +$/Unknown/;
+
 		$all_collectors=$collector;
 #print <<EOP;
 #6: $collector
@@ -294,7 +302,9 @@ if($oc){
 
 	if(m/CNUM:(.*)/){
 		$tnum=uc($1);
-		$tnum=~s/ *$//;
+		$tnum=~s/^ +$//;
+		$tnum=~s/^ +//;
+		$tnum=~s/ +$//;
 		$tnum=~s/^0*//;
 		if(m/EJD: (\d+)/){
 			$JD=$1;
@@ -302,36 +312,35 @@ if($oc){
 				$LJD=$1;
 			}
 			if(m/Date: +(.*)/){
+				$ds=$1;
+				$vdate=$1;
+				if($vdate=~/([12][890]\d\d)/){
+					$vyear=$1;
+						if (($vyear < 1800) && ($JD < 2378496)){
+#warn "1. BAD YEAR (before 1800) $vyear $_\n";
+print WARNINGS "1. (before 1800) $hn Misentered date $vdate; setting jdate to null $ds\n";
+							$vdate=""; $JD=""; $EJD="";
+						}
+						elsif (($vyear < 1800) && ($JD > 2378496)){
+#warn "2. BAD YEAR (before 1800, but JD is recent) $vyear $_\n";
+print WARNINGS "2. (before 1800, but JD is recent) $hn Misentered date $vdate; setting jdate to null $ds\n";
+							$vdate="";					
+						}
+						if ($vyear > $this_year){
+#warn "3. BAD YEAR (greater than current year) $vyear $_\n";
+print WARNINGS "3. (greater than current year)$hn Misentered date $vdate; setting jdate to null $ds\n";
+							$vdate=""; $JD=""; $EJD="";
+						}
+				}
 
-$ds=$1;
-$vdate=$1;
-
-
-if($vdate=~/([12][890]\d\d)/){
-$vyear=$1;
-if ($vyear < 1800){
-warn "BAD YEAR $vyear $_\n";
-				print WARNINGS "Misentered date $vdate; setting jdate to null $ds\t--\t$hn\n";
-$vdate=""; $JD=""; $EJD="";
-}
-if ($vyear > $this_year){
-warn "BAD YEAR$vyear $_\n";
-				print WARNINGS "$Misentered date $vdate; setting jdate to null $ds\t--\t$hn\n";
-$vdate=""; $JD=""; $EJD="";
-}
-}
-
-					$T_line{Date}=  "$vdate";
-
-
-
+				$T_line{Date}=  "$vdate";
 			}
-					else{
-					warn "No verbatim date, but JD is $EJD\n";
-					$T_line{Date}=  "";
-					}
+			else{
+				#warn "No verbatim date, but JD is $EJD\n";
+				$T_line{Date}=  "";
+			}
 			if($JD > $today_JD){
-				print WARNINGS "Misentered date $JD > $today_JD; setting jdate to null $ds\t--\t$hn\n";
+				print WARNINGS "4. $hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
 				$null_date{$ds}=$hn;
 				$LJD=$JD="";
 			}
@@ -341,9 +350,10 @@ $vdate=""; $JD=""; $EJD="";
 				if($JD > 2374816){
 					($year,$month,$day)= inverse_julian_day($JD);
 ##dates later than 1789
-					unless($T_line{Date}){
+					#unless($T_line{Date}){ #we do not want the JD to be substituted anymore if there is a Date line
+											#date line is verbatim date and is no corrected while JD is always corrected and not always what is the JD
 						$T_line{Date}=  "$monthno{$month} $day $year";
-					}
+					#}
 				}
 			}
 			elsif($LJD - JD > 0 &&
@@ -352,23 +362,24 @@ $vdate=""; $JD=""; $EJD="";
 			}
 		}
 		elsif(m/Date: +(.*)/){
-$vdate=$1;
-$ds=$1;
+			$vdate=$1;
+			$ds=$1;
 
+			if($vdate=~/([12][890]\d\d)/){
+				$vyear=$1;
 
-if($vdate=~/([12][890]\d\d)/){
-$vyear=$1;
-if ($vyear < 1800){
-warn "BAD YEAR $vyear $_\n";
-				print WARNINGS "Misentered date $vdate; setting jdate to null $ds\t--\t$hn\n";
-$vdate=""; $JD=""; $EJD="";
-}
-if ($vyear > $this_year){
-warn "BAD YEARav$year $_\n";
-				print WARNINGS "Misentered date $vdate; setting jdate to null $ds\t--\t$hn\n";
-$vdate=""; $JD=""; $EJD="";
-}
-}
+				if ($vyear < 1800){
+warn "5. BAD YEAR (no EJD) $vyear $_\n";
+print WARNINGS "5. $hn Misentered date $vdate; setting jdate to null $ds\n";
+					$vdate=""; $JD=""; $EJD="";
+					}
+				if ($vyear > $this_year){
+warn "6. BAD YEARav$year $_\n";
+print WARNINGS "6. $hn Misentered date $vdate; setting jdate to null $ds\n";
+					$vdate=""; $JD=""; $EJD="";
+				}
+			}
+
 			$ds=$vdate;
 			foreach($ds){
 				$LJD=$JD="";
@@ -393,7 +404,7 @@ $vdate=""; $JD=""; $EJD="";
 #$par="3";
 				}
 #bad date: DS735113: 1961-08-26 
-			elsif(m|^([12][0789]\d\d)-(\d+)-(\d+)$|){
+				elsif(m|^([12][0789]\d\d)-(\d+)-(\d+)$|){
 					$year=$1;
 					$day_month=$3;
 					$monthno=$2;
@@ -403,7 +414,7 @@ $vdate=""; $JD=""; $EJD="";
 					$LJD=$JD;
 					#print "$_ year: $year month: $monthno day: $day_month $JD $LJD\n";
 #$par="11a";
-			}
+				}
 				elsif(m|(\d\d?)/(\d\d?)/20(0[0-9])$|){
 					$JD=julian_day("20$3", $1, $2);
 					$LJD=$JD;
@@ -498,7 +509,7 @@ $vdate=""; $JD=""; $EJD="";
 					#print "4 ";
 #$par="12";
 				}
-			elsif(m|^([0123]?\d\d?)[-/]([0123]?\d) ([A-Za-z][a-z][a-z]) ([12][0789]\d\d)$| && $monthno{$3}){
+				elsif(m|^([0123]?\d\d?)[-/]([0123]?\d) ([A-Za-z][a-z][a-z]) ([12][0789]\d\d)$| && $monthno{$3}){
 					$monthno=$monthno{$3};
 					$s_day_month=$1;
 					$e_day_month=$2;
@@ -507,8 +518,8 @@ $vdate=""; $JD=""; $EJD="";
 					$LJD=julian_day($year, $monthno, $e_day_month);
 				#print "7 ";
 #$par="11";
-			}
-			elsif(m|^([0123]?\d\d?)/([A-Za-z][a-z][a-z])/([12][0789]\d\d)$| && $monthno{$2}){
+				}
+				elsif(m|^([0123]?\d\d?)/([A-Za-z][a-z][a-z])/([12][0789]\d\d)$| && $monthno{$2}){
 					$monthno=$monthno{$2};
 					$s_day_month=$1;
 					$year=$3;
@@ -516,8 +527,8 @@ $vdate=""; $JD=""; $EJD="";
 					$LJD=julian_day($year, $monthno, $s_day_month);
 				#print "7a ";
 #$par="11a";
-			}
-			elsif(m|^(\d+)/(\d+)/([12][0789]\d\d)$|){
+				}
+				elsif(m|^(\d+)/(\d+)/([12][0789]\d\d)$|){
 					$monthno=$monthno{$1};
 					$s_day_month=$2;
 					$year=$3;
@@ -525,26 +536,31 @@ $vdate=""; $JD=""; $EJD="";
 					$LJD=julian_day($year, $monthno, $s_day_month);
 				#print "7a ";
 #$par="11a";
-			}
+				}
 				elsif( m|^(\d\d\d\d)-(\d\d\d\d)|){
 					$JD=julian_day($1, 1, 1);
 					$LJD=julian_day($2, 12, 31);
-					}
-			elsif(m|^(\d+)[*-](\d+)[*-]([12][0789]\d\d)$|){
+				}
+				elsif(m|^(\d+)[*-](\d+)[*-]([12][0789]\d\d)$|){
 					$monthno=$monthno{$1};
 					$s_day_month=$2;
 					$year=$3;
 					$JD=julian_day($year, $monthno, $s_day_month);
 					$LJD=julian_day($year, $monthno, $s_day_month);
 #$par="11a";
-			}
-			else{
-				#warn "$hn Unexpected date; setting jdate to null $ds\n";
-				$null_date{$ds}=$hn;
-				$LJD=$JD="";
-			}
+				}
+				elsif( m|^ *$|){
+					#warn "$hn Date NULL; setting jdate to null $ds\n";
+					$null_date{$ds}=$hn;
+					$LJD=$JD="";
+				}
+				else{
+					#warn "$hn Unexpected date; setting jdate to null $ds\n";
+					$null_date{$ds}=$hn;
+					$LJD=$JD="";
+				}
 			if($JD > $today_JD){
-				print WARNINGS "Misentered date $JD > $today_JD; setting jdate to null $ds\t--\t$hn\n";
+				print WARNINGS "$hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
 				$null_date{$ds}=$hn;
 				$LJD=$JD="";
 			}
@@ -563,209 +579,91 @@ $vdate=""; $JD=""; $EJD="";
 			}
 		}
 	}
-
 	if(m/Name: +(.*)/){
 		$old_name=$name=$1;
 		($gen=$name)=~s/ [a-z]+.*//;
-		$gen=~s/ X$//;
-		
+$gen=~s/ X$//;
 		if($exclude{$name}){
-			warn "Excluded name found: $name\n";
-			print WARNINGS "EXCLUDED NAME FOUND:" . $name ."--\t$hn\n\n";
+warn "Excluded name: $name\n";
+			print WARNINGS "$hn EXCLUDED NAME" . $name, &strip_name($name) ."\n";
 			return(0);
-			}
+		}
 		if($exclude{$gen}){
-warn "Excluded name found: $gen\n";
-			print WARNINGS "EXCLUDED GENUS NAME FOUND:" . $name ."--\t$hn\n\n";
+warn "Excluded name: $gen\n";
+			print WARNINGS "$hn EXCLUDED NAME" . $name, &strip_name($name) ."\n";
 			return(0);
 		}
 		if($name=~/^ *$/){
-warn "No name in SMASCH: $name\n";
-			print WARNINGS "NO NAME in SMASCH" . $name ."--\t$hn\n\n";
+warn "No name: $name\n";
+			print WARNINGS "$hn NO NAME" . $name, &strip_name($name) ."\n";
 			return(0);
 		}
 
 		if($name=~/aceae/){
-warn "Determined only to FAMILY: $name\n";
-			print WARNINGS "Determined only to FAMILY: " . $name."--\t$hn\n\n";
+#warn "FAMILY: $name\n";
+			print WARNINGS "$hn FAMILY" . $name, &strip_name($name) ."\n";
 			#return(0);
 		}
 		if($exclude{$gen}){
-			print WARNINGS "THIS CAN'T BE STORED: NON VASC>" . $name ."--\t$hn\n\n";
+			print WARNINGS "$hn THIS CAN'T BE STORED: NON VASC>" . $name, &strip_name($name) ."\n";
 			return(0);
 		}
-		#unless(&process_name{$gen}){
-		#	print WARNINGS "$hn $gen not in ICPN>" . $name, &strip_name($name) ."\n";
-		#	warn "$hn $gen not in ICPN: $name\n";
-		#$not_in_ICPN{$gen}++;
-		#}
+#	unless($seen_ICPN_genus{$gen}){
+			#print WARNINGS "$hn $gen not in ICPN>" . $name, &strip_name($name) ."\n";
+			#warn "$hn $gen not in ICPN, but I continue $name\n";
+#$not_in_ICPN{$gen}++;
+#		}
 
-foreach($name){
-s/([A-Z][a-z-]+) . ([a-z-]+)/$1 X $2/; 
-####################
-s/\327/X/g;
+		foreach($name){
 
-#################### These were added by David as presumably a processing shortcut... Instead they need to be vetted and corrected in native database during loading process 
-#s/Castilleja applegatei subsp. martinii/Castilleja applegatei subsp. martini/;
-#s/Nama aretioides var. californicum/Nama aretioides var. californica/;
-#s/Nama aretioides var. multiflorum/Nama aretioides var. multiflora/;
-#s/Nama argenteum/Nama argentea/;
-#s/Nama arizonicum/Nama arizonica/;
-#s/Nama californicum/Nama californica/;
-#s/Nama carnosum/Nama carnosa/;
-#s/Nama demissum/Nama demissa/;
-#s/Nama demissum var. covillei/Nama demissa var. covillei/;
-#s/Nama demissum var. demissum/Nama demissa var. demissa/;
-#s/Nama demissum var. deserti/Nama demissa var. deserti/;
-#s/Nama densum/Nama densa/;
-#s/Nama densum var. densum/Nama densa var. densa/;
-#s/Nama densum var. parviflorum/Nama densa var. parviflora/;
-#s/Nama depressum/Nama depressa/;
-#s/Nama dichotomum/Nama dichotoma/;
-#s/Nama dichotomum var. dichotomum/Nama dichotoma var. dichotoma/;
-#s/Nama foliosum/Nama foliosa/;
-#s/Nama hispidum/Nama hispida/;
-#s/Nama hispidum var. hispidum/Nama hispida var. hispida/;
-#s/Nama hispidum var. mentzelii/Nama hispida var. mentzelii/;
-#s/Nama hispidum var. revolutum/Nama hispida var. revoluta/;
-#s/Nama hispidum var. spathulatum/Nama hispida var. spathulata/;
-#s/Nama humifuscum/Nama humifusca/;
-#s/Nama humifusum/Nama humifusa/;
-#s/Nama jamaicense/Nama jamaicensis/;
-#s/Nama linearis/Nama linearis/;
-#s/Nama lobbii/Nama lobbii/;
-#s/Nama macranthum/Nama macrantha/;
-#s/Nama origanifolium/Nama origanifolia/;
-#s/Nama origanifolium var. origanifolium/Nama origanifolia var. origanifolia/;
-#s/Nama origanifolium var. pedunculatum/Nama origanifolia var. pedunculata/;
-#s/Nama parvifolium/Nama parvifolia/;
-#s/Nama pusillum/Nama pusilla/;
-#s/Nama retrorsum/Nama retrorsa/;
-#s/Nama sandwicense/Nama sandwicensis/;
-#s/Nama sandwicense var. laysanicum/Nama sandwicensis var. laysanica/;
-#s/Nama sandwicense var. sandwicense/Nama sandwicensis var. sandwicensis/;
-#s/Nama spathulatum/Nama spathulata/;
-#s/Nama stenocarpum/Nama stenocarpa/;
-#s/Nama stenophyllum/Nama stenophylla/;
-#s/Nama stenophyllum var. egenum/Nama stenophylla var. egena/;
-#s/Nama stenophyllum var. flavescens/Nama stenophylla var. flavescens/;
-#s/Nama stenophyllum var. stenophyllum/Nama stenophylla var. stenophylla/;
-#s/Nama systylum/Nama systyla/;
-#s/Nama tenue/Nama tenuis/;
-#s/Nama torynophyllum/Nama torynophylla/;
-#s/Nama undulatum/Nama undulata/;
-#s/Nama xylopodum/Nama xylopoda/;
+s/Trifolium virescens subsp\. boreale/Trifolium virescens/; #fix unpublished names here until the older scripts have been updated
+s/Trifolium virescens subsp\. virescens/Trifolium virescens/;
+s/Oxytropis viscida subsp\. viscida/Oxytropis viscida var. viscida/;
+s/Arabis divaricarpa var\. typica/Arabis divaricarpa/;
+s/Arabis lemmonii var\. typica/Arabis lemmonii var. lemmonii/;
+s/Hordeum marinum subsp\. gussonianum/Hordeum marinum subsp. gussoneanum/;
+s/Chamaesyce serpyllifolia subsp. hirtella/Chamaesyce serpyllifolia subsp. hirtula/;
+s/Achnatherum coronatum var. depauperatum/Achnatherum coronatum/;
 
-#s/Nama demissa var. demissum/Nama demissa var. demissa/;
-
-#s/Koeleria gerardii/Koeleria gerardi/;
-
-#  s/Antirrhinum vexillo-calyculatum subsp. breweri/Antirrhinum vexillocalyculatum subsp. breweri/;
-#  s/Antirrhinum vexillo-calyculatum subsp. intermedium/Antirrhinum vexillocalyculatum subsp. intermedium/;
-#  s/Antirrhinum vexillo-calyculatum subsp. vexillo-calyculatum/Antirrhinum vexillocalyculatum subsp. vexillocalyculatum/;
-#  s/Antirrhinum vexillo-calyculatum/Antirrhinum vexillocalyculatum/;
-#   s/Atriplex joaquiniana/Atriplex joaquinana/;
-#  s/Gnaphalium luteo-album/Gnaphalium luteoalbum/;
-#   s/Purshia stansburiana/Purshia stansburyana/;
-
-#s/Planodes virginicum/Planodes virginica/;
-#s/Calamagrostis canadensis var\. langsdorfii/Calamagrostis canadensis var\. langsdorffii/;
-#s/Viola langsdorfii/Viola langsdorffii/;
-#s/Sambucus cerulea var. cerulea/Sambucus caerulea var. caerulea/;
-#s/Sambucus cerulea/Sambucus caerulea/;
-#s/Croton setigerus/Croton setiger/;
-#s/Quercus X moreha/Quercus X morehus/;
-#s/Eremocarpus setigerus/Eremocarpus setiger/;
-#s/Machaeranthera amophila/Machaeranthera ammophila/;
-#		s/Eriophyllum lanatum var. achillaeoides/Eriophyllum lanatum var. achilleoides/;
-#s/Linanthus pungens subsp. pulchriflorus/Leptodactylon pungens subsp. pulchriflorum/;
-#s/Leptosiphon androsaceus subsp. micranthus/Linanthus androsaceus subsp. micranthus/;
-#s/Trifolium willdenowii/Trifolium willdenovii/;
-#s/Solanum xanthii/Solanum xanti/;
-#s/Mimulus equinnus/Mimulus equinus/;
-#s/Salsola . gobicola/Salsola gobicola/;
-#s/Cylindropuntia californica subsp. parkeri/Cylindropuntia californica var. parkeri/;
-#s/Cylindropuntia . munzii/Cylindropuntia munzii/;
-#s/Ceanothus.*otayensis/Ceanothus otayensis/;
-#s/Ceanothus.*arcuatus/Ceanothus arcuatus/;
-#			s/Eriophyllum stoechadifolium/Eriophyllum staechadifolium/;
-#			s/(Eriophyllum staechadifolium.*)stoechadifolium/$1staechadifolium/;
-#			s/Viguiera purissimae/Viguiera purisimae/;
-#			s/Erechtites minima/Erechtites minimus/;
-#			s/Erechtites glomerata/Erechtites glomeratus/;
-#			s/Erechtites arguta/Erechtites argutus/;
-#			s/Arabis.*divaricarpa/Arabis divaricarpa/;
-#			s/Dudleya cespitosa/Dudleya caespitosa/;
-#			s/Spergularia bocconii/Spergularia bocconi/;
-#			s/gussonianum/gussoneanum/;
-#			s/Stylocline gnaphalioides/Stylocline gnaphaloides/;
-#			s/Juncus lesueurii/Juncus lescurii/;
-#s/Chenopodium berlandieri var. zschackii/Chenopodium berlandieri var. zschackei/;
-#s/Ampelodesmos mauritanica/Ampelodesmos mauritanicus/;
-#s/Elytrigia juncea subsp. boreali-atlantica/Elytrigia juncea subsp. boreo-atlantica/;
-#s/Arabis macdonaldiana/Arabis mcdonaldiana/;
-#s/Castilleja gleasonii/Castilleja gleasoni/;
-#s/Marah fabaceus var. agrestis/Marah fabacea var. agrestis/;
-#s/Marah fabaceus/Marah fabacea/;
-#s/Heuchera cespitosa/Heuchera caespitosa/;
-#s/Marah horridus/Marah horrida/;
-#s/Marah macrocarpus var. macrocarpus/Marah macrocarpa var. macrocarpa/;
-#s/Marah macrocarpus var. major/Marah macrocarpa var. major/;
-#s/Marah macrocarpus/Marah macrocarpa/;
-#s/Marah oreganus/Marah oregana/;
-#s/Monotropa hypopithys/Monotropa hypopitys/;
-#s/Opuntia curvospina/Opuntia curvispina/;
-#s/Ciclospermum/Cyclospermum/;
-#s/kinselae/kinseliae/;
-#s/Aster adscendens/Aster ascendens/;
-#s/Crypsis niliaca/Crypsis niliacea/;
-#s/Orobanche ludoviciana var. latilobus/Orobanche ludoviciana var. latiloba/;
-
-#s/Festuca rubra subsp. falax/Festuca rubra subsp. fallax/;
-#s/Cordylanthus rigidus subsp. setigerus/Cordylanthus rigidus subsp. setiger/;
-
-	unless($seen_name{$name}++){
+unless($seen_name{$name}++){
 		print "$old_name -> $name\n" unless $old_name eq $name;
-	}
 }
+		}
 
-#	if($name=~/Myoporum 'Pacificum'/){
-#		$S_folder{'taxon_id'}= 93808;
-#	}
+
 	if($TID{&strip_name($name)}=~/^\d+$/){
 		$S_folder{'taxon_id'}= $TID{&strip_name($name)};
 		#warn $T_line{'Name'}, &strip_name($name) ."\n";
 	}
 	else{
-		print WARNINGS "THIS CAN'T BE STORED: Something wrong with TID >" . $name."--\t$hn\n\n\n";
+		print WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with TID >" . $name, &strip_name($name) ."\n";
 		$stripped=  &strip_name($name);
-		print "TAXON TID Not Found: cant find $stripped--\t$hn\n\n";
+		print "HERE:  $hn cant find $name stripped as $stripped\n";
 		return(0);
 	}
 	
-	#unless($S_folder{'genus_id'}= $TID{&get_genus($name)}){
-	#		print  WARNINGS "THIS CAN'T BE STORED: Something wrong with >" . $name . "with respect to genus_id extraction--\t$hn\n\n";
-	#		print "$name\t--\tgenus problem\t--$hn\n";
-	#	}
+	unless($S_folder{'genus_id'}= $TID{&get_genus($name)}){
+			print  WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with >" . $name . "with respect to genus_id extraction\n";
+print "$hn $name genus problem\n";
+return(0);
+		}
 
 #$S_folder{'genus'}= &get_genus($T_line{'Name'});
 
-#$name=~s/Quercus ×macdonaldii/Quercus × macdonaldii/;  These should be in alter names and fixed
+#$name=~s/Quercus ×macdonaldii/Quercus × macdonaldii/;
 #print "$name\n" if $name=~/alvordiana/;
-#		$name=~s/Quercus [^a-z] ?alvordiana/Quercus X alvordiana/;
-#		$name=~s/Quercus [^a-z] ?kinselae/Quercus X kinseliae/;
-#		$name=~s/Equisetum [^a-z] ?ferrissii/Equisetum X ferrissii/;
-#		$name=~s/Eriogonum [^a-z] ?blissianum/Eriogonum X blissianum/;
-#		$name=~s/Pelargonium [^a-z] ?hortorum/Pelargonium X hortorum/;
-#		$name=~s/Hook\. f\./Hook./g;
-#		$name=~s/Desf. ex //;
-#		$name=~s/Argyranthemum foeniculum/Argyranthemum foeniculaceum/;
-#		$name=~s/Gilia austrooccidentalis/Gilia austro-occidentalis/;
-#		$name=~s/Micropus amphibola/Micropus amphibolus/;
+
 		foreach($name){
-			print $S_folder{'taxon_id'}, "\n" if m/alvordiana/; #if this code is working, 40533 (the taxon id) will print 
+			#print $S_folder{'taxon_id'}, "\n" if m/alvordiana/;
 			$TID_TO_NAME{$S_folder{'taxon_id'}}=$name;
+
+			$full_name_list{$name}.= "$hn\t";
+			$full=$name;
+			$full=~s/ +/_/;
+			s/◊ /x /;
+			s/nothosubsp\. //;
 			s/subsp\. //;
+			s/subvar\. //;
 			s/var\. //;
 			s/f\. //;
 			next unless length($_)>1;
@@ -777,19 +675,11 @@ s/\327/X/g;
 			next unless length($infra)>1;
 			$name_list{lc($infra)}.= "$hn\t";
 		}
-if(m/Hybrid_annotation: ([A-Z][a-z-]+).* ([a-z][a-z-]+)$/m){
-$h_name="$1 $2";
-warn "Hybrid name found: $h_name\n";
-			$name_list{lc($h_name)}.= "$hn\t";
-			($sp=$h_name)=~s/[^ ]+ +//;
-			next unless length($sp)>1;
-			$name_list{lc($sp)}.= "$hn\t";
-}
 
 #next;
 	}
-	s|¨|1/4|g;
-	s|º|1/4|g;
+	#s|¨|1/4|g;
+	#s|º|1/4|g;
 
 @T_line=split(/\n/);
 
@@ -846,42 +736,39 @@ if($S_accession{'loc_lat_decimal'}){
 
 
 ############Country, etc.
-	if($T_line{'Country'} =~ m/(US|USA)/){
-		$T_line{'Country'}="USA" if $T_line{'Country'} eq "U.S.A.";
+	if($T_line{Country}){
+		$T_line{Country}="US" if $T_line{Country} eq "U.S.A.";
 	}
-	elsif($T_line{'Country'} =~ m/(MX|Mexico|MEX)/){
-		$T_line{'Country'}="Mexico";
-	}	
-	else{$T_line{'Country'}="NULL";}
-	$T_line{'CNUM'}=~s/(\d),(\d\d\d)/$1$2/;
-	if($T_line{'CNUM_PREFIX'}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
-	$T_line{'CNUM_PREFIX'}="";
-	$T_line{'CNUM'}="$1$2";
-	warn "$T_line{'CNUM'} from prefix\n";
+	else{$T_line{Country}="US";}
+	$T_line{CNUM}=~s/(\d),(\d\d\d)/$1$2/;
+	if($T_line{CNUM_PREFIX}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
+	$T_line{CNUM_PREFIX}="";
+	$T_line{CNUM}="$1$2";
+	warn "$T_line{CNUM} from prefix\n";
 	}
-	if($T_line{'CNUM_SUFFIX'}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
-	$T_line{'CNUM_SUFFIX'}="";
-	$T_line{'CNUM'}="$1$2";
+	if($T_line{CNUM_SUFFIX}=~m/^(\d+),(\d\d\d)$/ && $T_LINE{CNUM} eq ""){
+	$T_line{CNUM_SUFFIX}="";
+	$T_line{CNUM}="$1$2";
 	warn "$T_line{CNUM} from suffix\n";
 	}
-	if($T_line{'CNUM'}=~s/^([A-Z]*[0-9]+)-([0-9]+)([A-Za-z]+)/$2/){
-		$T_line{'CNUM_PREFIX'}=$1;
-		$T_line{'CNUM_SUFFIX'}=$3;
+	if($T_line{CNUM}=~s/^([A-Z]*[0-9]+)-([0-9]+)([A-Za-z]+)/$2/){
+		$T_line{CNUM_PREFIX}=$1;
+		$T_line{CNUM_SUFFIX}=$3;
 	}
-	if($T_line{'CNUM'}=~s/^([A-Z]*[0-9]+-)([0-9]+)(-.*)/$2/){
-		$T_line{'CNUM_PREFIX'}=$1;
-		$T_line{'CNUM_SUFFIX'}=$3;
+	if($T_line{CNUM}=~s/^([A-Z]*[0-9]+-)([0-9]+)(-.*)/$2/){
+		$T_line{CNUM_PREFIX}=$1;
+		$T_line{CNUM_SUFFIX}=$3;
 	}
-	if($T_line{'CNUM'}=~s/^([^0-9]+)//){
-		$T_line{'CNUM_PREFIX'}=$1;
+	if($T_line{CNUM}=~s/^([^0-9]+)//){
+		$T_line{CNUM_PREFIX}=$1;
 	}
-	if($T_line{'CNUM'}=~s/^(\d+)([^\d].*)/$1/){
-		$T_line{'CNUM_SUFFIX'}=$2;
+	if($T_line{CNUM}=~s/^(\d+)([^\d].*)/$1/){
+		$T_line{CNUM_SUFFIX}=$2;
 	}
-	if($T_line{'CNUM'}=~s/^[Ss]\.? *[nN]\.?//){
+	if($T_line{CNUM}=~s/^[Ss]\.? *[nN]\.?//){
 		$assignor="unknown";
 	}
-	if($T_line{'CNUM'}=~s/^\s*$//){
+	if($T_line{CNUM}=~s/^\s*$//){
 		$assignor="unknown";
 	}
 
@@ -928,9 +815,20 @@ if($S_accession{'loc_lat_decimal'}){
 	$S_accession{'loc_verbatim'}= $T_line{Location};
 	$S_accession{'loc_other'}= $T_line{Loc_other};
 	$S_accession{'datestring'}= $T_line{Date};
-	$S_accession{'early_jdate'}= $JD;
+		if ($T_line{'EJD'}){
+			$S_accession{'early_jdate'} = $T_line{'EJD'};
+		}
+		else{
+			$S_accession{'early_jdate'}= $JD;
+		}
+	$S_accession{'lat_long_ref_source'}= $T_line{'Source'} if $T_line{'Source'};
 	$S_accession{'bioregion'}= $T_line{Jepson_Manual_Region};
-	$S_accession{'late_jdate'}= $LJD;
+		if ($T_line{'LJD'}){
+			$S_accession{'late_jdate'} = $T_line{'LJD'};
+		}
+		else{
+			$S_accession{'late_jdate'}= $LJD;
+		}	
 	$S_accession{'catalog_date'} = $catdate;
 	$S_accession{'catalog_by'} = "Bload";
 	$S_accession{'lat_long_ref_source'}= $T_line{'Source'} if $T_line{'Source'};
@@ -953,11 +851,106 @@ if ($S_accession{'cultivated'}) {
 
 ##################################
 #DD check for correct county spelling some time!
-	$S_accession{'loc_county'}=~s/ *$//;
+		$S_accession{'loc_county'}=~s/-/--/;#standardize multi-county dashes
+	$S_accession{'loc_county'}=~s/-+/--/;
+	$S_accession{'loc_county'}=~s/ +municip[a-z]+$//i; #substitute the end of a field with a space followed by the word, including misspellings, "municipality" with "" (case insensitive)
+	$S_accession{'loc_county'}=~s/ +[Cc]ount[ryies]+$//;#Butte County, deletes the County, also Country, Counties, various misspellings in older unprocessed datasets
+	$S_accession{'loc_county'}=~s/^unknown/Unknown/;
+	$S_accession{'loc_county'}=~s/^$/Unknown/;	
+	$S_accession{'loc_county'}=~s/County [uU]nknown/Unknown/;	#"County unknown" => "Unknown"
+	$S_accession{'loc_county'}=~s/Unplaced/Unknown/;	#"Unplaced" => "Unknown"
+	$S_accession{'loc_county'}=~s/ +.?(&|and|or).? +/--/ig;
+	$S_accession{'loc_county'}=~s/(\w) ?.?[\/-].? ?(\w)*/$1--$2/g;  #Lake/Colusa/Glenn, Lake-Colusa-Glenn or Lake - Colusa - Glenn  ==>Lake--Colusa--Glenn
+	$S_accession{'loc_county'}=~s/Rosarito--Playas.de/Rosarito, Playas de/; #fix the one allowed county with comma that this script corrupts
 	$S_accession{'loc_county'}=~s/ County *//;
 	$S_accession{'loc_county'}=~s/ Co\.?$//;
-	unless($S_accession{'loc_county'}=~/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|Ensenada|Mexicali|Tecate|Tijuana|Rosarito, Playas de|unknown|Unknown)/){
-		$S_accession{'loc_county'}="unknown";
+	$S_accession{'loc_county'}=~s/The last.*San Luis Obispo/San Luis Obispo/; #fix one weird record that is popping up
+	$S_accession{'loc_county'}=~s/^([A-Z][a-z]) +\[.+/$1/i;
+	$S_accession{'loc_county'}=~s/^([A-Z][a-z]) *; +.+/$1/i;
+	$S_accession{'loc_county'}=~s/`//;
+	
+print "$S_accession{'loc_county'}\n" unless $seen{$S_accession{'loc_county'}}++;
+$S_accession{'loc_county'}=~s/^Alpine--El.Dorado/Alpine/i;#ignore the odd cases here, the error log was formatted this way due to lines after '$orig=$_;' being active in the CDL_counties.in hash creation routine below.  No clue what those lines are for but the make the has file unusable on the website
+$S_accession{'loc_county'}=~s/^Colusa--Lake/Colusa/i;
+$S_accession{'loc_county'}=~s/^Butte--Tehama/Butte/i;
+$S_accession{'loc_county'}=~s/^Butte--Tehama/Butte/i;
+$S_accession{'loc_county'}=~s/^Butte--Plumas/^Butte/i;
+$S_accession{'loc_county'}=~s/^Davis--Yolo/Davis/i;
+$S_accession{'loc_county'}=~s/^Del.Norte--Siskiyou/Del Norte/i;
+$S_accession{'loc_county'}=~s/^El.DoRADO--LIME/El Dorado/i;
+$S_accession{'loc_county'}=~s/^FRESNOFRESNO/Fresno/i;
+$S_accession{'loc_county'}=~s/^Fresno--Inyo/Fresno/i;
+$S_accession{'loc_county'}=~s/^Fresno--Monterey/Fresno/i;
+$S_accession{'loc_county'}=~s/^FRESNO.TO.MONTEREY/Fresno/i;
+$S_accession{'loc_county'}=~s/^Humboldt--Del.Norte/Del Norte/i;
+$S_accession{'loc_county'}=~s/^Imperial--San.Diego/Imperial/i;
+$S_accession{'loc_county'}=~s/^Inyo--Kern/Inyo/i;
+$S_accession{'loc_county'}=~s/^Inyo--San.Bernardino/Inyo/i;
+$S_accession{'loc_county'}=~s/^Kern--Inyo/Inyo/i;
+$S_accession{'loc_county'}=~s/^Kern--Ventura/Kern/i;
+$S_accession{'loc_county'}=~s/^KeRN--LOS.AnGELEs/Kern/i;
+$S_accession{'loc_county'}=~s/^LaKE--NAPA/Lake/i;
+$S_accession{'loc_county'}=~s/^Los.Angeles.?-+.?Ventura/Los Angeles/i;
+$S_accession{'loc_county'}=~s/^LoS.AnGELES--SAN.BeRNARDINO/Los Angeles/i;
+$S_accession{'loc_county'}=~s/^LoS.AnGELESUBESCENT/Los Angeles/i;
+$S_accession{'loc_county'}=~s/^MaRIPOSA--MERCED/Mariposa/i;
+$S_accession{'loc_county'}=~s/^Mendocino--Tehama/Mendocino/i;
+$S_accession{'loc_county'}=~s/^Mendocino--Humboldt/Humboldt/i;
+$S_accession{'loc_county'}=~s/^Mendocino--Lake/Lake/i;
+$S_accession{'loc_county'}=~s/^Modoc--San.Joaquin/Unknown/i;	#Ok this is an odd one, these two counties are not even close to being adjacent, setting to unknown, need to track record down,
+$S_accession{'loc_county'}=~s/^Mono--Alpine/Alpine/i;
+$S_accession{'loc_county'}=~s/^Mono--Tuolumne/Mono/i;
+$S_accession{'loc_county'}=~s/^Monterey--Alpine/Unknown/i; #Ok this is an odd one, these two counties are not even close to being adjacent, setting to unknown, need to track record down, this will create a yellow flag if set to one or the other county
+$S_accession{'loc_county'}=~s/^Monterey--Tuolumne/Monterey/i;
+$S_accession{'loc_county'}=~s/^Monterey.?--.?San.L[oui]+s.Obispo/Monterey/i;
+$S_accession{'loc_county'}=~s/^Napa--Sonoma/Napa/i;
+$S_accession{'loc_county'}=~s/^Nevada--Sierra/Nevada/i;
+$S_accession{'loc_county'}=~s/^OrANGE--RIVERSIDE/Orange/i;
+$S_accession{'loc_county'}=~s/^PlACER--EL.DoRADO/El Dorado/i;
+$S_accession{'loc_county'}=~s/^Placer--Tulare/Placer/i;
+$S_accession{'loc_county'}=~s/^Placer--Sierra/Placer/i;
+$S_accession{'loc_county'}=~s/^Placer--Nevada/Nevada/i;
+$S_accession{'loc_county'}=~s/^Plumas--Butte/Butte/i;
+$S_accession{'loc_county'}=~s/^Plumas--Sierra/Plumas/i;
+$S_accession{'loc_county'}=~s/^Riverside--Imperial/Imperial/i;
+$S_accession{'loc_county'}=~s/^Riverside--San.Diego/Riverside/i;
+$S_accession{'loc_county'}=~s/^Riverside--San.Bernardino/Riverside/i;
+$S_accession{'loc_county'}=~s/^SaN.LuIS.ObISPO--SANTA.BARBARA/San Luis Obispo/i;
+$S_accession{'loc_county'}=~s/^SaNTA.BaRBARASANTA.BaRBARA/Santa Barbara/i;
+$S_accession{'loc_county'}=~s/^San.Bernardino--Inyo/Inyo/i;
+$S_accession{'loc_county'}=~s/^San.Bernardino--Riverside/Riverside/i;
+$S_accession{'loc_county'}=~s/^SaN.BeRNARDINOSAN.BeRNARDINO/San Bernardino/i;
+$S_accession{'loc_county'}=~s/^San.Diego--Riverside/Riverside/i;
+$S_accession{'loc_county'}=~s/^San.Diego--Imperial/Imperial/i;
+$S_accession{'loc_county'}=~s/^Shasta--Lassen/Lassen/i;
+$S_accession{'loc_county'}=~s/^Shasta--Trinity/Shasta/i;
+$S_accession{'loc_county'}=~s/^Shasta--Tehama/Shasta/i;
+$S_accession{'loc_county'}=~s/^Siskiyou--Trinity/Siskiyou/i;
+$S_accession{'loc_county'}=~s/^Sierra--Plumas/Plumas/i;
+$S_accession{'loc_county'}=~s/^Sierra--Nevada/Nevada/i;
+$S_accession{'loc_county'}=~s/^Solano--Napa/Napa/i;
+$S_accession{'loc_county'}=~s/^Solano--Yolo/Solano/i;
+$S_accession{'loc_county'}=~s/^Sonoma--Lake/Lake/i;
+$S_accession{'loc_county'}=~s/^Tuolumne--Mariposa/Mariposa/i;
+$S_accession{'loc_county'}=~s/^Trinity--Siskiyou/Siskiyou/i;
+$S_accession{'loc_county'}=~s/^Tulare--Fresno/Fresno/i;
+$S_accession{'loc_county'}=~s/^Tulare--Kern/Kern/i;
+$S_accession{'loc_county'}=~s/^Tulare--Inyo/Inyo/i;
+$S_accession{'loc_county'}=~s/^Yolo--Solano/Solano/i;
+$S_accession{'loc_county'}=~s/^Yuba--Butte/Butte/i;
+$S_accession{'loc_county'}=~s/^VENTURAVENTURA/Ventura/i;
+$S_accession{'loc_county'}=~s/^SaN.DiEGO/San Diego/i; 
+$S_accession{'loc_county'}=~s/^SaNTA.BaRBARA..?north*/Santa Barbara/i;#fix various records from these counties below with non-county data entered into the field.  THis should be last
+$S_accession{'loc_county'}=~s/^SaN.FrANCISCO..?Cal.*/San Francisco/i;
+#print "$S_accession{'loc_county'}\n" unless $seen{$S_accession{'loc_county'}}++;		
+
+$S_accession{'loc_county'}=~s/  +/ /;
+$S_accession{'loc_county'}=~s/^ +//;
+$S_accession{'loc_county'}=~s/ +$//;
+$S_accession{'loc_county'}=~s/^ *$/Unknown/;
+
+	unless($S_accession{'loc_county'}=~/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|Ensenada|Mexicali|Tecate|Tijuana|Rosarito, Playas de|Unknown)/){
+		$S_accession{'loc_county'}="Unknown";
 		print WARNINGS " $S_accession{'loc_county'} unrecognized: set to unknown\n";
 	}
 
@@ -985,17 +978,13 @@ foreach(split(/[ \|\/-]+/, $location_field)){
 		$S_accession{'notes'}="" unless $S_accession{'notes'};
 		$S_accession{'notes'}.= "USGS quad: $T_line{USGS_Quadrangle}; ";
 	}
-	if($T_line{'Verbatim_elevation'}){
+	if($T_line{'Notes'}){
 		$S_accession{'notes'}="" unless $S_accession{'notes'};
-		$S_accession{'notes'}.= "Verbatim elevation: $T_line{Verbatim_elevation}; ";
+		$S_accession{'notes'}.= "$T_line{Notes}; ";
 	}
 	if($T_line{'UTM'}){
 		$S_accession{'notes'}="" unless $S_accession{'notes'};
-		$S_accession{'notes'}.= "UTM: $T_line{UTM}; ";
-	}
-	if($T_line{'Notes'}){
-		$S_accession{'notes'}="" unless $S_accession{'notes'};
-		$S_accession{'notes'}.= "Other Notes:$T_line{Notes}; ";
+		$S_accession{'notes'}.= "$T_line{UTM}; ";
 	}
 	$T_line{'CNUM_SUFFIX'}="" unless $T_line{'CNUM_SUFFIX'};
 	$T_line{'CNUM_PREFIX'}="" unless $T_line{'CNUM_PREFIX'};
@@ -1055,22 +1044,22 @@ foreach(split(/[ \|\/-]+/, $location_field)){
 					if(m/(\d+)-(\d+)/){
 						if ($1 > $2){
 				print WARNINGS "$hn Elevation skipped $_\n";
-						next;
+						#next;
 						}
 					}
 					elsif(m/(\d\d\d\d\d+) f/){
 						if ($1 > 14500){
 				print WARNINGS "$hn Elevation skipped $_\n";
-				next;
+				#next;
 				}
 					}
 					elsif(m/(-\d\d\d+) f/){
 						if ($1 < -300){
 				print WARNINGS "$hn Elevation skipped $_\n";
-				next;
+				#next;
 				}
 					}
-					$S_accession{'loc_elevation'}=$_;
+					#$S_accession{'loc_elevation'}=$_;
 				print WARNINGS "$hn Elevation added $_  ($pre_e): $location_field\n";
 				}
 			}
@@ -1108,9 +1097,8 @@ foreach(split(/[ \|\/-]+/, $location_field)){
 ###Image links, cultivatedness etc. are separate files, because modifying the main CDL hash structure (CDL_main.in) would be very complicated and probably break something
 ###This is the best method I could come up with for adding new fields to CCH
 if ($S_accession{'image_link'}) {
-	print IMG join("\t", 
-	$S_accession{'accession_id'},
-	$S_accession{'image_link'}),
+	print IMG join("\t",$S_accession{'accession_id'},
+	'<a href="'.$S_accession{'image_link'}.'">'.$S_accession{'accession_id'}.'</a>'),
 	"\n";
 }
 ####
@@ -1139,7 +1127,11 @@ $CDL_notes{$hn}=&get_entities($S_accession{'notes'});
 			push(@cdl_anno,"$S_folder{'accession_id'}\n$T_line{'Hybrid_annotation'};;;Name on sheet");
 		}
 	}
-	if($T_line{'Annotation'}){
+	
+	if($T_line{'Annotation'}=~m/\d: none/){
+		next;
+	}
+	elsif($T_line{'Annotation'}){
 		$anno =join("\n",@anno);
 		#print "2 $anno\n\n";
 #$cdl_anno{$S_folder{'accession_id'}}="$T_line{'Annotation'}\n";
@@ -1148,7 +1140,6 @@ $CDL_notes{$hn}=&get_entities($S_accession{'notes'});
                 push(@cdl_anno,"$S_folder{'accession_id'}\n$anno\n");
         
 	}
-
 	if($T_line{'Habitat'}){
 		$cdl_voucher{$S_folder{'accession_id'}}.= "\t52\t$T_line{'Habitat'}";
 	}
@@ -1167,6 +1158,9 @@ $CDL_notes{$hn}=&get_entities($S_accession{'notes'});
 	if($T_line{'Phenology'}){
 		$cdl_voucher{$S_folder{'accession_id'}}.= "\t26\t$T_line{'Phenology'}";
 	}
+	if($T_line{'Macromorphology'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t20\t$T_line{'Macromorphology'}";
+	}
 	if($T_line{'Type_status'}){
 		$cdl_voucher{$S_folder{'accession_id'}}.= "\t56\t$T_line{'Type_status'}";
 	}
@@ -1179,15 +1173,27 @@ $CDL_notes{$hn}=&get_entities($S_accession{'notes'});
 	if($T_line{'Verbatim_coordinates'}){
 		$cdl_voucher{$S_folder{'accession_id'}}.= "\t73\t$T_line{'Verbatim_coordinates'}";
 	}
+		if ($T_line{'Verbatim_county'} ne $T_line{'County'}){
+			#print "$T_line{'Verbatim_county'}\t$T_line{'County'}\n"  unless $seen{$T_line{'Verbatim_county'}}++; 
+		}
+	#if(($T_line{'Verbatim_county'}) ne ($T_line{'County'})){
+	#	$cdl_voucher{$S_folder{'accession_id'}}.= "\t74\t$T_line{'Verbatim_county'}";
+	#}
+	if($T_line{'Verbatim_elevation'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t75\t$T_line{'Verbatim_elevation'}";
+	}
 	if($T_line{'Genbank_code'}){
 		$cdl_voucher{$S_folder{'accession_id'}}.= "\t45\t$T_line{'Genbank_code'}";
 	}
 	if($T_line{'Other_data'}){
 		$cdl_voucher{$S_folder{'accession_id'}}.= "\t72\t$T_line{'Other_data'}";
 	}
-
-
+	if($T_line{'Other_label_numbers'}){
+		$cdl_voucher{$S_folder{'accession_id'}}.= "\t55\t$T_line{'Other_label_numbers'}";
+	}
 }
+
+
 #possible fields to add:
 #"16","secondary product chemistry",
 #"17","cytology",
@@ -1230,6 +1236,9 @@ $CDL_notes{$hn}=&get_entities($S_accession{'notes'});
 #"71","U.C. Botanical Garden",
 #"72","other",
 #"73","verbatim coordinates",
+
+
+
 sub get_genus{
 	local($_)=@_;
 	s/([a-z]) .*/$1/;
@@ -1237,11 +1246,15 @@ sub get_genus{
 }
 
 close(OUT);
+
+
 open(OUT, ">CDL_collectors.in") || die;
 foreach (sort (keys(%all_names))){
 	print OUT "$_ $all_names{$_}\n";
 }
 close(OUT);
+
+
 open(OUT, ">CDL_counties.in") || die;
 foreach (sort (keys(%county))){
 	$orig=$_;
@@ -1253,31 +1266,43 @@ foreach (sort (keys(%county))){
 	print OUT "$_ $county{$orig}\n";
 }
 close(OUT);
+
+
 open(OUT, ">CDL_tid_to_name.in") || die;
 foreach (sort (keys(%TID_TO_NAME))){
 	print OUT "$_ $TID_TO_NAME{$_}\n";
 }
 close(OUT);
+
+
 open(OUT, ">CDL_date_simple.in") || die;
 foreach (sort (keys(%date_simple))){
 	print OUT "$_ $date_simple{$_}\n";
 }
 close(OUT);
+
+
 open(OUT, ">CDL_date_range.in") || die;
 foreach (sort (keys(%date_range))){
 	print OUT "$_ $date_range{$_}\n";
 }
 close(OUT);
+
+
 open(OUT, ">CDL_name_list.in") || die;
 foreach(sort(keys(%name_list))){
 	print OUT "$_ $name_list{$_}\n";
 }
 close(OUT);
+
+
 open(OUT, ">CDL_loc_list.in") || die;
 foreach(sort(keys(%CDL_loc_word))){
 	print OUT "$_ $CDL_loc_word{$_}\n";
 }
 close(OUT);
+
+
 open(OUT, ">CDL_coll_number.in") || die;
 foreach (sort (keys(%num))){
 	print  OUT "$_ $num{$_}\n";
@@ -1289,6 +1314,8 @@ foreach(sort(keys(%cdl_voucher))){
 print OUT "$_$cdl_voucher{$_}\n";
 }
 close(OUT);
+
+
 open(OUT,">CDL_notes.in") || die;
 foreach(sort(keys(%CDL_notes))){
 print OUT "$_\t$CDL_notes{$_}\n";
@@ -1304,34 +1331,65 @@ foreach(@cdl_anno){
 	else{
 		$CDL_anno{$key}="$value";
 	}
+
+	if($CDL_anno_full{$key}){
+		$CDL_anno_full{$key}.="$value|";
+	}
+	else{
+		$CDL_anno_full{$key}="$value";
+	}
 	}
 }
+
 open (OUT, ">CDL_annohist.in") || die;
 foreach(sort(keys(%CDL_anno))){
 	$CDL_anno{$_}=~s/√ó/× /;
 	print OUT "$_\n$CDL_anno{$_}\n\n";
 }
+close(OUT);
+
+open (OUT, ">CDL_annohist_tab.txt") || die;
+foreach(sort(keys(%CDL_anno_full))){
+	$CDL_anno_full{$_}=~s/√ó/× /;
+	print OUT "$_\n$CDL_anno_full{$_}\n\n";
+}
+close(OUT);
 
 open(OUT, ">logs/CDL_bad_date") || die;
 foreach(keys(%null_date)){
 print OUT "bad date: $null_date{$_}: $_ \n";
 }
 close(OUT);
+
+
 open(OUT, ">logs/not_in_icpn.txt") || die;
 foreach(sort(keys(%not_in_ICPN))){
 print OUT "$_ $not_in_ICPN{$_}\n";
+}
+close(OUT);
+
+open(OUT, ">CF_full_name_list.in") || die;
+foreach(sort(keys(%full_name_list))){
+	print OUT "$_ $full_name_list{$_}\n";
 }
 close(OUT);
 #UND
 sub modify_collector {
 s/,? Jr\.?//;
 s/&([a-z])[a-z]*;/$1/g;
-			s/W\. ?L\. ? J\./Jepson/;
+
+s/(Baccigalupi|Bacigalipi|Bacigalipi|Baciglupi|Baciogalupi|Baciqalupi|Bacegalupi|Baciglaupi|Baeigalupi)/Bacigalupi/g;
+s/^[Aa]nonymous/unknown/;
+			s/^CHQ ?([A-Z]?[a-z-]*)/C. Quibell/;
+			s/^C\.? [WH]\.? Q\.?/C. Quibell/;
+			s/^W\.? L\.? J\.?/Jepson/;
+			s/^WLJ/Jepson/;
 			if(m/[A-Z]\. ?[A-Z]\. ?[A-Z]\.$/){
 				$all_names{$_}.="$hn\t" unless $seen{$hn}++;
 				next;
 			}
-			s/,? [Ee][tT] .*//;
+			s/,? M\.?D\.?$//; #A. Davidson, MD
+
 			s/^([A-Z][A-Z][A-Z]+) [A-Z].*/$1/;
 #Harold and Virginia Bailey
 			s/^[A-Z][a-z]+ and ?[A-Z][a-z-]+ ([A-Z][a-z-]+$)/$1/;
@@ -1340,9 +1398,14 @@ s/&([a-z])[a-z]*;/$1/g;
 			s! \(?(w/|with|and|&) .*!!;
 			s! \[(w/|with|and|&) .*!!;
 			s/[;,] .*//;
-			#s/, .*//;
+			s/, .*//;
 			s/^.* //;
-s/&(.)[^;]*;/\1/g && print "$_\n";
+s/[.,;?]$//;
+s/&(.)[^;]*;/\1/g && print "$_\n";# finds &ntilde; & others, odd format characters were changed to this HTML code in the loaders then changed back here
+									#unnecessary repetition, loaders are being converted to changing characters to what it does here, not the html code
+									#this all-in-one code ignores the problems with mis-converted codes from native windows datasets which are routinely converted incorrectly to MAC UTF8 by users
+									#still some are not converted, so leave this in until it no longer finds names to change, then remove
+									
 			return ucfirst(lc($_));
 }
 sub get_entities{
