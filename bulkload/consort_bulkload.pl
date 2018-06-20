@@ -1,6 +1,34 @@
+#consort_bulkload.pl
 @time=localtime(time);
 $this_year=$time[5] + 1900;
 
+open(IN, "/Users/richardmoe/4_CDL_BUFFER/smasch/mosses") || die;
+while(<IN>){
+        chomp;
+s/\t.*//;
+        s/ .*//;
+        $exclude{$_}++;
+}
+close(IN);
+
+
+open(IN, "CDL_skip_these" ) || die;
+while(<IN>){
+	chomp;
+	$skip_it{$_}++;
+}
+close(IN);
+{
+local($/)="";
+open(IN, "/Users/richardmoe/4_data/Interchange/_input/cpn_out.txt" ) || die "couldn't get list of genera from CPN_out.txt";
+while(<IN>){
+($genus)=m/^([^ ]+)/;
+$seen_ICPN_genus{$genus}++;
+}
+}
+foreach (keys(%seen_ICPN_genus)){
+print if m/Catharanthus/;
+}
 
 use Smasch;
 open(WARNINGS,">consort_bulkload_warn") || die;
@@ -94,20 +122,43 @@ open(ERR, ">accent_err") || die;
 #"revised_coords.out",
 
 #skip_genera
-open(IN, "../all_vtm_id") || die;
+open(IN, "/Users/richardmoe/4_CDL_BUFFER/smasch/mosses") || die;
 while(<IN>){
 chomp;
 s/ .*//;
-$vtm{$_}++;
+$non_vasc{$_}++;
 }
 @datafiles=(
+"SEINET.out",
+"ucla.out",
+"VV.out",
+"new_CAS",
+"OBI.out",
+"CDA_out",
+"SD.out",
+"RSA_out_new.tab",
+"parse_sbbg_export.out",
+"IRVC_new.out",
+"parse_davis.out",
+"PG.out",
+"parse_riverside_2012.out",
+"parse_clark.out",
+"parse_chico.out",
+"parse_hsc.out",
+"SDSU_out_new",
+"SJSU_from_smasch",
+"nybg.out",
+"parse_csusb.out",
+"new_HUH",
+"YOSE_data.tab",
+"sagehen.txt",
 "UCSC_2012.out",
 "CSPACE.out",
+"JOTR.out",
 "UCSB.out",
+"SFV.out",
+"UCSCUCSB_from_smasch.txt"
 );
-#@datafiles=(
-#"OBI.out",
-#);
 foreach $datafile (@datafiles){
 next if $datafile=~/#/;
 	#%seen_dups=();
@@ -116,13 +167,6 @@ next if $datafile=~/#/;
 	open(IN,"$datafile")|| die;
 	$/="";
 	while(<IN>){
-#next unless m/trs2ll/i;
-		if (m/Accession_id: (...*)/){
-next unless $vtm{$1};
-}
-		if (m/Accession: (...*)/){
-next unless $vtm{$1};
-}
 	#next unless m/564576/;
 	next if m/^#/;
 		s/  +/ /g;
@@ -583,11 +627,16 @@ warn "No name: $name\n";
 		if($name=~/aceae/){
 warn "FAMILY: $name\n";
 			print WARNINGS "$hn FAMILY" . $name, &strip_name($name) ."\n";
-			return(0);
+			#return(0);
 		}
 		if($non_vasc{$gen}){
 			print WARNINGS "$hn THIS CAN'T BE STORED: NON VASC>" . $name, &strip_name($name) ."\n";
 			return(0);
+		}
+	unless($seen_ICPN_genus{$gen}){
+			#print WARNINGS "$hn $gen not in ICPN>" . $name, &strip_name($name) ."\n";
+			#warn "$hn $gen not in ICPN, but I continue $name\n";
+$not_in_ICPN{$gen}++;
 		}
 
 		foreach($name){
@@ -651,6 +700,10 @@ s/Monotropa hypopithys/Monotropa hypopitys/;
 s/Opuntia curvospina/Opuntia curvispina/;
 s/Ciclospermum/Cyclospermum/;
 s/kinselae/kinseliae/;
+s/Aster adscendens/Aster ascendens/;
+s/Crypsis niliaca/Crypsis niliacea/;
+s/Orobanche ludoviciana var. latilobus/Orobanche ludoviciana var. latiloba/;
+
 unless($seen_name{$name}++){
 		print "$old_name -> $name\n" unless $old_name eq $name;
 }
@@ -1193,6 +1246,7 @@ s/&([a-z])[a-z]*;/$1/g;
 			s/^[A-Z]\. ?[A-Z]\. and [A-Z]\. ?[A-Z]\. (.*)/$1/;
 			s/^[A-Z]\. and [A-Z]\. (.*)/$1/;
 			s! \(?(w/|with|and|&) .*!!;
+			s! \[(w/|with|and|&) .*!!;
 			s/[;,] .*//;
 			#s/, .*//;
 			s/^.* //;
