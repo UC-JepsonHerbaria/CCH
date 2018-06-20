@@ -1,21 +1,6 @@
 @time=localtime(time);
 $this_year=$time[5] + 1900;
 
-open(IN, "/Users/rlmoe/cdl_buffer/smasch/mosses") || die;
-while(<IN>){
-        chomp;
-        s/ .*//;
-        $exclude{$_}++;
-}
-close(IN);
-
-
-open(IN, "CDL_skip_these" ) || die;
-while(<IN>){
-	chomp;
-	$skip_it{$_}++;
-}
-close(IN);
 
 use Smasch;
 open(WARNINGS,">consort_bulkload_warn") || die;
@@ -103,42 +88,21 @@ open(ERR, ">accent_err") || die;
 ######################################
 &load_collectors();
 &load_noauth_name();
-&load_be();
+#&load_be();
 
 
 #"revised_coords.out",
 
 #skip_genera
-open(IN, "/Users/rlmoe/CDL_buffer/smasch/mosses") || die;
+open(IN, "../all_vtm_id") || die;
 while(<IN>){
 chomp;
 s/ .*//;
-$non_vasc{$_}++;
+$vtm{$_}++;
 }
 @datafiles=(
-"VV.out",
-"new_CAS",
-"OBI.out",
-"CDA_out",
-"SD.out",
-"RSA_out_new.tab",
-"parse_sbbg_export.out",
-"IRVC_new.out",
-"parse_davis.out",
-"PG.out",
-"parse_riverside_2012.out",
-"parse_chico.out",
-"parse_hsc.out",
-"SDSU_out_new",
-"SJSU_from_smasch",
-"nybg.out",
-"parse_csusb.out",
-"new_HUH",
-"YOSE_data.tab",
-"sagehen.txt",
 "UCSC_2012.out",
 "CSPACE.out",
-"JOTR.out",
 "UCSB.out",
 );
 #@datafiles=(
@@ -152,6 +116,13 @@ next if $datafile=~/#/;
 	open(IN,"$datafile")|| die;
 	$/="";
 	while(<IN>){
+#next unless m/trs2ll/i;
+		if (m/Accession_id: (...*)/){
+next unless $vtm{$1};
+}
+		if (m/Accession: (...*)/){
+next unless $vtm{$1};
+}
 	#next unless m/564576/;
 	next if m/^#/;
 		s/  +/ /g;
@@ -592,8 +563,14 @@ $vdate=""; $JD=""; $EJD="";
 	if(m/Name: +(.*)/){
 		$old_name=$name=$1;
 		($gen=$name)=~s/ [a-z]+.*//;
+$gen=~s/ X$//;
 		if($exclude{$name}){
 warn "Excluded name: $name\n";
+			print WARNINGS "$hn EXCLUDED NAME" . $name, &strip_name($name) ."\n";
+			return(0);
+		}
+		if($exclude{$gen}){
+warn "Excluded name: $gen\n";
 			print WARNINGS "$hn EXCLUDED NAME" . $name, &strip_name($name) ."\n";
 			return(0);
 		}
@@ -1193,6 +1170,11 @@ foreach(sort(keys(%CDL_anno))){
 open(OUT, ">CDL_bad_date") || die;
 foreach(keys(%null_date)){
 print OUT "bad date: $null_date{$_}: $_ \n";
+}
+close(OUT);
+open(OUT, ">not_in_icpn.txt") || die;
+foreach(sort(keys(%not_in_ICPN))){
+print OUT "$_ $not_in_ICPN{$_}\n";
 }
 close(OUT);
 #UND
