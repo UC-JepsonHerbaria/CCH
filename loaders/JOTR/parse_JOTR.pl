@@ -58,7 +58,7 @@ my %ANNO;
 
 
 #process converted text file
-my $file = 'CCH_25AUG2017_mod.txt';
+my $file = '/JEPS-master/CCH/Loaders/JOTR/CCH_25AUG2017_mod.txt';
 
 #####process the file
 ###File arrives as an Excel xlsx file, with a lot of unfortunate in-cell line breaks

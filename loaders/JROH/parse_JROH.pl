@@ -756,6 +756,7 @@ foreach ($verbatimLatitude, $verbatimLongitude){
 		s/\xc3\xb8/ /; #decimal byte representation for ø
 		s/'/ /;
 		s/;//;
+		s/i122/122/;
 		s/"/ /;
 		s/,/ /;
 		s/deg./ /;

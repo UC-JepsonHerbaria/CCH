@@ -3,6 +3,8 @@ use Geo::Coordinates::UTM;
 use strict;
 #use warnings;
 use Data::GUID;
+use utf8; #use only when original has problems with odd character substitutions
+use Text::Unidecode;
 use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH; #load non-vascular hash %exclude, alter_names hash %alter, and max county elevation hash %max_elev
 my $today_JD;
@@ -29,11 +31,10 @@ open(OUT, ">/JEPS-master/CCH/Loaders/CDA/CDA_out.txt") || die;
 my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
 
-my $file = '/JEPS-master/CCH/Loaders/CDA/CDAtoCCH4_16.txt';
+my $file = '/JEPS-master/CCH/Loaders/CDA/CDAtoCCH4_16_mod.txt';
 ###File arrives as an Excel xlsx file, with a lot of unfortunate in-cell line breaks
-###Use find replace to remove "\n" to remove in-cell line breaks
-###then save as a utf8 tab-delimited text file with no quotes
-###N.B. You can load the file without removing the line breaks to make an informative log file for CDA
+#Some latmin and longmin are emtpy, sort the excel spreadsheet and add 0.001 to the minute field, otherwise these will not parse.  it is assumed a zero should have been entered into these fields
+
 #Some problem specimens:
 ###CDA29638	M. Beyers	105, is a duplicate with the wrong accession number, change to CDA29638b
 ###CDA33958	M. Beyers	823A id'd to just Agrostis is a duplicate of the next record, change to CDA33958b
@@ -73,9 +74,9 @@ Record: while(<IN>){
 
 	s/&apos;/'/g;
 
-#        if ($. == 1){#activate if need to skip header lines
-#			next Record;
-#		}
+        if ($. == 1){#activate if need to skip header lines
+			next Record;
+		}
 
 
 my $GUID;
@@ -181,14 +182,18 @@ my $elevation_units;
 my $bm;
 
 
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
+
 	my @fields=split(/\t/,$_,100);
 
-	unless($#fields==32){
-		&log_skip("Fields should be 33; I count $#fields\t$_");
+	unless($#fields==33){
+		&log_skip("Fields should be 34; I count $#fields\t$_");
 		next Record;
 	}
-
-($id, 
+#ACCESSION	COLLECTOR	COL_NUM	OTHR_COLLS	MONTH	DAY	DATE_YEAR	GENUS	SPECIFIC	VAR_SSP	INTRASPEC	DET_BY	SUBHEAD	LOCALITY	HABITAT	PLCHARS	COUNTY	ELEV	ELEV_UNIT	
+#LAT_DEGN	LAT_MINN	LAT_SECN	LAT_HEMIS	LON_DEGN	LON_MINN	LON_SECN	LON_HEMIS	TWNSHP	RANGE	SEC	Quarter	BM	QUAD
+($cultivated,
+$id, 
 $collector, 
 $recordNumber, 
 $other_coll, 
@@ -196,8 +201,8 @@ $coll_month,
 $coll_day, 
 $coll_year, 
 $genus, 
-$species,  
-$rank,	#10
+$species,  #10
+$rank,	
 $subtaxon,
 $identifiedBy,
 $labelSubHeader, #i.e. "Plants of $label_subhead". Generally not published
@@ -206,8 +211,8 @@ $habitat,
 $occurrenceRemarks, #called PLCHARS for plant characteristics
 $tempCounty,
 $elevation,
-$elevation_units, # needs to be processed/shortened
-$lat_deg,	#20
+$elevation_units, #20
+$lat_deg,	
 $lat_min,
 $lat_sec,
 $lat_hem,
@@ -216,10 +221,10 @@ $long_min,
 $long_sec,
 $long_hem,
 $Township, #so far not processed
-$Range,
-$Section,#30
+$Range,#30
+$Section,
 $Fraction,
-$bm, #I don't know what this means. Basemap???
+$bm, #TRS meridian
 $topo_quad #name of quad map
 )=@fields;
 
@@ -227,7 +232,7 @@ $topo_quad #name of quad map
 ################ACCESSION_ID#############
 #check for nulls
 if ($id=~/^ *$/){
-	&log_skip("Record with no accession id $_");
+	&log_skip("ACC: Record with no accession id $_");
 	++$skipped{one};
 	next Record;
 }
@@ -235,7 +240,7 @@ if ($id=~/^ *$/){
 
 #Remove duplicates
 if($seen{$id}++){
-	&log_skip("Duplicate accession number, skipped:\t$id");
+	&log_skip("ACC: Duplicate accession number, skipped:\t$id");
 	++$skipped{one};
 	warn "Duplicate number: $id<\n";
 	next Record;
@@ -360,8 +365,13 @@ if (($id =~ m/^(CDA43219)$/) && (length($TID{$tempName}) == 0)){
 }
 if (($id =~ m/^(CDA1547|CDA1546)$/) && (length($TID{$tempName}) == 0)){ 
 #CDA1547	E.C. Whitney	s.n.		Jun	3	1971	Cirsium	remotifolium	 var. 	mendocinum	David J. Keil		Bear River Ridge County roadside, Johnson Corrals, NE of Capetown.	County roadside.	In bud, county roadside near Johnson Corrals.(Label states “Sec. 10”, in error. Corral is in Sec. 8, road runs Sec. 9- Sec.16)Cirsium remotifolium var. mendocinum (Petrak) Keil,Annotated by David J. Keil, Flora of North America, 2002.	Humboldt	366	meters	40	28	36	N	124	18	40	W	1N	2W	8		H	
-	$tempName =~ s/Cirsium remotifolium var. mendocinum/Cirsium remotifolium/;
+	$tempName =~ s/Cirsium remotifolium var\. mendocinum/Cirsium remotifolium/;
 	&log_change("Scientific name not published: Cirsium remotifolium var. mendocinum, not a published combination, modified to just the species rank:\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(CDA6710|CDA6711|CDA6712|CDA6713|CDA6714|CDA6715)$/) && (length($TID{$tempName}) == 0)){ 
+#N	CDA6710	T.C. Fuller	12815		Nov	6	1964	Citrullus	colocynthis	 var. 	citroides	G.D. Barbe		2.5 miles northwest of Holt. 	In sandy soil on levee above maize and asparagus fields. 	Abundant. 	San Joaquin			37	57	33.5	N	121	23	40.9	W						
+	$tempName =~ s/Citrullus colocynthis var\. citroides/Citrullus lanatus var. citroides/;
+	&log_change("Scientific name not published: Citrullus colocynthis var. citroides, not a published combination, modified to just the species rank:\t$tempName\t--\t$id\n");
 }
 
 ##########Begin validation of scientific names
@@ -378,7 +388,6 @@ $scientificName=&validate_scientific_name($scientificName, $id);
 #####process cultivated specimens			
 # flag taxa that are known cultivars that should not be added to the Jepson Interchange, add "P" for purple flag to Cultivated field	
 
-$cultivated = "N";
 
 ## regular Cultivated parsing
 
@@ -444,7 +453,7 @@ foreach ($coll_day){
 }
 
 
-$eventDateAlt = $coll_day."-".$coll_month."-".$coll_year ;
+$eventDateAlt = $coll_year."-".$coll_month."-".$coll_day;
 
 #assemble a date for a correctly formatted verbatim date
 	if ((length($coll_day) == 0) && (length($coll_month) >= 1) && (length($coll_year) >= 2)){
@@ -495,6 +504,23 @@ foreach ($eventDateAlt){
 		$DD2 = "";
 	warn "(1)$eventDateAlt\t$id";
 	}
+	elsif($eventDateAlt=~/^([0-9]{4})-(\d)-(\d\d)/){	#if eventDate is in the format ####-##-##
+		$YYYY=$1; 
+		$MM=$2; 
+		$DD=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
+		$MM2 = "";
+		$DD2 = "";
+	warn "(1a)$eventDateAlt\t$id";
+	}
+	elsif($eventDateAlt=~/^([0-9]{4})-([A-Za-z]+)-(\d\d?)/){	#if eventDate is in the format ####-AAA-##
+		$YYYY=$1; 
+		$MM=$2; 
+		$DD=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
+		$MM2 = "";
+		$DD2 = "";
+	#warn "(1b)$eventDateAlt\t$id";
+	}
+	
 	elsif($eventDateAlt=~/^(\d\d)-(\d\d)-([0-9]{4})/){	#added to SDSU, if eventDate is in the format ##-##-####, most appear that first ## is month
 		$YYYY=$3; 
 		$MM=$1; 
@@ -541,7 +567,7 @@ foreach ($eventDateAlt){
 		$YYYY=$3;
 		$MM2 = "";
 		$DD2 = "";
-	#warn "(22)$eventDateAlt\t$id";
+	warn "(22)$eventDateAlt\t$id";
 	}
 	elsif ($eventDateAlt=~/^([0-9]{1,2})[- ]+([0-9]{1,2})[- ]+([A-Z][a-z]+)[- ]([0-9]{4})/){
 		$DD=$1;
@@ -617,9 +643,17 @@ foreach ($eventDateAlt){
 		$YYYY=$2;
 		$MM2 = "";
 		$DD2 = "";
-	#warn "(5)$eventDateAlt\t$id";
+	warn "(5)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{2})([0-9]{4})$/){
+	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([A-Za-z]+)-$/){
+		$DD = "";
+		$MM = $2;
+		$YYYY=$1;
+		$MM2 = "";
+		$DD2 = "";
+	#warn "(5a)$eventDateAlt\t$id";
+	}
+	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{2})([0-9]{4})$/){
 		$DD = $2;
 		$MM = $1;
 		$YYYY= $3;
@@ -643,7 +677,7 @@ foreach ($eventDateAlt){
 		$MM="";
 	#warn "(18)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([0-9]{1,2})[- ]*$/){
+	elsif ($eventDateAlt=~/^([0-9]{4})-([0-9]{1,2})[- ]*$/){
 		$MM=$2;
 		$YYYY=$1;
 		$MM2 = "";
@@ -662,7 +696,6 @@ foreach ($eventDateAlt){
 	else{
 		&log_change("Date: date format not recognized: $eventDateAlt==>($verbatimEventDate)\t$id\n");
 	}
-
 
 #convert to YYYY-MM-DD for eventDate and Julian Dates
 $MM = &get_month_number($MM, $id, %month_hash);
@@ -831,6 +864,37 @@ foreach ($locality){
 	s/ +$//;
 }
 
+foreach ($labelSubHeader){
+		s/'$//;
+		s/  +/ /g;
+		s/^ +//g;
+		s/ +$//g;
+}
+
+
+if ((length($locality) > 1) && (length($labelSubHeader) > 1)){	#$recordedBy = &CCH::validate_single_collector($collector, $id);
+	$location = "$labelSubHeader; $locality";
+
+}
+elsif ((length($locality) > 1) && (length($labelSubHeader) == 0)){
+	$location = $locality;
+
+}
+elsif ((length($locality) == 0) && (length($labelSubHeader) > 1)){
+	$location = $labelSubHeader;
+	&log_change("LOCALITY: locality field NULL, using only subheader field==>$labelSubHeader\t$id\n");
+}
+elsif ((length($locality) == 0) && (length($labelSubHeader) == 0)){
+	&log_change("LOCALITY: locality fields NULL\t$id\n");
+	$location = "";
+}	
+else {
+		&log_change("LOCALITY: locality field data problem==>($labelSubHeader)($locality)\t$id\n");
+		$location = "";
+}
+
+
+
 ###############ELEVATION########
 foreach($elevation){
 	s/~//g;
@@ -842,7 +906,8 @@ foreach($elevation){
 	s/^ +//;
 	s/ +$//;
 	s/ //g;
-	s/\.//g;
+
+	s/A-//g; #badly converted ±
 }
 
 foreach($elevation_units){
@@ -857,59 +922,62 @@ foreach($elevation_units){
 }
 
 $verbatimElevation = $elevation." ".$elevation_units;
-
+my $elevationAlt;
+my $elevationINT;
+$elevationINT = int($elevation); #there are some elevations that are decimals in these data
+$elevationAlt = $elevationINT.$elevation_units;
 
 if (length($elevation) >= 1){
 
-	if ($verbatimElevation =~ m/^(-?[0-9]+)([fFtT]+)/){
+	if ($elevationAlt =~ m/^(-?[0-9]+)([fFtT]+)/){
 		$elevationInFeet = $1;
 		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
 		$CCH_elevationInMeters = "$elevationInMeters m";
 	}
-	elsif ($verbatimElevation =~ m/^(-?[0-9]+)([fFtT]+)/){ #added <? to fix elevation in BLMAR421 being skipped
+	elsif ($elevationAlt =~ m/^(-?[0-9]+)([fFtT]+)/){ #added <? to fix elevation in BLMAR421 being skipped
 		$elevationInFeet = $1;
 		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
 		$CCH_elevationInMeters = "$elevationInMeters m";
 	}
-	elsif ($verbatimElevation =~ m/^(-?[0-9]+)([mM])/){
+	elsif ($elevationAlt =~ m/^(-?[0-9]+)([mM])/){
 		$elevationInMeters = $1;
 		$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
 		$CCH_elevationInMeters = $elevation;
 		$CCH_elevationInMeters =~ s/m$/ m/;
 	}
-	elsif ($verbatimElevation =~ m/^(-?0+ *[mMersfFtT]*)/){
+	elsif ($elevationAlt =~ m/^(-?0+ *[mMersfFtT]*)/){
 		$elevationInMeters == 0;
 		$elevationInFeet == 0; #make it an integer to remove false precision		
 		$CCH_elevationInMeters = "0 m";
 	}
 
-	elsif ($verbatimElevation =~ m/^[A-Za-z ]+(-?[0-9]+)([mM])/){
+	elsif ($elevationAlt =~ m/^[A-Za-z ]+(-?[0-9]+)([mM])/){
 		$elevationInMeters = $1;
 		$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
 		$CCH_elevationInMeters = "$elevation m";
 	}
-	elsif ($verbatimElevation =~ m/^(-?[0-9]+)-(-?[0-9]+)([mM])/){
+	elsif ($elevationAlt =~ m/^(-?[0-9]+)-(-?[0-9]+)([mM])/){
 		$elevationInMeters = $1;
 		$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
 		$CCH_elevationInMeters = "$elevation m";
 	}
-	elsif ($verbatimElevation =~ m/^(-?[0-9]+)-(-?[0-9]+)([fFtT]+)/){
+	elsif ($elevationAlt =~ m/^(-?[0-9]+)-(-?[0-9]+)([fFtT]+)/){
 		$elevationInFeet = $1;
 		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
 		$CCH_elevationInMeters = "$elevationInMeters m";
 	}
-	elsif ($verbatimElevation =~ m/^[A-Za-z ]+(-?[0-9]+)-(-?[0-9]+)([mM])/){
+	elsif ($elevationAlt =~ m/^[A-Za-z ]+(-?[0-9]+)-(-?[0-9]+)([mM])/){
 		$elevationInMeters = $1;
 		$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
 		$CCH_elevationInMeters = "$elevation m";
 	}
-	elsif ($verbatimElevation =~ m/^[A-Za-z]+(-?[0-9]+)([fFtT]+)/){
+	elsif ($elevationAlt =~ m/^[A-Za-z]+(-?[0-9]+)([fFtT]+)/){
 		$elevationInFeet = $1;
 		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
 		$CCH_elevationInMeters = "$elevationInMeters m";
 	}
 	else {
-		&log_change("Elevation: elevation '$elevation' has problematic formatting or is missing units\t$id");
+		&log_change("Elevation: elevation '$elevation' has problematic formatting or is missing units==>$elevation_units\t$id");
 		$elevationInFeet = $CCH_elevationInMeters = $elevationInMeters = "";
 	}	
 }
@@ -1061,17 +1129,17 @@ my $zone_number;
 
 if ((length($lat_deg) >= 1) && (length($lat_min) == 0) && (length($lat_sec) >= 1)){
 	$lat_min = "0";
-	$verbatimLatitude = $lat_deg." ".$lat_min." ".$lat_sec;
-	warn "NULL value for lat minutes found, converting to a value of '0': $verbatimLatitude ($long_deg)\t($lat_min)\t($lat_sec)\n";
+	$verbatimLatitude = $lat_deg," ",$lat_min," ",$lat_sec;
+	warn "NULL value for lat minutes found, converting to a value of '0': $verbatimLatitude ($lat_deg)\t($lat_min)\t($lat_sec)\n";
 }
 elsif ((length($lat_deg) >= 1) && (length($lat_min)>= 1) && (length($lat_sec) >= 1)){
 	$verbatimLatitude = $lat_deg." ".$lat_min." ".$lat_sec;
 }
-elsif ((length($lat_deg) >= 1) && (length($lat_min)>= 1) && (length($lat_sec) >= 1)){
+elsif ((length($lat_deg) >= 1) && (length($lat_min)>= 1) && (length($lat_sec) == 0)){
 	$verbatimLatitude = $lat_deg." ".$lat_min;
 }
 else {
-		&log_change("COORDINATE: Latitude not mappable, null values present==>($long_deg)\t($lat_min)\t($lat_sec)\n");
+		&log_change("COORDINATE: Latitude not mappable, null values present==>($lat_deg)\t($lat_min)\t($lat_sec)\n");
 	$verbatimLatitude = "";
 }
 
@@ -1083,7 +1151,7 @@ if ((length($long_deg) >= 1) && (length($long_min) == 0) && (length($long_sec) >
 elsif ((length($long_deg) >= 1) && (length($long_min)>= 1) && (length($long_sec) >= 1)){
 	$verbatimLongitude = $long_deg." ".$long_min." ".$long_sec;
 }
-elsif ((length($long_deg) >= 1) && (length($long_min)>= 1) && (length($long_sec) >= 1)){
+elsif ((length($long_deg) >= 1) && (length($long_min)>= 1) && (length($long_sec) == 0)){
 	$verbatimLongitude = $long_deg." ".$long_min;
 }
 else {
@@ -1388,6 +1456,7 @@ if(($decimalLatitude=~/\d/  || $decimalLongitude=~/\d/)){ #If decLat and decLong
 #$coordinateUncertaintyInMeters none in these data
 #$UncertaintyUnits none in these data
 
+
 	if ($datum){
 		s/WGS 1984/WGS84/g;
 		s/NAD 1927/NAD27/;
@@ -1432,12 +1501,10 @@ else {
 foreach ($occurrenceRemarks){
 		s/'$//;
 		s/  +/ /g;
+		s/^ +//g;
+		s/ +$//g;
 }
 
-foreach ($labelSubHeader){
-		s/'$//;
-		s/  +/ /g;
-}
 
 
 #######Habitat and Assoc species (dwc habitat and associatedTaxa)
@@ -1447,6 +1514,8 @@ foreach ($labelSubHeader){
 foreach ($habitat){
 		s/'$//;
 		s/  +/ /g;
+		s/^ +//g;
+		s/ +$//g;
 }
 
 
@@ -1467,10 +1536,10 @@ CNUM_suffix: $CNUM_suffix
 Country: $country
 State: $stateProvince
 County: $county
-Location: $locality
+Location: $location
 Habitat: $habitat
-T/R/Section: $TRS $bm
-USGS_Quadrangle: $topo_quad
+T/R/Section: $TRS
+USGS_Quadrangle: $bm  $topo_quad
 Decimal_latitude: $decimalLatitude
 Decimal_longitude: $decimalLongitude
 Datum: $datum
@@ -1480,8 +1549,7 @@ Max_error_units:
 Elevation: $CCH_elevationInMeters
 Verbatim_elevation: $verbatimElevation
 Verbatim_county: $tempCounty
-Other_data: $occurrenceRemarks
-Notes: $labelSubHeader
+Notes: $occurrenceRemarks
 Cultivated: $cultivated
 Hybrid_annotation: $hybrid_annotation
 Annotation: $det_orig_string

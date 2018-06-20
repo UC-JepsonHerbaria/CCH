@@ -16,6 +16,7 @@
 #perl -lne '$a++ if /Cultivated: P/; END {print $a+0}' CSPACE_out.txt
 #perl -lne '$a++ if /Cultivated: [^P]+/; END {print $a+0}' CSPACE_out.txt
 
+#perl -lne '$a++ if /Accession_id: UCLA\d+/; END {print $a+0}' CSPACE_out.txt
 
 #use utf8;
 use Geo::Coordinates::UTM;
@@ -42,7 +43,7 @@ my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
 
 ####INSERT NAMES OF CSPACE FILES and assign variables
-my $date_dir = "MAY10_2018"; #directory date of the unzipped file, change when new upload is unzipped
+my $date_dir = "JUN18_2018"; #directory date of the unzipped file, change when new upload is unzipped
 
 my $extract_dir= "/JEPS-master/CCH/Loaders/CSPACE/data_files/$date_dir/";
 my $home_dir= "/JEPS-master/CCH/Loaders/CSPACE/data_files/$date_dir/home/app_webapps/extracts/cch/current";
@@ -689,7 +690,7 @@ foreach $voucher (sort(keys(%VK))){
 		warn "$voucher: $VK{$voucher}";
 }
 
-
+warn "=========\n\n\n";
 
 ##########GET IMAGE LINKS FROM CSPACE PUBLIC PORTAL SOLR DUMP
 
@@ -1056,8 +1057,8 @@ $NAME{$pub_csid}=$solr_name;
 
 
 
-$ELEV{$pub_csid}=$solr_elev;
-$UNITS{$pub_csid}=$solr_units;
+#$ELEV{$pub_csid}=$solr_elev;
+#$UNITS{$pub_csid}=$solr_units;
 
 ####add links to other fields such as cultivated_s
 $CULT{$pub_csid}=$cultivated_s;
@@ -1983,9 +1984,50 @@ foreach($verbatimElevation){
 	s/ +$//;
 	s/,//;
 }
+		my $elevation_mod;
+		my $units_mod=$elevation_units;
 
-my $elevation_mod=$ELEV{$csid};
-my $units_mod=$UNITS{$csid};
+	#format elevation correctly
+	if ((length($verbatimElevation) >= 1) && (length($minimumElevation) == 0) && (length($maximumElevation) == 0)){
+		$elevation_mod = $verbatimElevation;
+	}
+	elsif ((length($verbatimElevation) >= 1) && (length($minimumElevation) >= 1) && (length($maximumElevation) == 0)){
+		$elevation_mod = $verbatimElevation;
+	}
+	elsif ((length($verbatimElevation) >= 1) && (length($minimumElevation) == 0) && (length($maximumElevation) >= 1)){
+		$elevation_mod = $verbatimElevation;
+	}
+	elsif ((length($verbatimElevation) == 0) && (length($minimumElevation) >= 1) && (length($maximumElevation) == 0)){
+		$elevation_mod = $minimumElevation;
+	}	
+	elsif ((length($verbatimElevation) == 0) && (length($minimumElevation) >= 1) && (length($maximumElevation) >= 1)){
+		$elevation_mod = $minimumElevation;
+		$verbatimElevation = "$minimumElevation - $maximumElevation $elevation_units";
+	}	
+	elsif ((length($verbatimElevation) == 0) && (length($minimumElevation) == 0) && (length($maximumElevation) >= 1)){
+		$elevation_mod = $maximumElevation;
+		$verbatimElevation = "$maximumElevation $elevation_units";
+	}
+	elsif ((length($verbatimElevation) >= 1) && (length($minimumElevation) >= 1) && (length($maximumElevation) >= 1)){
+		$elevation_mod = $minimumElevation;
+	}
+	elsif ((length($verbatimElevation) == 0) && (length($minimumElevation) == 0) && (length($maximumElevation) >= 1)){
+		$elevation_mod = $maximumElevation;
+	}
+	elsif ((length($verbatimElevation) == 0) && (length($minimumElevation) == 0) && (length($maximumElevation) == 0)){
+		&log_change("ELEV: all fields NULL\t$id==>$verbatimElevation MIN: $minimumElevation, MAX: $maximumElevation\n");
+		$elevation_mod = "";
+		$units_mod = "";
+	}
+	else{
+		&log_change("ELEV: elevation problem:\t$id==>$verbatimElevation MIN: $minimumElevation, MAX: $maximumElevation\n");
+		$elevation_mod = "";
+		$units_mod = "";
+	}
+
+
+
+
 
 foreach($elevation_mod){
 	#warn "x";
@@ -2765,6 +2807,16 @@ my $otherData;
 		&log_change("other data problem==>$solr_desc|$solr_hort|$solr_data\n");
 		$otherData="";
 	}
+
+if (($id =~ m/^(UCLA\d+)/) && (length($otherData) == 0)){ 
+	$otherData =~ s/.*/Transferred to UC from LA in 1977, to be cited as LA in UC/;
+	&log_change("NOTE: UCLA specimen note added: $otherData\t==>\t$id\n");
+}
+elsif(($id =~ m/^(UCLA\d+)/) && (length($otherData) >= 1)){
+	$otherData =~ s/^(.+)/$1; Transferred to UC from LA in 1977, to be cited as LA in UC/;
+	&log_change("NOTE: UCLA specimen note added: $otherData\t==>\t$id\n");
+}
+
 
 
 my $solr_note = $othernotes{$csid}{'comment'};

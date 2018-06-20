@@ -45,7 +45,7 @@ my $barcode;
 my %GUID_barcode;
 my %duplicate;
 
-open(OUT, ">PGM_out.txt") || die;
+open(OUT, ">/JEPS-master/CCH/Loaders/PGM/PGM_out.txt") || die;
 
 
 #############
@@ -74,7 +74,7 @@ open(OUT, ">PGM_out.txt") || die;
 
 
 #process converted text file
-my $file="PGM_NOV2017.txt";
+my $file="/JEPS-master/CCH/Loaders/PGM/PGM_NOV2017.txt";
 
 warn "reading from $file\n";
 
@@ -1081,7 +1081,7 @@ my %seen;
 %seen=();
 
 
-    my $file_in = 'PGM_out.txt';	#the file this script will act upon is called 'CATA.out'
+    my $file_in = '/JEPS-master/CCH/Loaders/PGM/PGM_out.txt';	#the file this script will act upon is called 'CATA.out'
 open(IN,"$file_in" ) || die;
 
 while(<IN>){

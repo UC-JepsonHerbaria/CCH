@@ -31,10 +31,14 @@ my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
 
 #SDSU sends file as an XLS file containing many smart quotes
-#Open in OpenOffice, save as UTF-8 tab-delimited CSV with no quotes around fields
-#Then open in TextWrangler and use "Straighten Quotes" Text option
+#copy all records and fields to text editor and save as UTF-8 tab-delimited text
+#the excel puts extraneous quotes, so do a search and replace for \t" and "\t
+#add the cult field by search and replace \nSDSU with \nN\tSDSU
+#run remove_inline_returns.pl to re-attach the fragmented lines to their main records
+#there are more than 500 records in these data with inline hard returns which are too time consuming to delete manually each upload
+#after remove_inline_returns.pl, using text editor to remove duplicate lines will complete the mod process for this file
 
-    my $file = 'CCH-SDSU-26Jan2017_mod.txt';
+    my $file = 'CCH-SDSU-May2018_mod2.txt';
     
     
  open (IN, "<", $file) or die $!;
@@ -51,6 +55,7 @@ Record: while(<IN>){
 		s/“/'/g;
 		s/–/-/g;
 		s/é/e/g;
+				s/×/X/g;
 		s/Ç/C/g;
 		s/±/+-/g;
 		s/petiole sharply/petiole sharply/g;
@@ -62,8 +67,11 @@ Record: while(<IN>){
 		s/Ω/ 1\/2 /g;  #SDSU19628 and others; replace ISO-8859-1 one-half fraction character that is not showing correctly in Mac UTF8, 
 		s/º/ 1\/4 /g;  #SD42221 and others; replace ISO-8859-1 one-quarter fraction character that is not showing correctly in Mac UTF8, 
 		s/æ/ 3\/4 /g;  #SD200694 and others; replace ISO-8859-1 3-quarter fraction character that is not showing correctly in Mac UTF8, 
+		s/¼/ 1\/4 /g;
+		s/¼/ 1\/4 /g;
+		s/½/ 1\/2 /g;
 		s/  +/ /g;
-		
+ 
 	$line_store=$_;
 	++$count;		
 		
@@ -71,13 +79,6 @@ Record: while(<IN>){
 	   if ($. == 1){#activate if need to skip header lines
 			next;
 		}
-
-#hundreds of records have a hard return after the end of a field that is not end of line, causing bad field number errors
-#do a search and replace for-->\n"<--in Text Wrangler to fix them
-#do a search and replace for-->[single space]\n<-- in Text Wrangler to fix them
-#do a search and replace for-->"\n<--in Text Wrangler to fix them
-#do a search and replace for-->\n,[single space]<--in Text Wrangler to fix them
-#do a search and replace for-->MCB\nSan<--in Text Wrangler to fix them, replace \n with space, error repeated multiple times
 
 
 my $id;
@@ -91,7 +92,7 @@ my $genus;
 my $species;
 my $rank;
 my $subtaxon;
-my $name;
+my $tempName;
 my $hybrid_annotation;
 my $identifiedBy;
 my $dateIdentified;
@@ -173,8 +174,8 @@ my $det_orig;
 
 	my @fields=split(/\t/,$_,100);
 	
-	unless($#fields == 18){	#19 fields but first field is field 0 in perl
-
+	#unless($#fields == 18){	#19 fields but first field is field 0 in perl
+		unless($#fields == 17){	#18 fields but first field is field 0 in perl
 	&log_skip ("$#fields bad field number\t$_\n");
 	++$skipped{one};
 	next Record;
@@ -191,27 +192,50 @@ my $det_orig;
 
 
 #then process the full records
+
+#2016 order
+#(
+#$cultivated,
+#$id, 
+#$tempCounty,
+#$verbatimEventDate,
+#$recordNumber,
+#$verbatimCollectors,
+#$name, 
+#$dateIdentified,
+#$identifiedBy,
+#$elevationInMeters, #10
+#$substrate,
+#$imageURL,
+#$verbatimLatitude,				
+#$errorRadius,
+#$verbatimLongitude,				
+#$habitat, 
+#$plant_description,
+#$locality, 
+#$notes)=@fields;  #19
+
+#2018 order
 (
 $cultivated,
 $id, 
-$tempCounty,
+$tempName,
+$verbatimCollectors,
 $verbatimEventDate,
 $recordNumber,
-$verbatimCollectors,
-$name, 
-$dateIdentified,
-$identifiedBy,
-$elevationInMeters, #10
-$substrate,
-$imageURL,
-$verbatimLatitude,				
-$errorRadius,
-$verbatimLongitude,				
-$habitat, 
-$plant_description,
+$tempCounty,
 $locality, 
-$notes)=@fields;  #19
-
+$elevationInMeters, 
+$verbatimLatitude,#10
+$verbatimLongitude,
+$substrate,
+$habitat,
+$plant_description,
+$identifiedBy,
+$dateIdentified,
+$notes,
+$imageURL
+)=@fields;  #18
 
 
 ################ACCESSION_ID#############
@@ -225,7 +249,7 @@ if ($id=~/^ *$/){
 
 #remove leading zeroes, remove any white space
 foreach($id){
-	s/^0+//g;
+	#s/^0+//g;
 	s/  +/ /g;
 	s/^ *//g;
 	s/ *$//g;
@@ -247,12 +271,12 @@ if($seen{$id}++){
 	#format det_string correctly
 my $det_date;
 my $det_rank = "1";  #set to zero in data with only a single determination
-my $det_name = $name;
+my $det_name = $tempName;
 my $det_determiner = $identifiedBy;
 my $det_date = $dateIdentified;
 my $det_stet;	
 my $det_orig_rank = "current determination (uncorrected)";  #set to zero for original determination
-my $det_orig_name = $name;	
+my $det_orig_name = $tempName;	
 
 if ((length($det_determiner) >= 1) || (length($det_date) >= 1)){
 
@@ -297,10 +321,11 @@ else{
 ##########Begin validation of scientific names
 #Many of these don't apply to the original dataset
 #but it doesn't hurt to leave them in
-foreach ($name){
+foreach ($tempName){
 	s/^ *\.//g; #SD only so far.. some records start with a period and period & spaces for some reason
 	s/ sp\.//g;
 	s/"//g;
+	s/Salvia Hybrid. S\. apiana . /Salvia apiana X /i;
 	s/ species$//g;
 	s/ sp$//g;
 	s/ spp / subsp. /g;
@@ -318,11 +343,11 @@ foreach ($name){
 
 
 #format hybrid names
-if($name=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
-	$hybrid_annotation=$name;
-	warn "Hybrid Taxon: $1 removed from $name\n";
-	&log_change("Hybrid Taxon: $1 removed from $name");
-	$name=$1;
+if($tempName=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
+	$hybrid_annotation=$tempName;
+	warn "Hybrid Taxon: $1 removed from $tempName\n";
+	&log_change("Hybrid Taxon: $1 removed from $tempName");
+	$tempName=$1;
 }
 else{
 	$hybrid_annotation="";
@@ -333,20 +358,24 @@ else{
 #the name is only corrected herein and not global; allows name to pass through to CCH if name is ever published
 #the original determination is preserved in the $det_string process above so users can see what name is on original label
 
-if (($id =~ m/^(SDSU10277|SDSU17281|SDSU17572|SDSU18628|SDSU19533|SDSU19612|SDSU20490|SDSU20529|SDSU20530|SDSU21209|SDSU21243|SDSU21767|SDSU5388|SDSU5406|SDSU5412|SDSU5418|SDSU5431)$/) && (length($TID{$name}) == 0)){ 
-	$name =~ s/Cryptantha lepida/Cryptantha/;
-	&log_change("Scientific name not published: Cryptantha lepida, modified to just genus:\t$name\t--\t$id\n");
+if (($id =~ m/^(SDSU22154|SDSU10277|SDSU17281|SDSU17572|SDSU18628|SDSU19533|SDSU19612|SDSU20490|SDSU20529|SDSU20530|SDSU21209|SDSU21243|SDSU21767|SDSU5388|SDSU5406|SDSU5412|SDSU5418|SDSU5431)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Cryptantha lepida/Cryptantha/;
+	&log_change("Scientific name not published: Cryptantha lepida, modified to just genus:\t$tempName\t--\t$id\n");
 }
-if (($id =~ m/^(SDSU20087|SDSU20098|SDSU20222|SDSU20223|SDSU20229|SDSU20230|SDSU20231)$/) && (length($TID{$name}) == 0)){ 
-	$name =~ s/Cryptantha ursina/Cryptantha/;
-	&log_change("Scientific name not published: Cryptantha ursina modified to just genus:\t$name\t--\t$id\n");
+if (($id =~ m/^(SDSU20087|SDSU20098|SDSU20222|SDSU20223|SDSU20229|SDSU20230|SDSU20231)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Cryptantha ursina/Cryptantha/;
+	&log_change("Scientific name not published: Cryptantha ursina modified to just genus:\t$tempName\t--\t$id\n");
+}
+if (($id =~ m/^(SDSU22125)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Oxybasis rubra/Oxybaphus/;
+	&log_change("Scientific name not published and genus mispelled: Oxybasis rubra modified to just genus (although name probbly meant to be annotated to Oxybaphus coccineus):\t$tempName\t--\t$id\n");
 }
 
 ## finish validating names
 
 #####process taxon names
 
-$scientificName = &strip_name($name);
+$scientificName = &strip_name($tempName);
 
 $scientificName = &validate_scientific_name($scientificName, $id);
 

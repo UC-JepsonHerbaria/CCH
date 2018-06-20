@@ -5,6 +5,10 @@ use strict;
 use Data::GUID;
 use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH;
+
+use utf8; #use only when original has problems with odd character substitutions
+use Text::Unidecode;
+
 my $today_JD;
 
 $| = 1; #forces a flush after every write or print, so the output appears as soon as it's generated rather than being buffered.
@@ -30,20 +34,16 @@ my $error_log = "log.txt";
 unlink $error_log or warn "making new error log file $error_log";
 
 
-#####I'm not familiar with the Text::CSV function
-#####here's what I do to the SD file to make it parse with this:
-###open the file in TextWrangler, Save As with Line Breaks: Unix and Encoding: UTF-8
-###Then run it through this and it works
 
-    my $file = '/JEPS-master/CCH/Loaders/SD/CCH_SD_Jan17_mod.txt';
-#    my $file = 'Oct2015_SD_original.txt';
+    my $file = '/JEPS-master/CCH/Loaders/SD/CCH_SD_Jun12_2018_mod.txt';
 
     open (IN, "<", $file) or die $!;
 
 Record: while(<IN>){
 	chomp;
 
-#&CCH_unidecode ($_);
+
+
 
 	$line_store=$_;
 	++$count;		
@@ -78,10 +78,13 @@ Record: while(<IN>){
 	s/Ì/I/g;
 	s/Ë/e/g;
 	s/Ò/n/g;
-	s/Û/o/g;
+	s/R.\. Illegible/R./;
+	s/LaPrÈ/LaPre/;
+	s/Jim AndrÔ/Jim Andre/;
 	
 	
-	
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
+
 #mismatched conversion errors
 	s/í/'/g;
 	s/ë/'/g;
@@ -92,6 +95,7 @@ Record: while(<IN>){
 		s/Ö/ /g; #weird character, translation indeterminate
 		s/Ô/e/g; #\xc3\x94/
 		s/È/e/g; #\xc3\x88/
+			s/Û/o/g;
 		s/·/a/g;
 		s/∞/ deg. /g;
 		s/m≤/ m /g; #\xe2\x89\xa4
@@ -119,9 +123,6 @@ Record: while(<IN>){
 #skipping: problem character detected: s/\xce\xa9/    /g   Ω ---> Ω	1Ω	2Ω	4Ω	3Ω	8Ω	8Ω-9	[3Ω	1-1Ω	E-4Ω	Ω-º	9Ω	+-Ω	3'-3Ω'	7Ω'	1Ω-foot	ca.Ω	2Ω-foot	6Ω	4-4Ω	5Ω	1Ω-2	1'-1Ω';	1Ω-3	1Ω-2mm,	1Ωmm	39Ω	2'-2Ω'	3Ω-foot	10Ω	(Ω	River,1Ω	Ωmiles	11Ω	+-1Ω	º-Ω	Approx.Ω	1Ω-foot-high	1Ω-2Ω-foot	2Ωm	Ωm	1Ωm	Ω'	(3Ω	7Ω	1Ω-3Ω	3Ω'	2Ω-4	Ω-1	+-2Ω	Ωmi.	2Ω'	2Ω-ft.	WΩ	WestΩ	2Ω-ft	2Ω',	(2Ω	12Ω	5'-15Ω';	3Ω-4	1-2Ω	4Ωmi.	+-1-1Ω	2-2Ω	nΩ	1Ω-ft.	to1Ω	4Ω-foot	
 #skipping: problem character detected: s/\xe2\x89\xa4/    /g   ≤ ---> 10m≤	
 
-
-
-		
 
         if ($. == 1){#activate if need to skip header lines
 			next;
@@ -401,6 +402,12 @@ if($name=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
 	&log_change("Hybrid Taxon: $1 removed from $name");
 	$name=$1;
 }
+elsif($name=~s/([A-Z][a-z-]+) [Xx×] /$1 X /){
+	$hybrid_annotation=$name;
+	warn "Hybrid Taxon: $1 removed from $name\n";
+	&log_change("Hybrid Taxon: $1 removed from $name");
+	$name=$1;
+}
 else{
 	$hybrid_annotation="";
 }
@@ -426,7 +433,7 @@ if (($id =~ m/^(SD68953|SD90579)$/) && (length($TID{$name}) == 0)){
 }
 if (($id =~ m/^(SD10932|SD10988|SD11371|SD11372|SD17456|SD17477|SD21061|SD24766|SD38203|SD38204|SD38205|SD38206|SD38207|SD42512|SD5043|SD62435|SD6540|SD6541|SD87763)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Downingia cuspidata var\. cuspidata/Downingia cuspidata/;
-	&log_change("Scientific name not published: Downingia cuspidata var. cuspidata modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Downingia cuspidata var. cuspidata modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD84209)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Cylindropuntia wolfii var\. wolfii/Opuntia echinocarpa var. wolfii/;
@@ -434,85 +441,119 @@ if (($id =~ m/^(SD84209)$/) && (length($TID{$name}) == 0)){
 }
 if (($id =~ m/^(SD157644)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Lupinus formosus var\. proximus proximus/Lupinus formosus/;
-	&log_change("Scientific name not published: Lupinus formosus var. proximus proximus modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Lupinus formosus var. proximus proximus modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD21450|SD15305|SD56839|SD72208)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Lupinus formosus subsp\. proximus pasadenensis/Lupinus formosus/;
-	&log_change("Scientific name not published: Lupinus formosus subsp. proximus pasadenensismodified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Lupinus formosus subsp. proximus pasadenensismodified to the species rank:\t$name\t--\t$id\n");
 }
 
 if (($id =~ m/^(SD46399|SD21021|SD126379|SD50784)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Lupinus formosus subsp\. proximus proximus/Lupinus formosus/;
-	&log_change("Scientific name not published: Lupinus formosus subsp. proximus proximus modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Lupinus formosus subsp. proximus proximus modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD133687|SD158876|SD158876|SD164487|SD167649|SD167650|SD171791|SD171806|SD171808|SD172582|SD177186|SD186836|SD189647|SD195051|SD205754|SD205755|SD232234|SD235997)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Comarostaphylis diversifolia subsp\. eglandulosa/Comarostaphylis diversifolia/;
-	&log_change("Scientific name not published: Comarostaphylis diversifolia subsp\. eglandulosa modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Comarostaphylis diversifolia subsp\. eglandulosa modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD53239)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Trifolium virescens var\. boreale/Trifolium virescens/;
-	&log_change("Scientific name not published: Trifolium virescens var. boreale modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Trifolium virescens var. boreale modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD251269)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Loeselia glandulosa subsp\. oaxacana/Loeselia glandulosa/;
-	&log_change("Scientific name not published: Loeselia glandulosa subsp. oaxacana modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Loeselia glandulosa subsp. oaxacana modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD81033)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Lupinus elatus subsp\. elatus/Lupinus elatus/;
-	&log_change("Scientific name not published: Lupinus elatus subsp. elatus modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Lupinus elatus subsp. elatus modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD125493|SD126375|SD41204)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Lupinus elatus subsp\. viridulus/Lupinus elatus/;
-	&log_change("Scientific name not published: Lupinus elatus subsp. viridulus modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Lupinus elatus subsp. viridulus modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD225887)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Navarretia myersii subsp\. campestris/Navarretia myersii/;
-	&log_change("Scientific name not published: Navarretia myersii subsp. campestris modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Navarretia myersii subsp. campestris modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD43747)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Oenothera primiveris subsp\. johnsonii/Oenothera primiveris/;
-	&log_change("Scientific name not published: Oenothera primiveris subsp. johnsonii modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Oenothera primiveris subsp. johnsonii modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD27850|SD4451|SD44649|SD48508|SD53220)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Solanum umbelliferum subsp\. parishii/Solanum umbelliferum/;
-	&log_change("Scientific name not published: Solanum umbelliferum subsp. parishii modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Solanum umbelliferum subsp. parishii modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD114434|SD114435|SD12587|SD28892|SD29533|SD37191|SD37377|SD37380|SD38292|SD41230|SD41521|SD4433)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Solanum umbelliferum subsp\. xantii/Solanum umbelliferum/;
-	&log_change("Scientific name not published: Solanum umbelliferum subsp. xantii modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Solanum umbelliferum subsp. xantii modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD53190|SD64413)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Lasthenia macrantha var\. pauciaristata/Lasthenia macrantha/;
-	&log_change("Scientific name not published: Lasthenia macrantha var\. pauciaristata modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Lasthenia macrantha var\. pauciaristata modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD77352)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Penstemon deustus var\. floribundus/Penstemon deustus/;
-	&log_change("Scientific name not published: Penstemon deustus var\. floribundus modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Penstemon deustus var\. floribundus modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD27443)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Polystichum aculeatum var\. angulare/Polystichum aculeatum/;
-	&log_change("Scientific name not published: Polystichum aculeatum var. angulare modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Polystichum aculeatum var. angulare modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD147610)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Streptanthus polygaloides var\. iodanthus/Streptanthus polygaloides/;
-	&log_change("Scientific name not published: Streptanthus polygaloides var. iodanthus modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Streptanthus polygaloides var. iodanthus modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD52209)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Vulpia microstachys var\. pacifica/Vulpia microstachys/;
-	&log_change("Scientific name not published, modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published, modified to the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD58502)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Vulpia microstachys var\. tracyi/Vulpia microstachys/;
-	&log_change("Scientific name not published: Vulpia microstachys var. pacifica modified to to just the species rank:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Vulpia microstachys var. pacifica modified to just the species rank:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD53402)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Lupinus obtusifolius/Lupinus/;
-	&log_change("Scientific name not published: Lupinus obtusifolius modified to to just the genus:\t$name\t--\t$id\n");
+	&log_change("Scientific name not published: Lupinus obtusifolius modified to the genus:\t$name\t--\t$id\n");
 }
 if (($id =~ m/^(SD77337)$/) && (length($TID{$name}) == 0)){ 
 	$name =~ s/Penstemon symplocophyllus/Penstemon clevelandii/;
 	&log_change("Scientific name not published: Penstemon symplocophyllus, Pennell 25287 at NY determined as:\t$name\t--\t$id\n");
 }
+
+if (($id =~ m/^(SD87865|SD131860)$/) && (length($TID{$name}) == 0)){ 
+#N	Jun 24, 1926	6857			Taraxia tanacetifolia ssp. tanacetifolia	SD87865	USA	California	Muddy shore of small lake 3 miles east of Alturas.	NoTRS	Modoc	N/A	F. W. Peirson		 Muddy shore of small lake		N/A		N/A	N/A	41.48120	-120.48970	unk	0	N/A	n/a	Coordinates from label	N/A	None	Peter H. Raven, 1964	0
+#N	Jun 18, 1988	7606			Taraxia tanacetifolia ssp. tanacetifolia	SD131860	USA	California	West side highway 139 just south of where it crosses railroad at junction to Clear Lake, Northeast of Dry Lake east of Lava Beds National Monument; dry sagebrush/Agropyron flat surrounded by juniper; in dry drainage.	NoTRS	Modoc	4101	Barbara Ertter		 dry sagebrush/Agropyron flat surrounded by juniper; in dry drainage.	Abundant locally, open at midday, petals bright yellow, aging orange.	N/A		N/A	N/A	41.69530	-121.28540	unk	0	N/A	n/a	Coordinates from label	N/A	None	W. L. Wagner, 1989	0
+	$name =~ s/Taraxia tanacetifolia subsp\. tanacetifolia/Taraxia tanacetifolia/;
+	&log_change("Scientific name not published: Taraxia tanacetifolia ssp. tanacetifolia modified to just the species rank:\t$name\t--\t$id\n");
+}
+
+if (($id =~ m/^(SD43460)$/) && (length($TID{$name}) == 0)){ 
+#N	May 16, 1947	11823			Taraxia tanacetifolia ssp. quadriperforata	SD43460	USA	California	scattered perennial, with Ranunculus and Taraxacum, dry edge of meadow, 8 miles north of Chilcoot,	NoTRS	Plumas	5000	Philip A. Munz		 dry edge of meadow	diurnal; petals golden, drying orange;	N/A		N/A	N/A	.00000	.00000	unk	0	N/A	n/a	Coordinates from label	N/A	None	Peter H. Raven 1964-5	0
+	$name =~ s/Taraxia tanacetifolia subsp\. quadriperforata/Taraxia tanacetifolia/;
+	&log_change("Scientific name not published: Taraxia tanacetifolia ssp. quadriperforata modified to just the species rank:\t$name\t--\t$id\n");
+}
+
+if (($id =~ m/^(SD38766)$/) && (length($TID{$name}) == 0)){ 
+#N	9 Aug 1935	6800			Aphyllon parishii ssp. grande	SD38766	USA	California		NoTRS	Santa Barbara	N/A	Edith A. Purer		 Partially stabilized sand dunes.		N/A		N/A	N/A	.00000	.00000	unk	0	N/A	n/a	Coordinates from label	N/A	None	Colwell, 2017	0
+	$name =~ s/Aphyllon parishii subsp\. grande/Aphyllon parishii/;
+	&log_change("Scientific name not published: Aphyllon parishii ssp. grande modified to just the species rank:\t$name\t--\t$id\n");
+}
+
+if (($id =~ m/^(SD257237)$/) && (length($TID{$name}) == 0)){ 
+#N	Apr 29, 1976	20115			Thysanocarpus curvipes var. crenatus	SD257237	USA	California	1.0 km south of La Tuna Canyon Road on fire break road west.  Sun Valley, Western Verdugo Mountains.	NoTRS	Los Angeles	1499	J. M. Keefe				N/A	Chaparral along fire road.	N/A	N/A	.00000	.00000	unk	0	N/A	n/a	Coordinates from label	N/A	None		0
+	$name =~ s/Thysanocarpus curvipes var\. crenatus/Thysanocarpus laciniatus var\. crenatus/;
+	&log_change("Scientific name not published: Thysanocarpus curvipes var. crenatus modified to a valid species:\t$name\t--\t$id\n");
+}
+
+if (($id =~ m/^(SD262787|SD262788)$/) && (length($TID{$name}) == 0)){ 
+#N	Sep 30, 1992	None			Schoenoplectus microcarpus	SD262787	USA	California	Ramona area; south of Ramona, along dirt road east of Rainbird Road, apparently year-round creek.	NoTRS	San Diego	1755	Susan T Welker			forming extensive stands along creek banks	N/A	Seep in southern oak woodland with Quercus agrifolia	N/A	N/A	32.99206	-116.79007	WGS84	0	N/A	n/a	Coordinates from label	N/A	None		0
+#N	Aug 17, 1993	None			Schoenoplectus microcarpus	SD262788	USA	California	Lake Henshaw area; wet banks of the San Luis Rey River, west of Lake Henshaw, east of Forest Service San Luis Rey day use area, along Hwy 76.	NoTRS	San Diego	2543	Susan T Welker		 sunny		N/A	riparian woodland	N/A	N/A	33.25397	-116.79401	WGS84	0	N/A	n/a	Coordinates from label	N/A	None		0
+	$name =~ s/Schoenoplectus microcarpus/Scirpus microcarpus/;
+	&log_change("Scientific name not published: Schoenoplectus microcarpus modified to a valid species:\t$name\t--\t$id\n");
+}
+
+
 
 ## finish validating names
 
@@ -578,6 +619,7 @@ foreach ($eventDate){
 	s/^ *\.//g; #SD only so far.. some records start with a period and period & spaces for some reason
 	s/\./ /g;	#delete periods after Month abbreviations
 	s/\//-/g;	#convert / to -
+	s/,/ /g;
 	s/No date//i;
 	s/Unknown 0000//i;			#SD52289 with an odd date
 	s/Unspecified//i;
@@ -613,7 +655,7 @@ foreach ($eventDate){
 	}
 
 #continue date parsing
-$eventDate = $eventDateAlt;
+$eventDateAlt = $eventDate;
 
 
 	if($eventDateAlt=~/^([0-9]{4})-(\d\d)-(\d\d)/){	#if eventDate is in the format ####-##-##
@@ -646,7 +688,7 @@ $eventDate = $eventDateAlt;
 		$DD = "1";
 		$MM2 = "5";
 		$DD2 = "31";
-	warn "(14)$eventDateAlt\t$id";
+	#warn "(14)$eventDateAlt\t$id";
 	}	
 	elsif ($eventDateAlt=~/^([Ss][uU][Mm][mer]*)[- ]([0-9]{4})/) {
 		$YYYY = $2;
@@ -664,7 +706,7 @@ $eventDate = $eventDateAlt;
 		$MM2 = "11";
 	warn "(12)$eventDateAlt\t$id";
 	}	
-	elsif ($eventDateAlt=~/^([0-9]{1,2}) ([A-Za-z]+) ([0-9]{4})/){
+	elsif ($eventDateAlt=~/^([0-9]{1,2})[- ]([A-Za-z]+)[- ]([0-9]{4})/){
 		$DD=$1;
 		$MM=$2;
 		$YYYY=$3;
@@ -672,16 +714,24 @@ $eventDate = $eventDateAlt;
 		$DD2 = "";
 	#warn "(2)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([0-9]{1,2})[- ]+([0-9]{1,2})[- ]+([A-Z][a-z]+)[- ]([0-9]{4})/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{1,2})[- ]([0-9]{4})/){
+		$DD=$2;
+		$MM=$1;
+		$YYYY=$3;
+		$MM2 = "";
+		$DD2 = "";
+	#warn "(2b)$eventDateAlt\t$id";
+	}
+	elsif ($eventDateAlt=~/^([0-9]{1,2})[- ]([0-9]{1,2})[- ]([A-Z][a-z]+)[- ]([0-9]{4})/){
 		$DD=$1;
 		$DD2=$2;
 		$MM=$3;
 		$MM2=$3;
 		$YYYY=$4;
-	warn "(4)$eventDateAlt\t$id";
+	#warn "(4)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+)-([0-9]{2})$/){
-	warn "Date (6): $eventDateAlt\t$id";
+	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{2})$/){
+	warn "Date (6): $eventDateAlt\t$id==> problem date, date nulled";
 		$eventDateAlt = "";
 	}
 	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([A-Z][a-z]+)-(June?)[- ]$/){ #month, year, no day
@@ -746,9 +796,9 @@ $eventDate = $eventDateAlt;
 		$YYYY=$2;
 		$MM2 = "";
 		$DD2 = "";
-	warn "(5)$eventDateAlt\t$id";
+	#warn "(5)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{2})([0-9]{4})$/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{2})([0-9]{4})$/){
 		$DD = $2;
 		$MM = $1;
 		$YYYY= $3;
@@ -770,9 +820,9 @@ $eventDate = $eventDateAlt;
 		$DD2 = "";
 		$DD = "";
 		$MM="";
-	warn "(18)$eventDateAlt\t$id";
+	#warn "(18)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([0-9]{4})-([0-9]{1,2})[- ]*$/){
+	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([0-9]{1,2})[- ]*$/){
 		$MM=$2;
 		$YYYY=$1;
 		$MM2 = "";
@@ -832,6 +882,10 @@ if ($DD2 =~ m/^(\d)$/){
 		s/, Jr/ Jr./g;
 		s/, Esq./ Esq./g;
 		s/, Sr\./ Sr./g;
+		s/AndrA./Andre/g;
+		s/PeAalosa/Penalosa/g;
+		s/LaPrA/LaPre/g;
+		s/OrdoAez/Ordonez/g;
 		s/  +/ /g;
 		s/^ +//;
 		s/ +$//;
@@ -1540,6 +1594,8 @@ foreach ($associatedTaxa){
 		s/"/'/;
 		s/^'//;
 		s/'$//;
+
+	s/Larrea\ttridentata/Larrea tridentata/;
 	s/ ssp / subsp. /g;
 	s/ ssp. / subsp. /g;
 	s/with / /g;

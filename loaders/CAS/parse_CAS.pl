@@ -476,7 +476,25 @@ if (($barcode =~ m/^(CAS-BOT-BC373925)$/) && (length($TID{$tempName}) == 0)){
 	$tempName =~ s/^$/Harfordia macroptera/; #fix special case
 	&log_change("Scientific name error - taxon name mentioned in notes field but no data in taxon name, modified to \t$tempName\t--\t$barcode\n");
 }
-
+if (($barcode =~ m/^(CAS-BOT-BC8492)$/) && (length($TID{$tempName}) == 0)){ 
+#N	USA	CA	DS	84010	Lupinus elatus subsp. elatus	Ivan Murray Johnston	1917-07-30	1627	San Bernardino County	San Antonio Mountains, head of Icehouse Canyon	under pines	common			34.2381000000	-117.5954000000			8000	8000	ft		M. Conrad	1980-10-01	isotype of <i>Lupinus elatus</i> I.M. Johnst.	1917-07-30	July 30, 1917	8492	WGS84	1.1000000000	km	urn:catalog:CAS:BOT-BC:8492	GoogleMaps via BerkeleyMapper (copied from GH303832)
+	$tempName =~ s/Lupinus elatus subsp\. elatus/Lupinus elatus/;
+	&log_change("Scientific name not published: Lupinus elatus ssp. elatus, not a published combination, modified to just the species rank:\t$tempName\t--\t$barcode\n");
+}
+if (($barcode =~ m/^(CAS-BOT-BC360511|CAS-BOT-BC360512|CAS-BOT-BC360513|CAS-BOT-BC360514|CAS-BOT-BC360515|CAS-BOT-BC8244|CAS-BOT-BC8245)$/) && (length($TID{$tempName}) == 0)){ 
+#N	MX	Baja California	DS	36822	Lupinus formosus subsp. proximus	S. Schoenfeldt	1894-06-04	3402		Nachoguero Valley																1894-06-04	June 4, 1894	360511				urn:catalog:CAS:BOT-BC:360511	
+	$tempName =~ s/Lupinus formosus subsp\. proximus/Lupinus formosus/;
+	&log_change("Scientific name not published: Lupinus formosus ssp. proximus, not a published combination, modified to just the species rank:\t$tempName\t--\t$barcode\n");
+}
+if (($barcode =~ m/^(CAS-BOT-BC2088)$/) && (length($TID{$tempName}) == 0)){ 
+#N	MX	Baja California	DS	194178	Cordylanthus involutus subsp. involutus	Ira Loren Wiggins; Delzie Demaree	1930-09-14	4812		Near Rancho San Jose, 20 mi E of San Telmo.	Growing on gravelly hillsides in arid Upper Sonoran Zone.								675	675	m		L. R. Heckard	1977-01-01	holotype of <i>Cordylanthus involutus</i> Wiggins	1930-09-14	14 Sept 1930	2088				urn:catalog:CAS:BOT-BC:2088	
+	$tempName =~ s/Cordylanthus involutus subsp\. involutus/Cordylanthus rigidus subsp. involutus/;
+	&log_change("Scientific name not published: Cordylanthus involutus subsp. involutus, not a published combination, modified to==>\t$tempName\t--\t$barcode\n");
+}
+if (($barcode =~ m/^(CAS-BOT-BC387723|CAS-BOT-BC387721)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/Acmispon watsoni.*/Acmispon/;
+	&log_change("Scientific name error - Acmispon watsonii not a published combination, modified to: $tempName\t--\t$barcode\n");
+}
 #####process taxon names
 
 $scientificName=&strip_name($tempName);
@@ -896,26 +914,30 @@ foreach ($stateProvince){
 	s/Playas De Rosarito/Rosarito, Playas de/g; #this is not being detected by the below checker despite many tries
 }
 
-##################Fix known problematic specimens by id numbers
+##################Fix known problematic counties by id numbers
 	if(($barcode=~/^(CAS-BOT-BC165041)$/) && ($tempCounty=~m/San D/)){ 
+		&log_change("COUNTY: County/State problem==>Brewer log states on July 8, 1861 they were at San Juan Bautista in San Benito County, which is near Gabilan (not Gavilan in San Diego/Riverside County), lat/long copied from  UC20288 ($barcode: $tempCounty, $locality)\n");	
 			$tempCounty=~s/San Diego/San Benito/;
 			$verbatimLatitude =~s/^.*$/36.83/;
 			$verbatimLongitude =~s/^.*$/-121.52/;
 			$LatLong_Method =~s/^.*$/Coordinates copied from UC20288/;
-		&log_change("COUNTY: County/State problem==>Brewer log states on July 8, 1861 they were at San Juan Bautista in San Benito County, which is near Gabilan (not Gavilan in San Diego/Riverside County), lat/long copied from  UC20288 ($barcode: $tempCounty, $locality)\n");	
-
 	}
 	if(($barcode=~/^(CAS-BOT-BC99184)$/) && ($tempCounty=~m/Yuba/)){ 
-			$tempCounty=~s/^.*$/Riverside/;
 		&log_change("COUNTY: County/State problem==>Other Grant specimens from fall 1901 and 1902 were all collected in the San Jacinto Mts, Riverside Co., not Yuba County, ($barcode: $tempCounty, $locality)\n");	
+			$tempCounty=~s/^.*$/Riverside/;
+	&log_change("COUNTY: County/State problem==>Other Grant specimens from fall 1901 and 1902 were all collected in the San Jacinto Mts, Riverside Co., not Yuba County, ($barcode: $tempCounty, $locality)\n");	
 			
 	}
 	if(($barcode=~/^(CAS-BOT-BC357548)$/) && ($tempCounty !~ m/Riverside/)){ 
-			$tempCounty=~s/^.*$/Riverside/;
 		&log_change("COUNTY: County/State problem==>Other Grant specimens from fall 1901 and 1902 (see CAS-BOT-BC93699, Grant 4441) were all collected in the San Jacinto Mts, Riverside Co., not Yuba County, ($barcode: $tempCounty, $locality)\n");	
+			$tempCounty=~s/^.*$/Riverside/;
+
+	}	
+	if(($barcode=~/^(CAS-BOT-BC73534)$/) && ($tempCounty=~m/Lake/)){ 
+		&log_change("COUNTY: County/State problem==>Dudley specimens from 'Bartletts Trail' or 'Preston Peak' were likely all collected near Preston Peak, Siskiyou Co., Lake county for this record is an error: ($barcode: $tempCounty, $locality)\n");	
+			$tempCounty=~s/^.*$/Siskiyou/;
 			
 	}	
-	
 	
 
 #format county as a precaution

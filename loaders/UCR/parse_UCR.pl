@@ -511,6 +511,12 @@ my $tempName = $genus ." " .  $species . " ".  $rank . " ".  $subtaxon;
 	#format det_string correctly
 my $det_orig_rank = "current determination (uncorrected)";  #set to zero for original determination
 
+	if (length($tempName) > 1){
+		$det_orig="$det_orig_rank: $tempName";
+	}
+	else{
+		$det_orig="";
+	}
 	
 
 
@@ -519,6 +525,8 @@ my $det_orig_rank = "current determination (uncorrected)";  #set to zero for ori
 foreach ($tempName){
 	s/[uU]nknown/ /g; #added to try to remove the word "unknown" for some records
 	s/;$//g;
+	s/\]$//g; #fix a typo
+	s/1$//g;#fix a typo
 	s/cf.//g;
 	s/ [xX×] / X /;	#change  " x " or " X " to the multiplication sign
 	s/[×] /X /;	#change  " x " in genus name to the multiplication sign
@@ -526,18 +534,10 @@ foreach ($tempName){
 	s/^ $//g;
 	s/^ +//g;
 	s/ +$//g;
-
+}	
 	
-	s/[uU]nknown/ /g;
 
-	if (length($tempName) >=1){
-		$det_orig="$det_orig_rank: $tempName";
-	}
-	else{
-		$det_orig="";
-	}
 
-	}
 
 
 #Fix records with unpublished or problematic name determination that should not be fixed in AlterNames

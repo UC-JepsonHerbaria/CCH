@@ -330,8 +330,11 @@ s/  +/ /g;
 	$identifiedBy=&get_identifiedBy($_);
 	$dateIdentified=&get_dateIdentified($_);
 
+foreach($id){
 
 print OUT join("\t",$cultivated, $id, $genus, $species, $rank, $subtaxon, $collector, $other_coll, $recordNumber, $verbatimEventDate, $country, $stateProvince, $county, $TRS, $elevation, $elev_units, $locality, $lat_degrees, $lat_minutes, $lat_seconds, $lat_dir, $long_degrees, $long_minutes, $long_seconds, $long_dir, $datum, $LatLongAdded, $errorRadius, $errorRadiusUnits, $topo_quad, $notes, $other, $AnnoYesNo, $identifiedBy, $dateIdentified), "\n";
+}
+
 }
 close(OUT);
 close(IN);

@@ -425,6 +425,9 @@ foreach ($eventDateAlt){
 	}
 
 
+#continue date parsing
+
+
 	if($eventDateAlt=~/^([0-9]{4})-(\d\d)-(\d\d)/){	#if eventDate is in the format ####-##-##
 		$YYYY=$1; 
 		$MM=$2; 
@@ -433,7 +436,7 @@ foreach ($eventDateAlt){
 		$DD2 = "";
 	warn "(1)$eventDateAlt\t$id";
 	}
-	elsif($eventDateAlt=~/^([0-9]{4})-(\d\d?)-(\d\d)/){	#if eventDate is in the format ####-##-##
+	elsif($eventDateAlt=~/^([0-9]{4})-(\d)-(\d\d)/){	#if eventDate is in the format ####-##-##
 		$YYYY=$1; 
 		$MM=$2; 
 		$DD=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
@@ -496,7 +499,7 @@ foreach ($eventDateAlt){
 		$YYYY=$3;
 		$MM2 = "";
 		$DD2 = "";
-	#warn "(22)$eventDateAlt\t$id";
+	warn "(22)$eventDateAlt\t$id";
 	}
 	elsif ($eventDateAlt=~/^([0-9]{1,2})[- ]+([0-9]{1,2})[- ]+([A-Z][a-z]+)[- ]([0-9]{4})/){
 		$DD=$1;
@@ -573,6 +576,14 @@ foreach ($eventDateAlt){
 		$MM2 = "";
 		$DD2 = "";
 	warn "(5)$eventDateAlt\t$id";
+	}
+	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([A-Za-z]+)-$/){
+		$DD = "";
+		$MM = $2;
+		$YYYY=$1;
+		$MM2 = "";
+		$DD2 = "";
+	warn "(5a)$eventDateAlt\t$id";
 	}
 	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{2})([0-9]{4})$/){
 		$DD = $2;

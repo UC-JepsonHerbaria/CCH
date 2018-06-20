@@ -48,7 +48,7 @@ my %ALTER;
 my $file = '/JEPS-master/CCH/Loaders/YOSE/FY2014_CCH_data_MOD.txt';
 
 ###open the county conversion file, unique to YOSE
-open(IN, "YM_out_county.txt") || die "couldnt open YM_out_county.txt\n";
+open(IN, "/JEPS-master/CCH/Loaders/YOSE/YM_out_county.txt") || die "couldnt open YM_out_county.txt\n";
 while(<IN>){
 	chomp;
 	($ACC, $YOSE_CO)=split(/\t/);

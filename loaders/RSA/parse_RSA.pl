@@ -11,6 +11,8 @@
 #perl -lne '$a++ if /Combined_coll: $/; END {print $a+0}' RSA_specify_out.txt
 
 
+#perl -lne '$a++ if /JOMU\d+/; END {print $a+0}' 4solr.ucjeps.public.csv
+
 use Geo::Coordinates::UTM;
 #use strict;
 #use warnings;
@@ -189,7 +191,7 @@ open(OUT4, ">/JEPS-master/CCH/Loaders/RSA/AID_GUID_RSA.txt") || die;
 #the new format within also concatenates into one, manually 
 ############
 
-my $file="/JEPS-master/CCH/Loaders/RSA/data_files/2018.04.11_RSA_CCH.txt";
+my $file="/JEPS-master/CCH/Loaders/RSA/data_files/2018.06.07_RSA_CCH_mod.txt";
 
 
 
@@ -205,7 +207,6 @@ Record: while(<IN>){
 
 	s/ ◊ / X /g;  #this odd code may be correcting oddly using the unidecode
 
-$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
 
 	chomp;
 
@@ -256,6 +257,7 @@ s///g; # or x{Ob} or \x0b
 #skipping: problem character detected: s/\xcb\x99/    /g   ˙ ---> Cant˙	
 #skipping: problem character detected: s/\xe2\x80\x9d/    /g   ” ---> 12”	
 #skipping: problem character detected: s/\xe2\x88\x9e/    /g   ∞ ---> 28∞	114∞	30∞	115∞95'W.	80∞	
+$_ =~ s/([^[:ascii:]]+)/unidecode($1)/ge; #use only in conjunction with utf8 and unidecode to try to fix bad characters in text that is poorly converted to UTF8
 
 
 
@@ -334,23 +336,23 @@ $occurrenceID
 ##################Exclude known problematic localities from other States in Mexico outside CA-FP	
  	if ($Locality1 =~/(Cedros Island|Cerros Island|Campeche|Tuxpe.*a, Camp\.|Clarion Island|Isla del Carmen|Esc.?rcega|HopelchTn|Cd\. del C.?rmen|Mamantel|Xpujil|Ciudad del Carmen|Tuxpe.?a, Camp\.)/){
 		#print  ("Mexico record outside CA-FP\t$id");
-		&log_skip("Mexico record outside CA-FP\t$Locality1\t$id");
+		&log_skip("Mexico record outside CA-FP\t$Locality1\t$cchId");
 		++$temp_skipped{one};
 		next Record;
 	}
 	elsif ($Locality2 =~/(Cedros Island|Cerros Island|Campeche|Tuxpe.*a, Camp\.|Clarion Island|Isla del Carmen|Esc.?rcega|HopelchTn|Cd\. del C.?rmen|Mamantel|Xpujil|Ciudad del Carmen|Tuxpe.?a, Camp\.)/){
 		#print  ("Mexico record outside CA-FP\t$id");
-		&log_skip("Mexico record outside CA-FP\t$Locality1\t$id");
+		&log_skip("Mexico record outside CA-FP\t$Locality1\t$cchId");
 		++$temp_skipped{one};
 		next Record;
 	}
 	elsif((length($tempCounty) == 0) && ($country=~m/Mexico/i)){
-		&log_skip("Mexico record with unknown or blank county field==>$id ($country)\t($stateProvince)\t($tempCounty)\t$Locality1");
+		&log_skip("Mexico record with unknown or blank county field==>$cchId ($country)\t($stateProvince)\t($tempCounty)\t$Locality1");
 			++$skipped{one};
 			next Record;
 	}
 	elsif(($tempCounty=~m/unknown/i) && ($country=~m/Mexico/i)){
-		&log_skip("Mexico record with unknown or blank county field==>$id ($country)\t($stateProvince)\t($tempCounty)\t$Locality1");
+		&log_skip("Mexico record with unknown or blank county field==>$cchId ($country)\t($stateProvince)\t($tempCounty)\t$Locality1");
 			++$skipped{one};
 			next Record;
 	}
@@ -375,9 +377,11 @@ foreach($Accession_Number,$Accession_Suffix,$herb){
 	s/ +//g;
 }
 
-$id_orig = $id = $herb . $Accession_Number . $Accession_Suffix;
+$id_orig = $herb . $Accession_Number . $Accession_Suffix;
 
-foreach ($id){
+$id = $id_orig;
+
+foreach ($id_orig){
 		s/ +//g;
 }
 
@@ -388,6 +392,9 @@ foreach ($id){
 				&log_change("ACC: Barcode field not NULL, using barcode for ID $id==>$barcode<\n");
 		$id = $barcode;
 		#print OUT2 "$id\tBARCODE\t$fullName\t$tempCounty\t$cchId\t$occurrenceID\n"; #print all other unchanged barcodes
+	}
+	else{
+		$barcode = "";
 	}
 
 #find duplicates
@@ -849,7 +856,7 @@ if (($id =~ m/^(RSA0105707)$/) && (length($TID{$tempName}) == 0)){
 	$tempName =~ s/Gilia lottiae subsp\. sabulosa/Gilia lottiae/;
 	&log_change("Scientific name combination not published: Gilia lottiae subsp. sabulosa not in Tropicos, modified to==>$tempName\t==>\t$id\n");
 }
-if (($id =~ m/^(RSA0105707)$/) && (length($TID{$tempName}) == 0)){ 
+if (($id =~ m/^(RSA732212|RSA732992)$/) && (length($TID{$tempName}) == 0)){ 
 	$tempName =~ s/Boechera sparsiflora var\. californica/Boechera californica/;
 	&log_change("Scientific name combination not published: Boechera sparsiflora var. californica not in Tropicos, modified to==>$tempName\t==>\t$id\n");
 }
@@ -1255,13 +1262,17 @@ $collector = ucfirst($verbatimCollectors);
 	elsif ($collector !~ m/(;|,|:| ?&| [Aa][nN][dD]| [Ww][iI][Tt][Hh]) ([A-Z].*)$/){
 #		$recordedBy = &CCH::validate_collectors($collector, $id);
 		#warn "Names 2: $verbatimCollectors===>$collector\t--\t$recordedBy\t--\t$other_coll\n";
+		$other_coll="";
 	}
 	elsif (length($collector == 0)) {
 		$recordedBy = "Unknown";
+		$other_coll="";
 		&log_change("COLLECTOR (2): modified from NULL to $recordedBy\t$id\n");
 	}	
 	else{
 		&log_change("COLLECTOR (3): name format problem: $verbatimCollectors==>$collector\t--$id\n");
+		$verbatimCollectors = $collector;
+		$other_coll="";
 	}
 
 ###further process other collectors

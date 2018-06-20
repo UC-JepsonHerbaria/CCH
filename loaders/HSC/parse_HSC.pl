@@ -449,7 +449,36 @@ foreach ($coll_month){
 }
 
 
-$verbatimEventDate = $eventDateAlt = $coll_day."-" . $coll_month . "-". $coll_year;	
+$eventDateAlt = $coll_year."-".$coll_month."-".$coll_day;	
+
+
+#assemble a date for a correctly formatted verbatim date
+	if ((length($coll_day) == 0) && (length($coll_month) >= 1) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_month." ".$coll_year;
+	}
+	elsif ((length($coll_day) >= 1) && (length($coll_month) >= 1) && (length($coll_year) == 0)){
+		$verbatimEventDate = $coll_day." ".$coll_month." [year missing]";
+		warn "(1) date missing year==>$verbatimEventDate\t$id";
+	}	
+	elsif ((length($coll_day) >= 1) && (length($coll_month) >= 1) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_day." ".$coll_month." ".$coll_year;
+	}	
+	elsif ((length($coll_day) >= 1) && (length($coll_month) == 0) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_day." [month missing] ".$coll_year;
+		warn "(2) date missing month==>$verbatimEventDate\t$id";
+	}
+	elsif ((length($coll_day) == 0) && (length($coll_month) == 0) && (length($coll_year) >= 2)){
+		$verbatimEventDate = $coll_year;
+	}
+	elsif ((length($coll_day) == 0) && (length($coll_month) == 0) && (length($coll_year) == 0)){
+		$verbatimEventDate="";
+	}
+	else{
+		&log_change("DATE: problem, missing or incompatible values==>day: $coll_day\tmonth: $coll_month\tyear: $coll_year\t$id\n");
+		$verbatimEventDate="";
+	}
+
+
 
 
 foreach ($eventDateAlt){
@@ -491,6 +520,23 @@ foreach ($verbatimEventDate){
 		$DD2 = "";
 	warn "(1)$eventDateAlt\t$id";
 	}
+	elsif($eventDateAlt=~/^([0-9]{4})-(\d)-(\d\d)/){	#if eventDate is in the format ####-##-##
+		$YYYY=$1; 
+		$MM=$2; 
+		$DD=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
+		$MM2 = "";
+		$DD2 = "";
+	warn "(1a)$eventDateAlt\t$id";
+	}
+	elsif($eventDateAlt=~/^([0-9]{4})-([A-Za-z]+)-(\d\d?)/){	#if eventDate is in the format ####-AAA-##
+		$YYYY=$1; 
+		$MM=$2; 
+		$DD=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
+		$MM2 = "";
+		$DD2 = "";
+	#warn "(1b)$eventDateAlt\t$id";
+	}
+	
 	elsif($eventDateAlt=~/^(\d\d)-(\d\d)-([0-9]{4})/){	#added to SDSU, if eventDate is in the format ##-##-####, most appear that first ## is month
 		$YYYY=$3; 
 		$MM=$1; 
@@ -499,21 +545,13 @@ foreach ($verbatimEventDate){
 		$DD2 = "";
 	warn "(2)$eventDateAlt\t$id";
 	}
-	elsif($eventDateAlt=~/^([0-9]{1})[- ]([0-9]{1,2})[- ]([0-9]{4})/){	#added to SDSU, if eventDate is in the format #-##?-####, most appear that first # is month 
+	elsif($eventDateAlt=~/^([0-9]{1})-([0-9]{1,2})-([0-9]{4})/){	#added to SDSU, if eventDate is in the format #-##?-####, most appear that first # is month 
 		$YYYY=$3; 
 		$MM=$1; 
 		$DD=$2;
 		$MM2 = "";
 		$DD2 = "";
 	warn "(3)$eventDateAlt\t$id";
-	}
-	elsif($eventDateAlt=~/^([0-9]{2})[- ]([0-9]{1})[- ]([0-9]{4})/){	#added to SJSU, if eventDate is in the format ##-#-####, most appear that first # is month 
-		$YYYY=$3; 
-		$MM=$1; 
-		$DD=$2;
-		$MM2 = "";
-		$DD2 = "";
-	warn "(3a)$eventDateAlt\t$id";
 	}
 	elsif ($eventDateAlt=~/^([Ss][pP][rR][ing]*)[- ]([0-9]{4})/) {
 		$YYYY = $2;
@@ -539,13 +577,13 @@ foreach ($verbatimEventDate){
 		$MM2 = "11";
 	warn "(12)$eventDateAlt\t$id";
 	}	
-	elsif ($eventDateAlt=~/^([0-9]{1,2})[- ]([A-Za-z]+)[- ]([0-9]{4})/){
+	elsif ($eventDateAlt=~/^([0-9]{1,2})[- ]+([A-Za-z]+)[- ]+([0-9]{4})/){
 		$DD=$1;
 		$MM=$2;
 		$YYYY=$3;
 		$MM2 = "";
 		$DD2 = "";
-	#warn "(22)$eventDateAlt\t$id";
+	warn "(22)$eventDateAlt\t$id";
 	}
 	elsif ($eventDateAlt=~/^([0-9]{1,2})[- ]+([0-9]{1,2})[- ]+([A-Z][a-z]+)[- ]([0-9]{4})/){
 		$DD=$1;
@@ -555,11 +593,11 @@ foreach ($verbatimEventDate){
 		$YYYY=$4;
 	warn "(4)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{2})$/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+)-([0-9]{2})$/){
 	warn "Date (6): $eventDateAlt\t$id";
 		$eventDateAlt = "";
 	}
-	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([A-Z][a-z]+)-(June?)[- ]$/){ #month, year, no day
+	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([A-Z][a-z]+)-(June?|July?)[- ]$/){ #month, year, no day
 		$YYYY = $1;
 		$DD = "1";
 		$MM = $1;
@@ -567,7 +605,7 @@ foreach ($verbatimEventDate){
 		$MM2 = $2;
 	warn "Date (7): $eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Z][a-z]+)[- ](June?)[- ]([0-9]{4})$/){ #month, year, no day
+	elsif ($eventDateAlt=~/^([A-Z][a-z]+)[- ](June?|July?)[- ]([0-9]{4})$/){ #month, year, no day
 		$YYYY = $3;
 		$DD = "1";
 		$MM = $1;
@@ -616,22 +654,22 @@ foreach ($verbatimEventDate){
 	warn "(15)$eventDateAlt\t$id";
 	}
 	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{4})$/){
-		$DD = "1";
+		$DD = "";
 		$MM = $1;
 		$YYYY=$2;
-		$MM2 = $1;
-		$DD2 = "31"; #by doing this some LJD's will go into the next month, but this is a quick fix for some odd dates that does not increase inaccuracy by much
-	#warn "(5)$eventDateAlt\t$id";
+		$MM2 = "";
+		$DD2 = "";
+	warn "(5)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([0-9]{1,2})[ -]([0-9]{4})$/){	#added to SJSU for date format ##?-####
-		$DD = "1";
-		$MM = $1;
-		$YYYY=$2;
-		$MM2 = $1;
-		$DD2 = "31";	#by doing this some LJD's will go into the next month, but this is a quick fix for some odd dates that does not increase inaccuracy by much
-	warn "(5a)$eventDateAlt\t$id";
+	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([A-Za-z]+)-$/){
+		$DD = "";
+		$MM = $2;
+		$YYYY=$1;
+		$MM2 = "";
+		$DD2 = "";
+	#warn "(5a)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([A-Za-z]+)[- ]([0-9]{2})([0-9]{4})$/){
+	elsif ($eventDateAlt=~/^([A-Za-z]+) ([0-9]{2})([0-9]{4})$/){
 		$DD = $2;
 		$MM = $1;
 		$YYYY= $3;
@@ -655,7 +693,7 @@ foreach ($verbatimEventDate){
 		$MM="";
 	#warn "(18)$eventDateAlt\t$id";
 	}
-	elsif ($eventDateAlt=~/^([0-9]{4})[- ]([0-9]{1,2})[- ]*$/){
+	elsif ($eventDateAlt=~/^([0-9]{4})-([0-9]{1,2})[- ]*$/){
 		$MM=$2;
 		$YYYY=$1;
 		$MM2 = "";
@@ -701,9 +739,28 @@ if ($DD2 =~ m/^(\d)$/){
 ###############COLLECTORS
 
 
-$verbatimCollectors= $collector."," . $other_coll;
+#assemble a collectors for a correctly formatted verbatim collector field
+	if ((length($collector) == 0) && (length($other_coll) > 1)){
+		$verbatimCollectors = $other_coll;
+		warn "(1) collector field NULL, using only other collector==>($collector, $other_coll)\t$id";
+	}
+	elsif ((length($collector) > 1) && (length($other_coll) >= 1)){
+		$verbatimCollectors = $collector.", ".$other_coll;
+		
+	}	
+	elsif ((length($collector) > 1) && (length($other_coll) == 0)){
+		$verbatimCollectors = $collector;
+	}	
+	elsif ((length($collector) == 0) && (length($other_coll) == 0)){
+		$verbatimCollectors="";
+	}
+	else{
+		&log_change("COLLECTOR: missing or incompatible values==>collector: $collector\tother collector: $other_coll\t$id\n");
+		$verbatimCollectors="";
+	}
 
-foreach ($collector, $verbatimCollectors){
+
+foreach ($collector){
 	s/'$//g;
 	s/"//g;
 	s/\[//g;
@@ -718,20 +775,21 @@ foreach ($collector, $verbatimCollectors){
 	s/, Esq./ Esq./g;
 	s/, Sr\./ Sr./g;
 	s/^'//g;
-	s/, *& */ & /g; #fix a special case
 	s/ , /, /g;
-	s/  +/ /;
+	s/  +/ /g;
 	s/^ +//;
 	s/ +$//;
 	
 #fix some unique problem cases	
 	s/. unknown/Unknown/;
+	s/, *& */ & /g; #fix a special case
+	s/^M ?& ?M$/M. & M./;
 
 }
 	
 	if ($collector =~ m/(;|,|:| ?&| [Aa][nN][dD]| [Ww][iI][Tt][Hh]) ([A-Z].*)$/){
-#		$recordedBy = &CCH::validate_collectors($collector, $id);	
-		$recordedBy = $collector;
+		$recordedBy = &CCH::validate_collectors($collector, $id);	
+		#$recordedBy = $collector;
 	#D Atwood; K Thorne
 		$other_coll=$2;
 		#warn "Names 1: $verbatimCollectors===>$collector\t--\t$recordedBy\t--\t$other_coll\n";
@@ -739,8 +797,8 @@ foreach ($collector, $verbatimCollectors){
 	}
 	
 	elsif ($collector !~ m/(;|,|:| ?&| [Aa][nN][dD]| [Ww][iI][Tt][Hh]) ([A-Z].*)$/){
-#		$recordedBy = &CCH::validate_collectors($collector, $id);
-		$recordedBy = $collector;
+		$recordedBy = &CCH::validate_collectors($collector, $id);
+		#$recordedBy = $collector;
 		#warn "Names 2: $verbatimCollectors===>$collector\t--\t$recordedBy\t--\t$other_coll\n";
 	}
 	elsif (length($collector == 0)) {
@@ -748,7 +806,7 @@ foreach ($collector, $verbatimCollectors){
 		&log_change("COLLECTOR (2): modified from NULL to Unknown\t$id\n");
 	}	
 	else{
-		&log_change("COLLECTOR (3): name format problem: $verbatimCollectors==>$collectors\t--$id\n");
+		&log_change("COLLECTOR (3): name format problem: $verbatimCollectors==>$collector\t--$id\n");
 	}
 
 
@@ -864,9 +922,13 @@ foreach ($locality){
 	s/`$//;
 	s/^-//;
 	s/^;//;
-	s/  +/ /;	
+	s/  +/ /g;	
 	s/^ +//;
 	s/ +$//;
+
+#fix some unique problem cases	
+	s/^[uU]kiah [dD]istrict/Ukiah District [somewhere within the BLM district bounday, see County and TRS for location, not from the city of Ukiah proper]/g;
+
 }
 
 
@@ -1092,6 +1154,13 @@ foreach ($verbatimLatitude, $verbatimLongitude){
 		
 }
 
+
+#The excel file from HSC in 2017 has also latitude and longitude split into separate field.
+#these separate fields appear mostly ok, but have a few null fields spread throughout, mostly in the seconds field (and just an integer in the minutes).  
+#It does not appear that any coordinates are only in these split fields
+#just the decimal field is used here, labeled as $verbatimLatitude & $verbatimLongitude.
+
+
 #check to see if lat and lon reversed
 	if (($verbatimLatitude =~ m/^-?1\d\d\./) && ($verbatimLongitude =~ m/^\d\d\./)){
 		$hold = $verbatimLatitude;
@@ -1150,8 +1219,14 @@ foreach ($latitude, $longitude){
 
 }	
 
+#fix some problematic records that are not being georeferenced correctly
+#most of these are BLM specimens from the Ukiah District BLM from Trinity, Lake, Napa, or Mendocino County, collected by Robert Specht
+#many do not have locality information or just a fragment of habitat data erroneously entered as locality data
+#others just have Ukiah District as the locality and all of these have erroneously been georeferenced as being from Ukiah proper, despite the county and TRS being clearly not from that city.
+#none appear to have the TRS converted to georeferences by HSC in their home database
 
-#use combined Lat/Long field format for SBBG
+
+
 
 
 	#convert to decimal degrees
