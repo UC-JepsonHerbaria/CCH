@@ -1,5 +1,7 @@
 use BerkeleyDB;
 tie %CDL, "BerkeleyDB::Hash", -Filename=>"CDL_DBM", -Flags=>DB_RDONLY or die "Cannot open file CDL_DBM: $! $BerkeleyDB::Error\n" ;
+print $CDL{'RSA232910'};
+die;
 while(($key,$value)=each(%CDL)){
 $AID{$key}++;
 if($key=~/POM|RSA/){
