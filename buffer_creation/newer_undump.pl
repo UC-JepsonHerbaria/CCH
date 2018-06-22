@@ -1,11 +1,16 @@
 #!/bin/perl
 open(LOG, ">>cdl_log") || die;
 use Time::HiRes qw(usleep ualarm gettimeofday tv_interval);
+use Time::JulianDay;
+use BerkeleyDB;
+use lib '/Users/davidbaxter/DATA';
+use CCH; #for &load_fips
+
+
 
 ($t)=gettimeofday;
 print "start $t\n";
  $timestart=time();
-use BerkeleyDB;
 %flat_dbm=(
 CDL_date_simple => 'CDL_date_simple.in',
 CDL_county => 'CDL_counties.in',
@@ -15,7 +20,7 @@ CDL_coll_number =>   'CDL_coll_number.in',
 #CDL_TID_TO_NAME =>   'CDL_tid_to_name.in',
 ($t)=gettimeofday;
 print "after tar  $t\n";
-foreach $file("CDL_collectors.in", "cdl/CDL_collectors.in"){
+foreach $file("CDL_collectors.in", "/Users/davidbaxter/DATA/bulkload_data/CDL_collectors.in"){
 	open(IN, $file) || die;
 	while(<IN>){
 		chomp;
@@ -39,7 +44,7 @@ system("chmod 0666 CDL_collectors.txt");
 ($t)=gettimeofday;
 print "after coll  $t\n";
 
-foreach $file("CDL_loc_list.in", "cdl/CDL_loc_list.in"){
+foreach $file("CDL_loc_list.in", "/Users/davidbaxter/DATA/bulkload_data/CDL_loc_list.in"){
 	open(IN, $file) || die;
 	while(<IN>){
 		chomp;
@@ -63,7 +68,7 @@ system("chmod 0666 CDL_location_words.txt");
 ($t)=gettimeofday;
 print "after loc  $t\n";
 
-foreach $file("CDL_name_list.in", "cdl/CDL_name_list.in"){
+foreach $file("CDL_name_list.in", "/Users/davidbaxter/DATA/bulkload_data/CDL_name_list.in"){
         open(IN, $file) || die;
         while(<IN>){
 #print "$file $_"  if m/juglans regia/;
@@ -110,7 +115,7 @@ foreach $dbm_file (keys(%flat_dbm)){
 	$line_c=0;
 	unlink($dbm_file);
 	my $filename = "$flat_dbm{$dbm_file}";
-foreach $filename ($filename, "cdl/$filename"){
+foreach $filename ($filename, "/Users/davidbaxter/DATA/bulkload_data/$filename"){
 	open(IN,"$filename") || die "couldn't open $filename\n";
 	print "opening $filename, writing to $dbm_file\n";
     	tie %f_contents, "BerkeleyDB::Hash",
@@ -187,7 +192,7 @@ foreach $dbm_file (sort(keys(%flat_dbm))){
 	$line_c=0;
 	unlink($dbm_file);
 	my $filename = "$flat_dbm{$dbm_file}";
-foreach $filename ($filename, "cdl/$filename"){
+foreach $filename ($filename, "/Users/davidbaxter/DATA/bulkload_data/$filename"){
 	open(IN,"$filename") || die "couldn't open $filename\n";
 	print "opening $filename, writing to $dbm_file\n";
     	tie %f_contents, "BerkeleyDB::Hash",
@@ -225,7 +230,7 @@ foreach $dbm_file (sort(keys(%flat_dbm))){
 	$line_c=0;
 	unlink($dbm_file);
 	my $filename = "$flat_dbm{$dbm_file}";
-foreach $filename ($filename, "cdl/$filename"){
+foreach $filename ($filename, "/Users/davidbaxter/DATA/bulkload_data/$filename"){
 	open(IN,"$filename") || die "couldn't open $filename\n";
 	print "opening $filename, writing to $dbm_file\n";
     	tie %f_contents, "BerkeleyDB::Hash",
@@ -264,7 +269,7 @@ foreach $dbm_file (sort(keys(%flat_dbm))){
 	$line_c=0;
 	unlink($dbm_file);
 	my $filename = "$flat_dbm{$dbm_file}";
-foreach $filename ($filename, "cdl/$filename"){
+foreach $filename ($filename, "/Users/davidbaxter/DATA/bulkload_data/$filename"){
 	open(IN,"$filename") || die "couldn't open $filename\n";
 		print "opening $filename, writing to $dbm_file\n";
     	tie %f_contents, "BerkeleyDB::Hash",
@@ -324,7 +329,7 @@ open(OUT, ">CDL_county_list.txt") || die;
 foreach $county (keys(%bar_length)){
 	print OUT "$county\t$cc{$county}\t";
 	foreach $inst (keys(%{$bar_length{$county}})){
-		unless($inst=~/^(CDA|CAS|DS|UC|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|DAV|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC|CSUSB|SCFS|NY|HUH|YM|OBI|GMDRC|JOTR|VVC|SFV|LA|SEINET|CLARK)$/){
+		unless($inst=~/^(CDA|CAS|DS|UC|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|DAV|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC|CSUSB|SCFS|NY|HUH|YM|OBI|GMDRC|JOTR|VVC|SFV|LA|SEINET|CLARK|SACT|BLMAR|JROH|PASA|CATA|MACF)$/){
 			warn "$inst unexpected and skipped\n";
 			next;
 		}
@@ -348,7 +353,7 @@ print "after more county  $t\n";
                        -Filename   => "CDL_date_simple"
              or die "Cannot open $filename: $!\n" ;
 while(($key, $value)=each(%hash)){
-					($year,$month,$day)= inverse_julian_day($key);
+					($year,$month,$day)= &inverse_julian_day($key);
 if($year > 1799){
 $seen{$year} .= "$value\t";
 }
@@ -361,8 +366,8 @@ print "after date processing $t\n";
 while(($key, $value)=each(%hash)){
 if($key=~m/(\d+)-(\d+)/){
 $start=$1; $end=$2;
-					($startyear,$month,$day)= inverse_julian_day($start);
-					($endyear,$month,$day)= inverse_julian_day($end);
+					($startyear,$month,$day)= &inverse_julian_day($start);
+					($endyear,$month,$day)= &inverse_julian_day($end);
 $startyear="1800" unless $startyear > 1800;
 if($startyear > $endyear){
 #print "$key $value\n";
@@ -401,74 +406,18 @@ print "untieing CDL\n";
         untie %h_lat;
 	untie %tid_to_county;
 
-open(NEWS,"news.html");
-#$news=get("http://ucjeps.berkeley.edu/consortium/news.html"):
-$inst_count{DAV_count}=$inst_count{UCD_count};
-$inst_count{UC_count} += $inst_count{JEPS_count};
-$inst_count{UC_count} += $inst_count{UCLA_count};
-$inst_count{RSA_count} += $inst_count{POM_count};
-$inst_count{CAS_count} +=$inst_count{DS_count};
-open(OUT, ">CDL_news.html");
-$record_table=<<EOT;
-<table class="bodyText"> 
-<tr><td> CAS-DS</td><td>$inst_count{CAS_count}</td></tr> 
-<tr><td> CDA</td><td>$inst_count{CDA_count}</td></tr> 
-<tr><td> CHSC</td><td>$inst_count{CHSC_count}</td></tr> 
-<tr><td> CSUSB</td><td>$inst_count{CSUSB_count}</td></tr> 
-<tr><td> DAV</td><td>$inst_count{DAV_count}</td></tr> 
-<tr><td> HSC</td><td>$inst_count{HSC_count}</td></tr> 
-<tr><td> IRVC</td><td>$inst_count{IRVC_count}</td></tr> 
-<tr><td> OBI</td><td>$inst_count{OBI_count}</td></tr> 
-<tr><td> PGM</td><td>$inst_count{PGM_count}</td></tr> 
-<tr><td> RSA-POM</td><td>$inst_count{RSA_count}</td></tr> 
-<tr><td> SBBG</td><td>$inst_count{SBBG_count}</td></tr> 
-<tr><td> SD</td><td>$inst_count{SD_count}</td></tr>
-<tr><td> SDSU</td><td>$inst_count{SDSU_count}</td></tr>
-<tr><td> SJSU</td><td>$inst_count{SJSU_count}</td></tr>
-<tr><td> UC-JEPS</td><td>$inst_count{UC_count}</td></tr> 
-<tr><td> UCR</td><td>$inst_count{UCR_count}</td></tr> 
-<tr><td> UCSB</td><td>$inst_count{UCSB_count}</td></tr> 
-<tr><td> UCSC</td><td>$inst_count{UCSC_count}</td></tr>
-<tr><td> NY</td><td>$inst_count{NY_count}</td></tr>
-<tr><td> HUH</td><td>$inst_count{HUH_count}</td></tr>
-<tr><td> YOSE</td><td>$inst_count{YOSE_count}</td></tr>
-<tr><td> SCFS</td><td>$inst_count{SCFS_count}</td></tr>
-<tr><td> GMDRC</td><td>$inst_count{GMDRC_count}</td></tr>
-<tr><td> JOTR</td><td>$inst_count{JOTR_count}</td></tr>
-<tr><td> CCV</td><td>$inst_count{CCV_count}</td></tr>
-<tr><td> SFV</td><td>$inst_count{SFV_count}</td></tr>
-</table>
-EOT
-$today=localtime();
-$today=~s/\d\d:\d\d:\d\d//;
-while(<NEWS>){
-s!Record count: .*</span><br />!Record count: $record_count ($today)</span><br />!;
-s/<table class=.*/$record_table/o;
-print OUT;
-}
+
 #foreach (sort(keys(%inst_count))){
 #print OUT "$_: $inst_count{$_}\n";
 #}
 #CDL/CDL_name_list.in:quercus × alvordiana CAS1034	SD71047	
 
 
-tie (%G_T_F, "BerkeleyDB::Hash", -Filename =>"G_T_F", -Flags => DB_RDONLY) || die "Cannot open file $dbm_file: $! $BerkeleyDB::Error\n" ;
+tie (%G_T_F, "BerkeleyDB::Hash", -Filename =>"G_T_F", -Flags => DB_RDONLY) || die "Cannot open file genus_to_family_hash: $! $BerkeleyDB::Error\n" ;
 tie(%CODE_TO_NAME, "BerkeleyDB::Hash", -Filename=>"CDL_TID_TO_NAME", -Flags=>DB_RDONLY)|| die "$!";
 ($t)=gettimeofday;
 print "reading main  $t\n";
 open(IN, "CDL_main.in") || die;
-#use BerkeleyDB;
-#unlink("CDL_AID_recno");
-#tie @h, 'BerkeleyDB::Recno', -Filename => "CDL_AID_recno", -Flags => DB_CREATE, -Property => DB_RENUMBER
-             #or die "Cannot open $filename: $!\n" ;
-#$dbm_file="CDL_family_vec_hash";
-#unlink($dbm_file);
-#tie %FV, "BerkeleyDB::Hash", -Filename => $dbm_file, -Flags => DB_CREATE
-        #or die "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
-#$dbm_file="CDL_date_vec_hash";
-#unlink($dbm_file);
-#tie %DV, "BerkeleyDB::Hash", -Filename => $dbm_file, -Flags => DB_CREATE
-        #or die "Cannot open file $$dbm_file: $! $BerkeleyDB::Error\n" ;
 
 	$line_c=0;
 while(<IN>){
@@ -497,7 +446,7 @@ print "$line_c processed in $interval\n";
 #EOP
 	}
 	push(@h,$aid);
-	if($genus=~/aceae/){
+	if($genus=~/aceae$/i){
 		$genus=uc($genus);
 		vec($FV{$genus},$LC,1)=1;
 	}
@@ -510,7 +459,7 @@ print "$line_c processed in $interval\n";
 	#Nov 6 2009
 	if ( $rest[4] && ($rest[5]- $rest[4]< 32)){
 		$jdate=$rest[4];
-		($year,$month,$day)= inverse_julian_day($jdate);
+		($year,$month,$day)= &inverse_julian_day($jdate);
 		$month=("",Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec)[$month];
 		vec($DV{$month},$LC,1)=1;
 	}
@@ -531,7 +480,6 @@ print "$voucher_delete voucher deletions\n";
 ($t)=gettimeofday;
 print "done reading main  $t\n";
 $t0 = [gettimeofday];
-use BerkeleyDB;
 unlink("CDL_AID_recno");
 tie @h_BDB, 'BerkeleyDB::Recno', -Filename => "CDL_AID_recno", -Flags => DB_CREATE, -Property => DB_RENUMBER or die "Cannot open $filename: $!\n" ;
 @h_BDB=@h;
@@ -580,96 +528,3 @@ $duration= $timeend - $timestart;
 print OUT "$timestart Records: $main_record_count ($duration)\n";
 close(OUT);
 close(LOG);
-
-
-
-sub inverse_julian_day {
-	use integer;
-        my($jd) = @_;
-        my($jdate_tmp);
-        my($m,$d,$y);
-
-        #carp("warning: julian date $jd pre-dates British use of Gregorian calendar\n") if ($jd < $brit_jd);
-
-        $jdate_tmp = $jd - 1721119;
-        $y = (4 * $jdate_tmp - 1)/146097;
-        $jdate_tmp = 4 * $jdate_tmp - 1 - 146097 * $y;
-        $d = $jdate_tmp/4;
-        $jdate_tmp = (4 * $d + 3)/1461;
-        $d = 4 * $d + 3 - 1461 * $jdate_tmp;
-        $d = ($d + 4)/4;
-        $m = (5 * $d - 3)/153;
-        $d = 5 * $d - 3 - 153 * $m;
-        $d = ($d + 5) / 5;
-        $y = 100 * $y + $jdate_tmp;
-        if($m < 10) {
-                $m += 3;
-        }
-	else {
-                $m -= 9;
-                ++$y;
-        }
-        return ($y, $m, $d);
-}
-				  sub load_fips{
-				  return (
-				  "06001","ALAMEDA",
-				  "06003","ALPINE",
-				  "06005","AMADOR",
-				  "06007","BUTTE",
-				  "06009","CALAVERAS",
-				  "06011","COLUSA",
-				  "06013","CONTRA COSTA",
-				  "06015","DEL NORTE",
-				  "06017","EL DORADO",
-				  "06019","FRESNO",
-				  "06021","GLENN",
-				  "06023","HUMBOLDT",
-				  "06025","IMPERIAL",
-				  "06027","INYO",
-				  "06029","KERN",
-				  "06031","KINGS",
-				  "06033","LAKE",
-				  "06035","LASSEN",
-				  "06037","LOS ANGELES",
-				  "06039","MADERA",
-				  "06041","MARIN",
-				  "06043","MARIPOSA",
-				  "06045","MENDOCINO",
-				  "06047","MERCED",
-				  "06049","MODOC",
-				  "06051","MONO",
-				  "06053","MONTEREY",
-				  "06055","NAPA",
-				  "06057","NEVADA",
-				  "06059","ORANGE",
-				  "06061","PLACER",
-				  "06063","PLUMAS",
-				  "06065","RIVERSIDE",
-				  "06067","SACRAMENTO",
-				  "06069","SAN BENITO",
-				  "06071","SAN BERNARDINO",
-				  "06073","SAN DIEGO",
-				  "06075","SAN FRANCISCO",
-				  "06077","SAN JOAQUIN",
-				  "06079","SAN LUIS OBISPO",
-				  "06081","SAN MATEO",
-				  "06083","SANTA BARBARA",
-				  "06085","SANTA CLARA",
-				  "06087","SANTA CRUZ",
-				  "06089","SHASTA",
-				  "06091","SIERRA",
-				  "06093","SISKIYOU",
-				  "06095","SOLANO",
-				  "06097","SONOMA",
-				  "06099","STANISLAUS",
-				  "06101","SUTTER",
-				  "06103","TEHAMA",
-				  "06105","TRINITY",
-				  "06107","TULARE",
-				  "06109","TUOLUMNE",
-				  "06111","VENTURA",
-				  "06113","YOLO",
-				  "06115","YUBA"
-				  );
-				  }
