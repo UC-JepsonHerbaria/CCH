@@ -402,7 +402,7 @@ if($name=~s/([A-Z][a-z-]+ [a-z-]+) [Xx×] /$1 X /){
 	&log_change("Hybrid Taxon: $1 removed from $name");
 	$name=$1;
 }
-elsif($name=~s/([A-Z][a-z-]+) [Xx×] /$1 X /){
+elsif($name=~m/([A-Z][a-z-]+) [Xx×] [A-Z][a-z-]+/){
 	$hybrid_annotation=$name;
 	warn "Hybrid Taxon: $1 removed from $name\n";
 	&log_change("Hybrid Taxon: $1 removed from $name");

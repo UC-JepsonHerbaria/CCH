@@ -1960,7 +1960,7 @@ foreach($locality){
 
 my $minimumElevation;
 my $maximumElevation;
-
+my $hold_elev;
 
 foreach($minimumElevation){
 	s/  +/ /;
@@ -1999,6 +1999,7 @@ foreach($verbatimElevation){
 	}
 	elsif ((length($verbatimElevation) == 0) && (length($minimumElevation) >= 1) && (length($maximumElevation) == 0)){
 		$elevation_mod = $minimumElevation;
+		$verbatimElevation = "$minimumElevation $elevation_units";
 	}	
 	elsif ((length($verbatimElevation) == 0) && (length($minimumElevation) >= 1) && (length($maximumElevation) >= 1)){
 		$elevation_mod = $minimumElevation;
@@ -2013,20 +2014,49 @@ foreach($verbatimElevation){
 	}
 	elsif ((length($verbatimElevation) == 0) && (length($minimumElevation) == 0) && (length($maximumElevation) >= 1)){
 		$elevation_mod = $maximumElevation;
+		$verbatimElevation = "";
 	}
 	elsif ((length($verbatimElevation) == 0) && (length($minimumElevation) == 0) && (length($maximumElevation) == 0)){
-		&log_change("ELEV: all fields NULL\t$id==>$verbatimElevation MIN: $minimumElevation, MAX: $maximumElevation\n");
+		&log_change("ELEV: all fields NULL\t$id==>$verbatimElevation MIN: $minimumElevation, MAX: $maximumElevation UNITS: $units_mod\n");
 		$elevation_mod = "";
 		$units_mod = "";
+		$verbatimElevation = "";
 	}
 	else{
-		&log_change("ELEV: elevation problem:\t$id==>$verbatimElevation MIN: $minimumElevation, MAX: $maximumElevation\n");
+		&log_change("ELEV: elevation problem:\t$id==>$verbatimElevation MIN: $minimumElevation, MAX: $maximumElevation UNITS: $units_mod\n");
 		$elevation_mod = "";
 		$units_mod = "";
+		$verbatimElevation = "";
 	}
 
 
-
+	#format verbatim elevation correctly
+	if (($verbatimElevation =~m/\d+ *[fm].*/) && (length($units_mod) == 0)){
+		#do nothing, verbatim elevation has units;
+	}
+	elsif (($verbatimElevation =~m/\d+ *[fm].*/) && (length($units_mod) >= 1)){
+		#do nothing, verbatim elevation has units, ignore the units field;
+	}
+	elsif (($verbatimElevation =~m/^\d+$/) && (length($units_mod) >= 1)){
+		$hold_elev = $verbatimElevation;
+		$verbatimElevation = $hold_elev." ".$units_mod;
+	}
+	elsif (($verbatimElevation =~m/^\d+$/) && (length($units_mod) == 0)){
+		#verbatim elevation missing units, do nothing
+		
+	}	
+	elsif ((length($verbatimElevation) == 0) && (length($units_mod) >= 1)){
+		#units could refer to the min max fields
+	}	
+	elsif ((length($verbatimElevation) == 0) && (length($units_mod) == 0)){
+		#elevation is likely null
+	}
+	else{
+		&log_change("ELEV: verbatim elevation problem:\t$id==>$verbatimElevation MIN: $minimumElevation, MAX: $maximumElevation UNITS: $units_mod\n");
+		$elevation_mod = "";
+		$units_mod = "";
+		$verbatimElevation = "";
+	}
 
 
 foreach($elevation_mod){
@@ -2070,6 +2100,7 @@ foreach($units_mod){
 
 
 if ((length($elevation_mod) >= 1) && ($units_mod =~m/m.*/i)){
+	#warn "elevation 0 $id\n";
 		#print "x";
 		if ($elevation_mod =~ m/^(-?[\d]{1,5})\.[\d]+m?/){
 			$elevationInMeters = $1;
@@ -2107,6 +2138,7 @@ if ((length($elevation_mod) >= 1) && ($units_mod =~m/m.*/i)){
 		}
 }
 elsif ((length($elevation_mod) >= 1) && ($units_mod =~m/f.*/i)){
+	#warn "elevation 1 $id\n";
 		#print ".";	
 	if ($elevation_mod =~ m/^(-?[\d]{1,5})\.[\d]+f?/){
 		$elevationInFeet = $1;
@@ -2151,6 +2183,7 @@ elsif ((length($elevation_mod) >= 1) && ($units_mod =~m/f.*/i)){
 	}
 }
 elsif ((length($elevation_mod) >= 1) && (length($units_mod) == 0)){
+	#warn "elevation 2 $id\n";
 	#print "#";
 		if ($elevation_mod =~ m/^(-?[\d]{1,5})\.[\d]+m.*/){
 			$elevationInMeters = $1;
@@ -2229,24 +2262,109 @@ elsif ((length($elevation_mod) >= 1) && (length($units_mod) == 0)){
 			$elevationInMeters="";
 		}
 }
+elsif ((length($elevation_mod) >= 1) && (length($units_mod) >= 1)){
+			warn "elevation 3 $id\n";
+			$elevation_mod = "$elevation_mod$units_mod";
+	#print "#";
+		if ($elevation_mod =~ m/^(-?[\d]{1,5})\.[\d]+.*/){
+			$elevationInMeters = $1;
+			$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^(-?[\d]{1,5})m.*/){
+			$elevationInMeters = $1;
+			$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^(-?[\d]{1,5})m.*/){
+			$elevationInMeters = $1;
+			$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^[a-z]+([\d]{1,5})m.*/){
+			$elevationInMeters = $1;
+			$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^([\d]{1,5})-([\d]{1,5})m.*/){
+			$elevationInMeters = $1;
+			$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^([\d]{1,5})-(-?[\d]{1,5})m.*/){
+			$elevationInMeters = $1;
+			$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^[a-z]+([\d]{1,5})-([\d]{1,5}+)m.*/){
+			$elevationInMeters = $1;
+			$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision		
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^(-?[\d]{1,5})\.[\d]+f.*/){
+			$elevationInFeet = $1;
+			$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^(-?[\d]{1,5})f.*/){
+			$elevationInFeet = $1;
+			$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^(-?[\d]{1,5})f.*/){
+			$elevationInFeet = $1;
+			$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+	
+		elsif ($elevation_mod =~ m/^[a-z]+([\d]{1,5})f.*/){
+			$elevationInFeet = $1;
+			$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+
+		elsif ($elevation_mod =~ m/^([\d]{1,5})-(-?[\d]{1,5})f.*/){
+			$elevationInFeet = $1;
+			$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^([\d]{1,5})-(-?[\d]{1,5})f.*/){
+			$elevationInFeet = $1;
+			$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		elsif ($elevation_mod =~ m/^[a-z]+(-?[\d]{1,5})f.*/){
+			$elevationInFeet = $1;
+			$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+			$CCH_elevationInMeters = "$elevationInMeters m";
+		}
+		else {
+			&log_change("Check elevation (3): orig:$verbatimElevation--\tMOD:$elevation_mod--\tproblematic formatting or missing units\t$id");
+			$elevationInMeters="";
+		}
+}
 elsif ($elevation_mod =~ m/^0$/){
+warn "elevation 0 $id\n";
 	#print "0";
 		#warn "$elevation_units\n";
 		$elevationInFeet = int(0); #make it an integer to remove false precision		
-		$CCH_elevationInMeters = "$elevation_mod m";
+		$CCH_elevationInMeters = "0 m";
 }
 elsif ($elevation_mod =~ m/^0[metrsf]+/i){
+	warn "elevation 0-1 $id\n";
 	#print "o";	
 		$elevationInFeet = int(0); #make it an integer to remove false precision		
-		$CCH_elevationInMeters = "$elevation_mod m";
+		$CCH_elevationInMeters = "0 m";
 }
 elsif (length($elevation_mod) == 0){
+	#warn "elevation NULL $id\n";
 		$elevationInFeet=$elevationInMeters=$CCH_elevationInMeters = "";
 }
 else {
-	print "?";
+	warn "elevation problem $id\n";
 	&log_change("Check elevation (4): orig:$verbatimElevation--\tMOD:$elevation_mod--\tproblematic formatting or missing units\t$id");
 	$elevationInMeters="";
+	$CCH_elevationInMeters="";
 }	
 
 #####check to see if elevation exceeds maximum and minimum for each county

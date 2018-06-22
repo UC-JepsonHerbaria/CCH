@@ -12,7 +12,7 @@ use Smasch;
 #the Smasch one (and the module in general) should be retired
 &load_noauth_name(); 
 
-open(IN, "other_inputs/CDL_skip_these" ) || die; #see if you can get rid of this file by making corrections in home databases (or seeing if it has already been done)
+open(IN, "data_files/CDL_skip_these" ) || die; #see if you can get rid of this file by making corrections in home databases (or seeing if it has already been done)
 while(<IN>){
 	chomp;
 	$skip_it{$_}++;
@@ -26,7 +26,6 @@ close(IN);
 	'reference_coll'=>4,
 );
 
-open(WARNINGS,">logs/consort_bulkload_warn") || die;
 
 %seen=();
 $today=scalar(localtime());
@@ -42,6 +41,14 @@ warn "NB: Some of the datafiles are updates, some are complete. Records in the d
 $tnum="";
 
 
+
+$log_file = "consort_bulkload_warn".$month.$day.$year.".txt";
+$log_dir = "logs/";
+#open(WARNINGS,">$log_dir$log_file") || die;
+open(my $WARNINGS, ">", $log_dir.$log_file) or die "Can't open < $log_file: $!";
+
+
+
 open(OUT, ">CDL_main.in") || die;
 open(ERR, ">logs/accent_err") || die;
 open(IMG, ">CDL_image_links.txt") || die;
@@ -50,7 +57,7 @@ open(IMG, ">CDL_image_links.txt") || die;
 open(CULT, ">CDL_cultivated_ids.txt") || die;
 
 #print "known cultivated" ids to the cultivated ids file
-open(IN, "other_inputs/CDL_known_cultivated_ids.txt");
+open(IN, "data_files/CDL_known_cultivated_ids.txt");
 while (<IN>) {
 	chomp;
 	my $cult_id=$_;
@@ -122,21 +129,21 @@ foreach $datafile (@datafiles){
 		++$countpar;
 		if (s/Accession_id: (...*)/Accession: $1/){
 			if($skip_it{$1}){
-				print WARNINGS "skipping $1 on skip list CDL_skip_these\n";
+				print $WARNINGS "skipping $1 on skip list CDL_skip_these\n";
 				next;
 			}
 			if (m/County: *(Loreto|La ?Paz|Muleg.|Comond.|Los ?Cabos)/){
-				print WARNINGS "skipping Mexico records that have mistakenly passsed through parsing an are being recorded as California specimens\n";
+				print $WARNINGS "skipping Mexico records that have mistakenly passsed through parsing an are being recorded as California specimens\n";
 				warn "Skipping non-California specimen ==>$1";
 				next;
 			}
 			if (m/County: *(Maricopa|Routt|Larimer|Mesa|Wawona|Douglas|Albany)/){
-				print WARNINGS "skipping Other US records from other states that have mistakenly passed through parsing and are being recorded as California specimens\n";
+				print $WARNINGS "skipping Other US records from other states that have mistakenly passed through parsing and are being recorded as California specimens\n";
 				warn "Skipping non-California specimen ==>$1";
 				next;
 			}
 			if($seen_dups{$1}){
-				print WARNINGS "skipping $1 duplicate from $seen_dups{$1}\n";
+				print $WARNINGS "skipping $1 duplicate from $seen_dups{$1}\n";
 				$seen_dups{$1}.=" $datafile";
 				next;
 			}
@@ -146,7 +153,7 @@ foreach $datafile (@datafiles){
 			}
 		}
 		else{
-			print WARNINGS "skipping $.\n";
+			print $WARNINGS "skipping $.\n";
 		}
 	}
 }
@@ -247,7 +254,7 @@ if($oc){
 			}
 		}
 
-
+#some if not all of these changes are done in the loaders now, but these are left in for the legacy datasets that have not been updated or converted
 		$collector=~s/\.([A-Z])/. $1/g;
 		$collector=~s/([A-Z]\.)([A-Z]) ([A-Z])/$1 $2. $3/;
 		$collector=~s/([A-Z]\.)([A-Z]\.)([A-Z]\.)/$1 $2 $3/g;
@@ -311,17 +318,17 @@ if($oc){
 					$vyear=$1;
 						if (($vyear < 1800) && ($JD < 2378496)){
 #warn "1. BAD YEAR (before 1800) $vyear $_\n";
-print WARNINGS "1. (before 1800) $hn Misentered date $vdate; setting jdate to null $ds\n";
+print $WARNINGS "1. (before 1800) $hn Misentered date $vdate; setting jdate to null $ds\n";
 							$vdate=""; $JD=""; $EJD="";
 						}
 						elsif (($vyear < 1800) && ($JD > 2378496)){
 #warn "2. BAD YEAR (before 1800, but JD is recent) $vyear $_\n";
-print WARNINGS "2. (before 1800, but JD is recent) $hn Misentered date $vdate; setting jdate to null $ds\n";
+print $WARNINGS "2. (before 1800, but JD is recent) $hn Misentered date $vdate; setting jdate to null $ds\n";
 							$vdate="";					
 						}
 						if ($vyear > $this_year){
 #warn "3. BAD YEAR (greater than current year) $vyear $_\n";
-print WARNINGS "3. (greater than current year)$hn Misentered date $vdate; setting jdate to null $ds\n";
+print $WARNINGS "3. (greater than current year)$hn Misentered date $vdate; setting jdate to null $ds\n";
 							$vdate=""; $JD=""; $EJD="";
 						}
 				}
@@ -333,7 +340,7 @@ print WARNINGS "3. (greater than current year)$hn Misentered date $vdate; settin
 				$T_line{Date}=  "";
 			}
 			if($JD > $today_JD){
-				print WARNINGS "4. $hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
+				print $WARNINGS "4. $hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
 				$null_date{$ds}=$hn;
 				$LJD=$JD="";
 			}
@@ -363,12 +370,12 @@ print WARNINGS "3. (greater than current year)$hn Misentered date $vdate; settin
 
 				if ($vyear < 1800){
 warn "5. BAD YEAR (no EJD) $vyear $_\n";
-print WARNINGS "5. $hn Misentered date $vdate; setting jdate to null $ds\n";
+print $WARNINGS "5. $hn Misentered date $vdate; setting jdate to null $ds\n";
 					$vdate=""; $JD=""; $EJD="";
 					}
 				if ($vyear > $this_year){
 warn "6. BAD YEARav$year $_\n";
-print WARNINGS "6. $hn Misentered date $vdate; setting jdate to null $ds\n";
+print $WARNINGS "6. $hn Misentered date $vdate; setting jdate to null $ds\n";
 					$vdate=""; $JD=""; $EJD="";
 				}
 			}
@@ -553,7 +560,7 @@ print WARNINGS "6. $hn Misentered date $vdate; setting jdate to null $ds\n";
 					$LJD=$JD="";
 				}
 			if($JD > $today_JD){
-				print WARNINGS "$hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
+				print $WARNINGS "$hn Misentered date $JD > $today_JD; setting jdate to null $ds\n";
 				$null_date{$ds}=$hn;
 				$LJD=$JD="";
 			}
@@ -578,30 +585,30 @@ print WARNINGS "6. $hn Misentered date $vdate; setting jdate to null $ds\n";
 $gen=~s/ X$//;
 		if($exclude{$name}){
 warn "Excluded taxon name found: $name\n";
-			print WARNINGS "$hn EXCLUDED NAME FOUND" . $name." stripped as ".&strip_name($name) ."\n";
+			print $WARNINGS "$hn EXCLUDED NAME FOUND" . $name." stripped as ".&strip_name($name) ."\n";
 			return(0);
 		}
 		if($exclude{$gen}){
 warn "Excluded Genus name: $gen\n";
-			print WARNINGS "$hn EXCLUDED GENUS NAME FOUND" . $name." stripped as ".&strip_name($name) ."\n";
+			print $WARNINGS "$hn EXCLUDED GENUS NAME FOUND" . $name." stripped as ".&strip_name($name) ."\n";
 			return(0);
 		}
 		if($name=~/^ *$/){
 warn "No name in SMASCH: $name\n";
-			print WARNINGS "$hn NO NAME in SMASCH" . $name." stripped as ".&strip_name($name) ."\n";
+			print $WARNINGS "$hn NO NAME in SMASCH" . $name." stripped as ".&strip_name($name) ."\n";
 			return(0);
 		}
 
 		if($name=~/aceae/){
 #warn "Determined only to FAMILY: $name\n";
-			print WARNINGS "$hn Determined only to FAMILY" . $name." stripped as ".&strip_name($name) ."\n";
+			print $WARNINGS "$hn Determined only to FAMILY" . $name." stripped as ".&strip_name($name) ."\n";
 			#return(0);
 			#specimens determined only to family were kicked out in the past
 			#I see no reason to continue with this
 		}
 		if($exclude{$gen}){
 warn "THIS CAN'T BE STORED: NON VASC==>$name\n";
-			print WARNINGS "$hn THIS CAN'T BE STORED: NON VASC>" . $name, &strip_name($name) ."\n";
+			print $WARNINGS "$hn THIS CAN'T BE STORED: NON VASC>" . $name, &strip_name($name) ."\n";
 			return(0);
 		}
 #this is commented out
@@ -609,7 +616,7 @@ warn "THIS CAN'T BE STORED: NON VASC==>$name\n";
 #This throws quite a few errors now and nothing can be dont about it
 #this is commented out for now
 #	unless($seen_ICPN_genus{$gen}){ 
-			#print WARNINGS "$hn $gen not in ICPN>" . $name, &strip_name($name) ."\n";
+			#print $WARNINGS "$hn $gen not in ICPN>" . $name, &strip_name($name) ."\n";
 			#warn "$hn $gen not in ICPN, but I continue $name\n";
 #$not_in_ICPN{$gen}++;
 #		}
@@ -627,6 +634,21 @@ s/Hordeum marinum subsp\. gussonianum/Hordeum marinum subsp. gussoneanum/;
 s/Chamaesyce serpyllifolia subsp. hirtella/Chamaesyce serpillifolia subsp. hirtula/;
 s/Achnatherum coronatum var. depauperatum/Achnatherum coronatum/;
 
+s/Elymus [^X] aristatus/Elymus X aristatus/;
+s/Elymus [^X] hansenii/Elymus X hansenii/;
+s/Quercus [^X] macdonaldii/Quercus X macdonaldii/;
+s/Quercus [^X] ganderi/Quercus X ganderi/;
+s/Quercus [^X] grandidentata/Quercus X grandidentata/;
+s/Penstemon [^X] parishii/Penstemon X parishii/; 
+s/Opuntia [^X] occidentalis/Opuntia X occidentalis/;
+s/Apocynum [^X] floribundum/Apocynum X floribundum/;
+s/Pinus [^X] attenuradiata/Pinus X attenuradiata/;
+s/Navarretia [^X] helleri/Navarretia X helleri/;
+s/Ceanothus [^X] otayensis/Ceanothus X otayensis/;
+s/Pelargonium [^X] hortorum/Pelargonium X hortorum/;
+
+
+
 unless($seen_name{$name}++){
 		print "$old_name -> $name\n" unless $old_name eq $name;
 }
@@ -638,14 +660,14 @@ unless($seen_name{$name}++){
 		#warn $T_line{'Name'}, &strip_name($name) ."\n";
 	}
 	else{
-		print WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with TID >" . $name, &strip_name($name) ."\n";
+		print $WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with TID >" . $name, &strip_name($name) ."\n";
 		$stripped=  &strip_name($name);
 		print "TAXON TID Not Found: $hn cant find $name stripped as $stripped\n";
 		return(0);
 	}
 	
 	unless($S_folder{'genus_id'}= $TID{&get_genus($name)}){
-		print  WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with >" . $name . "with respect to genus_id extraction\n";
+		print  $WARNINGS "$hn THIS CAN'T BE STORED: Something wrong with >" . $name . "with respect to genus_id extraction\n";
 		print "$hn: $name==>something wrong with genus name\n";
 		return(0);
 	}
@@ -703,7 +725,7 @@ $T_line{'Name'}=$name;
 if($T_line{'Latitude'}){
 	($S_accession{'loc_lat_decimal'}, $S_accession{'loc_lat_deg'})= &parse_lat($T_line{'Latitude'});
 	if($S_accession{'loc_lat_decimal'} eq ""){
-		print WARNINGS "$hn: coordinates nulled $T_line{'Latitude'} $_line{'Longitude'}\n";
+		print $WARNINGS "$hn: coordinates nulled $T_line{'Latitude'} $_line{'Longitude'}\n";
 	}
 	$convert.="$S_accession{'loc_lat_decimal'}, $S_accession{'loc_lat_deg'}\n";
 }
@@ -715,7 +737,7 @@ if($T_line{'Decimal_latitude'}){
 if($T_line{'Longitude'}){
 	($S_accession{'loc_long_decimal'}, $S_accession{'loc_long_deg'})= &parse_long($T_line{'Longitude'});
 	if($S_accession{'loc_long_decimal'} eq ""){
-		print WARNINGS "$hn: coordinates nulled $T_line{'Latitude'} $T_line{'Longitude'}\n";
+		print $WARNINGS "$hn: coordinates nulled $T_line{'Latitude'} $T_line{'Longitude'}\n";
 	}
 	$convert.="$S_accession{'loc_long_decimal'}, $S_accession{'loc_long_deg'}\n";
 }
@@ -729,7 +751,7 @@ if($S_accession{'loc_lat_decimal'}){
 	$S_accession{'loc_lat_decimal'} < 30.0 || ###was 32.5 for California, now 30.0 to include CFP-Baja
 	$S_accession{'loc_long_decimal'} > -114 ||
 	$S_accession{'loc_long_decimal'} < -124.5){
-		print WARNINGS "$hn: coordinates nulled $S_accession{'loc_lat_decimal'} $S_accession{'loc_long_decimal'}\n";
+		print $WARNINGS "$hn: coordinates nulled $S_accession{'loc_lat_decimal'} $S_accession{'loc_long_decimal'}\n";
 		$S_accession{'loc_lat_decimal'} = "";
 		$S_accession{'loc_long_decimal'} = "";
 	}
@@ -738,8 +760,8 @@ if($S_accession{'loc_lat_decimal'}){
 
 ############Country, etc.
 	if($T_line{Country}){
-		$T_line{Country}="US" if $T_line{Country} =~ m/^(USA|U. ?S. ?A.)/i);
-		$T_line{Country}="Mexico" if $T_line{Country} =~ m/^(MX|Mexico|MEX)/i);
+		$T_line{Country}="US" if $T_line{Country} =~ m/^(USA|U. ?S. ?A.)/i;
+		$T_line{Country}="Mexico" if $T_line{Country} =~ m/^(MX|Mexico|MEX)/i;
 	}
 	else{$T_line{Country}="NULL";
 	}
@@ -852,7 +874,7 @@ if ($S_accession{'cultivated'}) {
 }
 ####
 
-##################################
+##################################Most of these are still necessary to fix county problems in the legacy datasets that have not been updated or converted
 	$S_accession{'loc_county'}=~s/-/--/;#standardize multi-county dashes
 	$S_accession{'loc_county'}=~s/-+/--/;
 	$S_accession{'loc_county'}=~s/ +municip[a-z]+$//i; #substitute the end of a field with a space followed by the word, including misspellings, "municipality" with "" (case insensitive)
@@ -953,7 +975,7 @@ $S_accession{'loc_county'}=~s/^ *$/Unknown/;
 
 	unless($S_accession{'loc_county'}=~/^(Alameda|Alpine|Amador|Butte|Calaveras|Colusa|Contra Costa|Del Norte|El Dorado|Fresno|Glenn|Humboldt|Imperial|Inyo|Kern|Kings|Lake|Lassen|Los Angeles|Madera|Marin|Mariposa|Mendocino|Merced|Modoc|Mono|Monterey|Napa|Nevada|Orange|Placer|Plumas|Riverside|Sacramento|San Benito|San Bernardino|San Diego|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Shasta|Sierra|Siskiyou|Solano|Sonoma|Stanislaus|Sutter|Tehama|Trinity|Tulare|Tuolumne|Ventura|Yolo|Yuba|Ensenada|Mexicali|Tecate|Tijuana|Rosarito, Playas de|Unknown)/){
 		$S_accession{'loc_county'}="Unknown";
-		print WARNINGS " $S_accession{'loc_county'} unrecognized: set to unknown\n";
+		print $WARNINGS " $S_accession{'loc_county'} unrecognized: set to unknown\n";
 	}
 
 	$S_accession{'loc_state'}=~s/California/CA/;
@@ -1045,24 +1067,24 @@ foreach(split(/[ \|\/-]+/, $location_field)){
 					next unless m/\d/;
 					if(m/(\d+)-(\d+)/){
 						if ($1 > $2){
-				print WARNINGS "$hn Elevation skipped $_\n";
+				print $WARNINGS "$hn Elevation skipped $_\n";
 						#next;
 						}
 					}
 					elsif(m/(\d\d\d\d\d+) f/){
 						if ($1 > 14500){
-				print WARNINGS "$hn Elevation skipped $_\n";
+				print $WARNINGS "$hn Elevation skipped $_\n";
 				#next;
 				}
 					}
 					elsif(m/(-\d\d\d+) f/){
 						if ($1 < -300){
-				print WARNINGS "$hn Elevation skipped $_\n";
+				print $WARNINGS "$hn Elevation skipped $_\n";
 				#next;
 				}
 					}
 					#$S_accession{'loc_elevation'}=$_;
-				print WARNINGS "$hn Elevation added $_  ($pre_e): $location_field\n";
+				print $WARNINGS "$hn Elevation added $_  ($pre_e): $location_field\n";
 				}
 			}
 		}
@@ -1376,6 +1398,8 @@ foreach(sort(keys(%full_name_list))){
 	print OUT "$_ $full_name_list{$_}\n";
 }
 close(OUT);
+close $WARNINGS;
+
 #UND
 sub modify_collector {
 s/,? Jr\.?//;

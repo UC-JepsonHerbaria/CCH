@@ -3,14 +3,22 @@
 
 now=$(date +"%m_%d_%Y")
 
-echo "$?                                          getting archive GEOREF";
-perl /JEPS-master/CCH/GEOREF/get_archive_georef.pl
+echo "$?                                          parsing BLMAR";
+perl /JEPS-master/CCH/Loaders/BLMAR/parse_BLMAR.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/BLMAR/BLMAR_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/BLMAR/
+sort -u log.txt > /JEPS-master/CCH/Loaders/BLMAR/BLMAR_log_sort_$now.txt
 
 echo "$?                                          NEXT";
 
 
-echo "$?                                          getting Taylor GEOREF";
-perl /JEPS-master/CCH/GEOREF/get_taylor_georef.pl
+echo "$?                                          parsing CAS";
+perl /JEPS-master/CCH/Loaders/CAS/parse_CAS.pl
+echo "$?                                          sorting log file";
+cp /JEPS-master/CCH/Loaders/CAS/CAS_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+cp log.txt /JEPS-master/CCH/Loaders/CAS/
+sort -u log.txt > /JEPS-master/CCH/Loaders/CAS/CAS_log_sort_$now.txt
 
 echo "$?                                          NEXT";
 
@@ -205,14 +213,14 @@ sort -u log.txt > /JEPS-master/CCH/Loaders/UCR/UCR_log_sort_$now.txt
 echo "$?                                          NEXT";
 
 
-echo "$?                                          parsing UCSB";
-perl /JEPS-master/CCH/Loaders/UCSB/parse_UCSB.pl
-echo "$?                                          sorting log file";
-cp /JEPS-master/CCH/Loaders/UCSB/UCSB_out.txt /JEPS-master/CCH/bulkload/input/new_files/
-cp log.txt /JEPS-master/CCH/Loaders/UCSB/
-sort -u log.txt > /JEPS-master/CCH/Loaders/UCSB/UCSB_log_sort_$now.txt
+#echo "$?                                          parsing UCSB";
+#perl /JEPS-master/CCH/Loaders/UCSB/parse_UCSB.pl
+#echo "$?                                          sorting log file";
+#cp /JEPS-master/CCH/Loaders/UCSB/UCSB_out.txt /JEPS-master/CCH/bulkload/input/new_files/
+#cp log.txt /JEPS-master/CCH/Loaders/UCSB/
+#sort -u log.txt > /JEPS-master/CCH/Loaders/UCSB/UCSB_log_sort_$now.txt
 
-echo "$?                                          NEXT";
+#echo "$?                                          NEXT";
 
 
 echo "$?                                          parsing UCSC";

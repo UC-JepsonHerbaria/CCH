@@ -1,11 +1,11 @@
 use utf8;
 use Text::Unidecode; #to transliterate unicode characters to plan ASCII
 use Geo::Coordinates::UTM;
-use strict;
+#use strict;
 #use warnings;
-use lib '/Users/davidbaxter/DATA';
+use lib '/JEPS-master/Jepson-eFlora/Modules';
 use CCH; #loads alter_names has %alter, non-vascular genus has %exclude, county %max_elev hash, and various processing subroutines
-$today_JD = &get_today_julian_day;
+my $today_JD = &get_today_julian_day;
 &load_noauth_name; #load taxonID-to-scientificName hash %TID
 
 open(OUT,">UCSB.out") || die;

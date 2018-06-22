@@ -948,16 +948,16 @@ if($tempName=~m/^([A-Z][a-z-]+ [a-z-]+) X /){
 	&log_change("Scientific name: Hybrid Taxon==>$1 removed from $tempName");
 	$tempName=$1;
 }
-#Hymenoclea X Ambrosia, two genera
-if($tempName=~m/^([A-Z][a-z-]+) X [A-Z][a-z-]+/){
+elsif($tempName=~m/^([A-Z][a-z-]+) [Xx×] [A-Z][a-z-]+/){ #Hymenoclea X Ambrosia, two genera
 	$hybrid_annotation=$tempName;
 	warn "Hybrid Taxon: $1 removed from $tempName\n";
-	&log_change("Scientific name: Hybrid Taxon==>$1 removed from $tempName");
+	&log_change("Hybrid Taxon: $1 removed from $tempName");
 	$tempName=$1;
 }
 else{
 	$hybrid_annotation="";
 }
+
 
 #####process taxon names
 
@@ -1244,6 +1244,11 @@ foreach ($verbatimCollectors){
 	s/, Jr/ Jr./g;
 	s/, Esq./ Esq./g;
 	s/, Sr\./ Sr./g;
+		s/AndrA./Andre/g;
+		s/PeAalosa/Penalosa/g;
+		s/LaPrA/LaPre/g;
+		s/OrdoAez/Ordonez/g;
+	
 		s/  +/ /;
 		s/^ +//;
 		s/ +$//;
