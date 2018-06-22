@@ -324,7 +324,7 @@ open(OUT, ">CDL_county_list.txt") || die;
 foreach $county (keys(%bar_length)){
 	print OUT "$county\t$cc{$county}\t";
 	foreach $inst (keys(%{$bar_length{$county}})){
-		unless($inst=~/^(CDA|CAS|DS|UC|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|DAV|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC|CSUSB|SCFS|NY|HUH|YM|OBI|GMDRC|JOTR|VVC)$/){
+		unless($inst=~/^(CDA|CAS|DS|UC|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|DAV|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC|CSUSB|SCFS|NY|HUH|YM|OBI|GMDRC|JOTR|VVC|SFV|LA|SEINET|CLARK)$/){
 			warn "$inst unexpected and skipped\n";
 			next;
 		}
@@ -436,6 +436,7 @@ $record_table=<<EOT;
 <tr><td> GMDRC</td><td>$inst_count{GMDRC_count}</td></tr>
 <tr><td> JOTR</td><td>$inst_count{JOTR_count}</td></tr>
 <tr><td> CCV</td><td>$inst_count{CCV_count}</td></tr>
+<tr><td> SFV</td><td>$inst_count{SFV_count}</td></tr>
 </table>
 EOT
 $today=localtime();
