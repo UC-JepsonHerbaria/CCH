@@ -10,9 +10,9 @@ use BerkeleyDB;
 CDL_date_simple => 'CDL_date_simple.in',
 CDL_county => 'CDL_counties.in',
 CDL_date_range => 'CDL_date_range.in',
-CDL_TID_TO_NAME =>   'CDL_tid_to_name.in',
 CDL_coll_number =>   'CDL_coll_number.in',
 );
+#CDL_TID_TO_NAME =>   'CDL_tid_to_name.in',
 ($t)=gettimeofday;
 print "after tar  $t\n";
 foreach $file("CDL_collectors.in", "cdl/CDL_collectors.in"){
@@ -90,6 +90,19 @@ system("chmod 0666 CDL_name_list.txt");
 print "after name  $t\n";
 
 
+##SEPARATED
+#unlink("CDL_TID_TO_NAME");
+    	#tie %f_contents, "BerkeleyDB::Hash",
+                #-Filename => "CDL_TID_TO_NAME",
+		#-Flags => DB_CREATE
+        #or die "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
+	#open(IN,"CDL_tid_to_name.in") || die "couldn't open name dile CDL_tid_to_name.in\n";
+#while(<IN>){
+	#chomp;
+	#s/\t$//;
+	#($key, $value)=m/^([^ ]+) (.*)/;
+	#$f_contents{$key}=$value;
+#}
 
 
 
@@ -140,7 +153,7 @@ close(IN);
 print "after $dbm_file  $t\n";
 }
 
- tie %TNOAN, "BerkeleyDB::Hash", -Filename => "CDL_TID_TO_NAME" or die "Cannot open file TID_TO_NAME: $! $BerkeleyDB::Error\n" ;
+ #tie %TNOAN, "BerkeleyDB::Hash", -Filename => "CDL_TID_TO_NAME" or die "Cannot open file TID_TO_NAME: $! $BerkeleyDB::Error\n" ;
 #open(OUT,">CF_countylist_exp.txt");
 #foreach (sort {$TNOAN{$a} cmp $TNOAN{$b}} (keys(%ALL_CF))){
     #if($TNOAN{$_}=~/ [a-z]/){
@@ -301,6 +314,7 @@ system "chmod +r *.txt";
 		$herb_code="HUH" if $herb_code eq "GH";
 		$herb_code="HUH" if $herb_code eq "AMES";
 		$herb_code="HUH" if $herb_code eq "ECON";
+		$herb_code="YM" if $herb_code eq "YM-YOSE";
 								#$herb_code="UC" if $herb_code eq "DS";
 								$bar_length{$key}{$herb_code}++;
 							}
@@ -310,7 +324,7 @@ open(OUT, ">CDL_county_list.txt") || die;
 foreach $county (keys(%bar_length)){
 	print OUT "$county\t$cc{$county}\t";
 	foreach $inst (keys(%{$bar_length{$county}})){
-		unless($inst=~/^CDA|CAS|DS|UC|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|DAV|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC|CSUSB|SCFS|NY|HUH|YM-YOSE$/){
+		unless($inst=~/^(CDA|CAS|DS|UC|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|DAV|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC|CSUSB|SCFS|NY|HUH|YM|OBI|GMDRC|JOTR|VVC)$/){
 			warn "$inst unexpected and skipped\n";
 			next;
 		}
@@ -396,7 +410,7 @@ $inst_count{RSA_count} += $inst_count{POM_count};
 $inst_count{CAS_count} +=$inst_count{DS_count};
 open(OUT, ">CDL_news.html");
 $record_table=<<EOT;
-<table class="bodyTest"> 
+<table class="bodyText"> 
 <tr><td> CAS-DS</td><td>$inst_count{CAS_count}</td></tr> 
 <tr><td> CDA</td><td>$inst_count{CDA_count}</td></tr> 
 <tr><td> CHSC</td><td>$inst_count{CHSC_count}</td></tr> 
@@ -404,6 +418,7 @@ $record_table=<<EOT;
 <tr><td> DAV</td><td>$inst_count{DAV_count}</td></tr> 
 <tr><td> HSC</td><td>$inst_count{HSC_count}</td></tr> 
 <tr><td> IRVC</td><td>$inst_count{IRVC_count}</td></tr> 
+<tr><td> OBI</td><td>$inst_count{OBI_count}</td></tr> 
 <tr><td> PGM</td><td>$inst_count{PGM_count}</td></tr> 
 <tr><td> RSA-POM</td><td>$inst_count{RSA_count}</td></tr> 
 <tr><td> SBBG</td><td>$inst_count{SBBG_count}</td></tr> 
@@ -418,6 +433,9 @@ $record_table=<<EOT;
 <tr><td> HUH</td><td>$inst_count{HUH_count}</td></tr>
 <tr><td> YOSE</td><td>$inst_count{YOSE_count}</td></tr>
 <tr><td> SCFS</td><td>$inst_count{SCFS_count}</td></tr>
+<tr><td> GMDRC</td><td>$inst_count{GMDRC_count}</td></tr>
+<tr><td> JOTR</td><td>$inst_count{JOTR_count}</td></tr>
+<tr><td> CCV</td><td>$inst_count{CCV_count}</td></tr>
 </table>
 EOT
 $today=localtime();
@@ -433,7 +451,7 @@ print OUT;
 #CDL/CDL_name_list.in:quercus × alvordiana CAS1034	SD71047	
 
 
-tie (%G_T_F, "BerkeleyDB::Hash", -Filename =>"G_T_F", -Flags => DB_RDONLY) || die "Cannot open file G_T_F: $! $BerkeleyDB::Error\n" ;
+tie (%G_T_F, "BerkeleyDB::Hash", -Filename =>"G_T_F", -Flags => DB_RDONLY) || die "Cannot open file $dbm_file: $! $BerkeleyDB::Error\n" ;
 tie(%CODE_TO_NAME, "BerkeleyDB::Hash", -Filename=>"CDL_TID_TO_NAME", -Flags=>DB_RDONLY)|| die "$!";
 ($t)=gettimeofday;
 print "reading main  $t\n";
