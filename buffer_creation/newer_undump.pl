@@ -14,22 +14,27 @@ print "start $t\n";
 %flat_dbm=(
 CDL_date_simple => 'CDL_date_simple.in',
 CDL_county => 'CDL_counties.in',
+#CF_full_name => 'CF_full_name_list.in',
+#SMASCH_IMAGES => 'CDL_image_links.txt', #added to make a hash of image links to replace SMASCH_IMAGES hash
 CDL_date_range => 'CDL_date_range.in',
-CDL_coll_number =>   'CDL_coll_number.in',
+CDL_coll_number =>   'CDL_coll_number.in'
 );
-#CDL_TID_TO_NAME =>   'CDL_tid_to_name.in',
+#CDL_TID_TO_NAME =>   'CDL_tid_to_name.in'
 ($t)=gettimeofday;
 print "after tar  $t\n";
+
 foreach $file("CDL_collectors.in", "/Users/davidbaxter/DATA/bulkload_data/CDL_collectors.in"){
 	open(IN, $file) || die;
 	while(<IN>){
 		chomp;
 		($key,$value)=m/^([^ ,]+),? (.*)/;
+		#print "p";
 		if($store_coll{$key}){
 		$store_coll{$key}=~s/\t*$//;
 			$store_coll{$key}.="\t$value";
 		}
 		else{
+		#print "coll\n";
 			$store_coll{$key}=$value;
 		}
 	}
@@ -42,7 +47,7 @@ foreach(sort(keys(%store_coll))){
 close(OUT);
 system("chmod 0666 CDL_collectors.txt");
 ($t)=gettimeofday;
-print "after coll  $t\n";
+print "CDL_collectors  end==> $t\n";
 
 foreach $file("CDL_loc_list.in", "/Users/davidbaxter/DATA/bulkload_data/CDL_loc_list.in"){
 	open(IN, $file) || die;
@@ -55,6 +60,7 @@ foreach $file("CDL_loc_list.in", "/Users/davidbaxter/DATA/bulkload_data/CDL_loc_
 		}
 		else{
 			$store_loc{$key}=$value;
+		#print "loc\n";
 		}
 	}
 close(IN);
@@ -66,12 +72,12 @@ foreach(sort(keys(%store_loc))){
 close(OUT);
 system("chmod 0666 CDL_location_words.txt");
 ($t)=gettimeofday;
-print "after loc  $t\n";
+print "CDL_loc_list  end==> $t\n";
 
 foreach $file("CDL_name_list.in", "/Users/davidbaxter/DATA/bulkload_data/CDL_name_list.in"){
         open(IN, $file) || die;
         while(<IN>){
-#print "$file $_"  if m/juglans regia/;
+print "Juglans test record:$file $_\n"  if m/juglans regia/;
                 chomp;
                 ($key,$value)=m/^([×a-z -]+) (.*)/;
                 if($store_name{$key}){
@@ -80,6 +86,7 @@ foreach $file("CDL_name_list.in", "/Users/davidbaxter/DATA/bulkload_data/CDL_nam
                 }
                 else{
                         $store_name{$key}=$value;
+				#print "name\n";
                 }
         }
 close(IN);
@@ -92,22 +99,103 @@ foreach(sort(keys(%store_name))){
 close(OUT);
 system("chmod 0666 CDL_name_list.txt");
 ($t)=gettimeofday;
-print "after name  $t\n";
+print "CDL_name_list  end==> $t\n";
 
 
 ##SEPARATED
-#unlink("CDL_TID_TO_NAME");
-    	#tie %f_contents, "BerkeleyDB::Hash",
-                #-Filename => "CDL_TID_TO_NAME",
-		#-Flags => DB_CREATE
-        #or die "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
-	#open(IN,"CDL_tid_to_name.in") || die "couldn't open name dile CDL_tid_to_name.in\n";
-#while(<IN>){
-	#chomp;
-	#s/\t$//;
-	#($key, $value)=m/^([^ ]+) (.*)/;
-	#$f_contents{$key}=$value;
-#}
+unlink("CDL_TID_TO_NAME");
+    	tie %f_contents, "BerkeleyDB::Hash",
+                -Filename => "CDL_TID_TO_NAME",
+		-Flags => DB_CREATE
+        or die "Cannot open file CDL_TID_TO_NAME: $! $BerkeleyDB::Error\n" ;
+	open(IN,"/Users/davidbaxter/DATA/bulkload_data/CDL_tid_to_name.in") || die "couldn't open named file CDL_tid_to_name.in\n";
+while(<IN>){
+	++$line_c;
+	unless($line_c % 25000){
+$t1 = [gettimeofday];
+$interval = tv_interval $t0, $t1;
+$t0 = [gettimeofday];
+print "CDL_TID_TO_NAME $line_c processed in $interval\n";
+}
+	chomp;
+	s/\t$//;
+	($key, $value)=m/^([^ ]+) (.*)/;
+	$f_contents{$key}=$value;
+	
+}
+system("chmod 0666 CDL_TID_TO_NAME");
+
+untie %f_contents;
+
+close(IN);
+($t)=gettimeofday;
+print "CDL_TID_TO_NAME   end==> $t\n";
+
+
+
+unlink("NAME_TO_CODE");
+	$line_c=0;
+    	tie %f_contents, "BerkeleyDB::Hash",
+                -Filename => "NAME_TO_CODE",
+		-Flags => DB_CREATE
+        or die "Cannot open file NAME_TO_CODE: $! $BerkeleyDB::Error\n" ;
+	open(IN,"/Users/davidbaxter/DATA/bulkload_data/CDL_name_to_code.in") || die "couldn't open named ile CDL_name_to_code.in\n";
+
+while(<IN>){
+	++$line_c;
+	unless($line_c % 25000){
+$t1 = [gettimeofday];
+$interval = tv_interval $t0, $t1;
+$t0 = [gettimeofday];
+print "NAME_TO_CODE $line_c processed in $interval\n";
+}
+	chomp;
+	s/\t$//;
+	($key, $value)=m/^([^\d]+) (\d+)/;
+	$f_contents{$key}=$value;
+
+}
+system("chmod 0666 NAME_TO_CODE");
+
+untie %f_contents;
+
+close(IN);
+
+($t)=gettimeofday;
+print "NAME_TO_CODE   end==> $t\n";
+
+
+
+
+##SEPARATED
+unlink("SMASCH_IMAGES");
+    	tie %f_contents, "BerkeleyDB::Hash",
+                -Filename => "SMASCH_IMAGES",
+		-Flags => DB_CREATE
+        or die "Cannot open file SMASCH_IMAGES: $! $BerkeleyDB::Error\n" ;
+	open(IN,"/Users/davidbaxter/DATA/bulkload_data/CDL_image_links.txt") || die "couldn't open named file CDL_image_links.txt\n";
+while(<IN>){
+	++$line_c;
+	unless($line_c % 25000){
+$t1 = [gettimeofday];
+$interval = tv_interval $t0, $t1;
+$t0 = [gettimeofday];
+print "SMASCH_IMAGES $line_c processed in $interval\n";
+}
+	chomp;
+	s/\t$//;
+	($key, $value)=m/^([^ ]+)\t(.*)/;
+	$f_contents{$key}=$value;
+
+}
+system("chmod 0666 SMASCH_IMAGES");
+
+untie %f_contents;
+
+close(IN);
+
+($t)=gettimeofday;
+print "SMASCH_IMAGES   end==> $t\n";
 
 
 
@@ -135,7 +223,7 @@ print "$dbm_file $line_c processed in $interval\n";
 	s/\t$//;
 	($key, $value)=m/^([^ ]+) (.*)/;
 	if($f_contents{$key}eq $value){
-#print "$filename $key \n$value\n$f_contents{$key}\n";
+print "SKIPPING: $filename $key \n$value\n$f_contents{$key}\n"; #why is this doing this?
 	next;
 	}
 	$key=~s/_/ /g if ($filename=~/counties/);
@@ -145,6 +233,7 @@ print "$dbm_file $line_c processed in $interval\n";
 			$f_contents{$key}.="\t$value";
 	}
 	else{
+	#print "int\n";
 	$f_contents{$key}=$value;
 	}
 }
@@ -158,28 +247,28 @@ close(IN);
 print "after $dbm_file  $t\n";
 }
 
- #tie %TNOAN, "BerkeleyDB::Hash", -Filename => "CDL_TID_TO_NAME" or die "Cannot open file TID_TO_NAME: $! $BerkeleyDB::Error\n" ;
-#open(OUT,">CF_countylist_exp.txt");
-#foreach (sort {$TNOAN{$a} cmp $TNOAN{$b}} (keys(%ALL_CF))){
-    #if($TNOAN{$_}=~/ [a-z]/){
-	#print OUT "$TNOAN{$_}\t";
-        #$county_list =join(", ",(sort(keys(%{$ALL_CF{$_}}))));
-            #print OUT "$county_list\n";
-    #}
-#}
-#close(OUT);
-#($t)=gettimeofday;
-#print "after countylist  $t\n";
+ tie %TNOAN, "BerkeleyDB::Hash", -Filename => "CDL_TID_TO_NAME" or die "Cannot open file CDL_TID_TO_NAME: $! $BerkeleyDB::Error\n" ;
+open(OUT,">CF_countylist_exp.txt");
+foreach (sort {$TNOAN{$a} cmp $TNOAN{$b}} (keys(%ALL_CF))){
+    if($TNOAN{$_}=~/ [a-z]/){
+	print OUT "$TNOAN{$_}\t";
+        $county_list =join(", ",(sort(keys(%{$ALL_CF{$_}}))));
+            print OUT "$county_list\n";
+    }
+}
+close(OUT);
+($t)=gettimeofday;
+print "after countylist  $t\n";
 
-#open(OUT,">CF_countylist.txt");
-#foreach (sort {$TNOAN{$a} cmp $TNOAN{$b}} (keys(%UCJEPS_CF))){
-    #if($TNOAN{$_}=~/ [a-z]/){
-	#print OUT "$TNOAN{$_}\t";
-        #$county_list =join(", ",(sort(keys(%{$UCJEPS_CF{$_}}))));
-            #print OUT "$county_list\n";
-    #}
-#}
-#close(OUT);
+open(OUT,">CF_countylist.txt");
+foreach (sort {$TNOAN{$a} cmp $TNOAN{$b}} (keys(%UCJEPS_CF))){
+    if($TNOAN{$_}=~/ [a-z]/){
+	print OUT "$TNOAN{$_}\t";
+        $county_list =join(", ",(sort(keys(%{$UCJEPS_CF{$_}}))));
+            print OUT "$county_list\n";
+    }
+}
+close(OUT);
 ($t)=gettimeofday;
 print "after countylist  $t\n";
 
@@ -203,6 +292,8 @@ foreach $filename ($filename, "/Users/davidbaxter/DATA/bulkload_data/$filename")
 	while(<IN>){
 		++$line_c;
 		chomp;
+		s/\t *; *,?;?/\t/;
+		s/\t$//;
 		($key, $value)=split(/\t/);
 		$f_contents{$key}=$value;
 		unless($line_c % 25000){
@@ -281,6 +372,7 @@ foreach $filename ($filename, "/Users/davidbaxter/DATA/bulkload_data/$filename")
 	while(<IN>){
 		++$line_c;
 		chomp;
+		s/\t *; *,?;?/\t/;
 		s/\t$//;
 		($key, $value)=m/^([^\t]+)\t(.*)/;
 		$key=~s/ *$//;
@@ -312,14 +404,19 @@ system "chmod +r *.txt";
 	 $cc=  $#fields+1;
 	$cc{$key}=$cc;
 	foreach(@fields){
-		if(m/^([A-Za-z]+)/){
-			($herb_code=$1)=~s/UCD/DAV/;
-		$herb_code="UC" if $herb_code eq "UCLA";
-		$herb_code="HUH" if $herb_code eq "A";
-		$herb_code="HUH" if $herb_code eq "GH";
-		$herb_code="HUH" if $herb_code eq "AMES";
-		$herb_code="HUH" if $herb_code eq "ECON";
-		$herb_code="YM" if $herb_code eq "YM-YOSE";
+		if(m/^([A-Za-z-]+)/){
+		#($herb_code=$1)=~s/UCD/DAV/; #here this is changed again.. this cannot be done any longer, it is causing DAV records to not be searched cause all accession are UCD, 7-2017
+		$herb_code=$1;
+		$herb_code="UCD" if $herb_code eq "DAV";  #added just in case the Davis specimen codes are changed from UCD to DAV elsewhere
+		$herb_code="CAS-BOT-BC" if $herb_code eq "CAS";
+		$herb_code="CAS-BOT-BC" if $herb_code eq "DS";
+		#$herb_code="UC" if $herb_code eq "UCLA"; #these are UCLA specimen deposited at UC but original UCLA accessions kept.  If you change UC to UCLA, then duplicate accessions will occurr
+		#$herb_code="HUH" if $herb_code eq "A";
+		#$herb_code="HUH" if $herb_code eq "GH";
+		#$herb_code="HUH" if $herb_code eq "AMES";
+		#$herb_code="HUH" if $herb_code eq "ECON";
+		#$herb_code="YM" if $herb_code eq "YM-YOSE";
+		#$herb_code="CLARK" if $herb_code eq "CLARK-A";
 								#$herb_code="UC" if $herb_code eq "DS";
 								$bar_length{$key}{$herb_code}++;
 							}
@@ -329,7 +426,7 @@ open(OUT, ">CDL_county_list.txt") || die;
 foreach $county (keys(%bar_length)){
 	print OUT "$county\t$cc{$county}\t";
 	foreach $inst (keys(%{$bar_length{$county}})){
-		unless($inst=~/^(CDA|CAS|DS|UC|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|DAV|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC|CSUSB|SCFS|NY|HUH|YM|OBI|GMDRC|JOTR|VVC|SFV|LA|SEINET|CLARK|SACT|BLMAR|JROH|PASA|CATA|MACF)$/){
+		unless($inst=~/^(A|ECON|AMES|BFRS|HREC|CDA|CAS-BOT-BC|UC|UCLA|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|UCD|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC|CSUSB|SCFS|NY|GH|YM-YOSE|OBI|GMDRC|JOTR|VVC|SFV|LA|SEINET|CLARK-A|SACT|BLMAR|JROH|PASA|CATA|MACF)$/){
 			warn "$inst unexpected and skipped\n";
 			next;
 		}
@@ -337,6 +434,43 @@ foreach $county (keys(%bar_length)){
 	}
 	print OUT "\n";
 }
+
+# tie %NAMELIST, "BerkeleyDB::Hash", -Filename => "CDL_namelist" or die "Cannot open file CDL_namelist" ;
+# while(($key,$value)=each(%NAMELIST)){
+#     @fields=split(/\t/,$value);
+#	 $cc=  $#fields+1;
+#	$cc{$key}=$cc;
+#	foreach(@fields){
+#		if(m/^([A-Za-z]+)/){
+		#($herb_code=$1)=~s/UCD/DAV/; #here this is changed again.. this cannot be done any longer, it is causing DAV records to not be searched cause all accession are UCD, 7-2017
+#		$herb_code=$1;
+#		$herb_code="UCD" if $herb_code eq "DAV";  #added just in case the Davis specimen codes are changed from UCD to DAV elsewhere
+#		$herb_code="CAS" if $herb_code eq "CAS-BOT-BC";
+#		$herb_code="UC" if $herb_code eq "UCLA";
+#		$herb_code="HUH" if $herb_code eq "A";
+#		$herb_code="HUH" if $herb_code eq "GH";
+#		$herb_code="HUH" if $herb_code eq "AMES";
+#		$herb_code="HUH" if $herb_code eq "ECON";
+#		$herb_code="YM" if $herb_code eq "YM-YOSE";
+#		$herb_code="CLARK" if $herb_code eq "CLARK-A";
+#								#$herb_code="UC" if $herb_code eq "DS";
+#								$bar_length{$key}{$herb_code}++;
+#							}
+#				}
+#	}
+#open(OUT, ">CF_taxon_list.txt") || die;
+#foreach $tname (keys(%bar_length)){
+#	print OUT "$tname\t$cc{$tname}\t";
+#	foreach $inst (keys(%{$bar_length{$tname}})){
+#		unless($inst=~/^(BFRS|HREC|CDA|CAS|UC|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|UCD|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC|CSUSB|SCFS|NY|HUH|YM|OBI|GMDRC|JOTR|VVC|SFV|LA|SEINET|CLARK|SACT|BLMAR|JROH|PASA|CATA|MACF)$/){
+#			warn "$inst unexpected and skipped\n";
+#			next;
+#		}
+#		print OUT "$inst: $bar_length{$tname}{$inst}\t";
+#	}
+#	print OUT "\n";
+#}
+
 close(OUT);
 ($t)=gettimeofday;
 print "after more county  $t\n";
@@ -406,7 +540,7 @@ print "untieing CDL\n";
         untie %h_lat;
 	untie %tid_to_county;
 
-
+#open(OUT, ">CDL_name_list.txt") || die;
 #foreach (sort(keys(%inst_count))){
 #print OUT "$_: $inst_count{$_}\n";
 #}
