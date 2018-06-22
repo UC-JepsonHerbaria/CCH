@@ -1,4 +1,3 @@
-#this is the first file found that was actually called newer_undump.pl; all future versions have this name
 #!/bin/perl
 open(LOG, ">>cdl_log") || die;
 use Time::HiRes qw(usleep ualarm gettimeofday tv_interval);
@@ -20,7 +19,7 @@ foreach $file("CDL_collectors.in", "cdl/CDL_collectors.in"){
 	open(IN, $file) || die;
 	while(<IN>){
 		chomp;
-		($key,$value)=m/^([^ ]+) (.*)/;
+		($key,$value)=m/^([^ ,]+),? (.*)/;
 		if($store_coll{$key}){
 		$store_coll{$key}=~s/\t*$//;
 			$store_coll{$key}.="\t$value";
@@ -112,7 +111,7 @@ while(<IN>){
 $t1 = [gettimeofday];
 $interval = tv_interval $t0, $t1;
 $t0 = [gettimeofday];
-print "$line_c processed in $interval\n";
+print "$dbm_file $line_c processed in $interval\n";
 }
 	chomp;
 	s/\t$//;
@@ -192,7 +191,7 @@ foreach $filename ($filename, "cdl/$filename"){
 $t1 = [gettimeofday];
 $interval = tv_interval $t0, $t1;
 $t0 = [gettimeofday];
-print "$line_c processed in $interval\n";
+print "$dbm_file $line_c processed in $interval\n";
 }
 	}
 	system("chmod 0666 $dbm_file");
@@ -232,7 +231,7 @@ foreach $filename ($filename, "cdl/$filename"){
 $t1 = [gettimeofday];
 $interval = tv_interval $t0, $t1;
 $t0 = [gettimeofday];
-print "$line_c processed in $interval\n";
+print "$dbm_file $line_c processed in $interval\n";
 }
 	}
 	system("chmod 0666 $dbm_file");
@@ -298,6 +297,10 @@ system "chmod +r *.txt";
 		if(m/^([A-Za-z]+)/){
 			($herb_code=$1)=~s/UCD/DAV/;
 		$herb_code="UC" if $herb_code eq "UCLA";
+		$herb_code="HUH" if $herb_code eq "A";
+		$herb_code="HUH" if $herb_code eq "GH";
+		$herb_code="HUH" if $herb_code eq "AMES";
+		$herb_code="HUH" if $herb_code eq "ECON";
 								#$herb_code="UC" if $herb_code eq "DS";
 								$bar_length{$key}{$herb_code}++;
 							}
@@ -307,7 +310,7 @@ open(OUT, ">CDL_county_list.txt") || die;
 foreach $county (keys(%bar_length)){
 	print OUT "$county\t$cc{$county}\t";
 	foreach $inst (keys(%{$bar_length{$county}})){
-		unless($inst=~/^CDA|CAS|DS|UC|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|DAV|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC$/){
+		unless($inst=~/^CDA|CAS|DS|UC|JEPS|UCSC|UCSB|SBBG|POM|RSA|UCR|DAV|PGM|CHSC|SJSU|IRVC|SD|SDSU|HSC|CSUSB|SCFS|NY|HUH|YM-YOSE$/){
 			warn "$inst unexpected and skipped\n";
 			next;
 		}
@@ -363,8 +366,9 @@ grep($seen{$an} .= "$_\t",@ids);
 ($t)=gettimeofday;
 print "after more dates  $t\n";
 
+my $next_year= (localtime)[5]+1901;
 foreach $year (sort(keys(%seen))){
-if ($year < 2011){
+if ($year < $next_year){
 %ids=();
 @array=split(/\t/, $seen{$year});
 grep($ids{$_}++, @array);
@@ -392,10 +396,29 @@ $inst_count{RSA_count} += $inst_count{POM_count};
 $inst_count{CAS_count} +=$inst_count{DS_count};
 open(OUT, ">CDL_news.html");
 $record_table=<<EOT;
-<table class="bodyTest"> <tr><td> CAS-DS</td><td>$inst_count{CAS_count}</td></tr> <tr><td> CDA</td><td>$inst_count{CDA_count}</td></tr> <tr><td> CHSC</td><td>$inst_count{CHSC_count}</td></tr> <tr><td> DAV</td><td>$inst_count{DAV_count}</td></tr> <tr><td> HSC</td><td>$inst_count{HSC_count}</td></tr> <tr><td> IRVC</td><td>$inst_count{IRVC_count}</td></tr> <tr><td> PGM</td><td>$inst_count{PGM_count}</td></tr> <tr><td> RSA-POM</td><td>$inst_count{RSA_count}</td></tr> <tr><td> SBBG</td><td>$inst_count{SBBG_count}</td></tr> <tr><td> SD</td><td>$inst_count{SD_count}</td></tr>
+<table class="bodyTest"> 
+<tr><td> CAS-DS</td><td>$inst_count{CAS_count}</td></tr> 
+<tr><td> CDA</td><td>$inst_count{CDA_count}</td></tr> 
+<tr><td> CHSC</td><td>$inst_count{CHSC_count}</td></tr> 
+<tr><td> CSUSB</td><td>$inst_count{CSUSB_count}</td></tr> 
+<tr><td> DAV</td><td>$inst_count{DAV_count}</td></tr> 
+<tr><td> HSC</td><td>$inst_count{HSC_count}</td></tr> 
+<tr><td> IRVC</td><td>$inst_count{IRVC_count}</td></tr> 
+<tr><td> PGM</td><td>$inst_count{PGM_count}</td></tr> 
+<tr><td> RSA-POM</td><td>$inst_count{RSA_count}</td></tr> 
+<tr><td> SBBG</td><td>$inst_count{SBBG_count}</td></tr> 
+<tr><td> SD</td><td>$inst_count{SD_count}</td></tr>
 <tr><td> SDSU</td><td>$inst_count{SDSU_count}</td></tr>
 <tr><td> SJSU</td><td>$inst_count{SJSU_count}</td></tr>
-<tr><td> UC-JEPS</td><td>$inst_count{UC_count}</td></tr> <tr><td> UCR</td><td>$inst_count{UCR_count}</td></tr> <tr><td> UCSB</td><td>$inst_count{UCSB_count}</td></tr> <tr><td> UCSC</td><td>$inst_count{UCSC_count}</td></tr> </table>
+<tr><td> UC-JEPS</td><td>$inst_count{UC_count}</td></tr> 
+<tr><td> UCR</td><td>$inst_count{UCR_count}</td></tr> 
+<tr><td> UCSB</td><td>$inst_count{UCSB_count}</td></tr> 
+<tr><td> UCSC</td><td>$inst_count{UCSC_count}</td></tr>
+<tr><td> NY</td><td>$inst_count{NY_count}</td></tr>
+<tr><td> HUH</td><td>$inst_count{HUH_count}</td></tr>
+<tr><td> YOSE</td><td>$inst_count{YOSE_count}</td></tr>
+<tr><td> SCFS</td><td>$inst_count{SCFS_count}</td></tr>
+</table>
 EOT
 $today=localtime();
 $today=~s/\d\d:\d\d:\d\d//;
@@ -410,23 +433,23 @@ print OUT;
 #CDL/CDL_name_list.in:quercus × alvordiana CAS1034	SD71047	
 
 
-tie (%G_T_F, "BerkeleyDB::Hash", -Filename =>"G_T_F", -Flags => DB_RDONLY) || die "Cannot open file $dbm_file: $! $BerkeleyDB::Error\n" ;
+tie (%G_T_F, "BerkeleyDB::Hash", -Filename =>"G_T_F", -Flags => DB_RDONLY) || die "Cannot open file G_T_F: $! $BerkeleyDB::Error\n" ;
 tie(%CODE_TO_NAME, "BerkeleyDB::Hash", -Filename=>"CDL_TID_TO_NAME", -Flags=>DB_RDONLY)|| die "$!";
 ($t)=gettimeofday;
 print "reading main  $t\n";
 open(IN, "CDL_main.in") || die;
 #use BerkeleyDB;
-unlink("CDL_AID_recno");
-tie @h, 'BerkeleyDB::Recno', -Filename => "CDL_AID_recno", -Flags => DB_CREATE, -Property => DB_RENUMBER
-             or die "Cannot open $filename: $!\n" ;
-$dbm_file="CDL_family_vec_hash";
-unlink($dbm_file);
-tie %FV, "BerkeleyDB::Hash", -Filename => $dbm_file, -Flags => DB_CREATE
-        or die "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
-$dbm_file="CDL_date_vec_hash";
-unlink($dbm_file);
-tie %DV, "BerkeleyDB::Hash", -Filename => $dbm_file, -Flags => DB_CREATE
-        or die "Cannot open file $$dbm_file: $! $BerkeleyDB::Error\n" ;
+#unlink("CDL_AID_recno");
+#tie @h, 'BerkeleyDB::Recno', -Filename => "CDL_AID_recno", -Flags => DB_CREATE, -Property => DB_RENUMBER
+             #or die "Cannot open $filename: $!\n" ;
+#$dbm_file="CDL_family_vec_hash";
+#unlink($dbm_file);
+#tie %FV, "BerkeleyDB::Hash", -Filename => $dbm_file, -Flags => DB_CREATE
+        #or die "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
+#$dbm_file="CDL_date_vec_hash";
+#unlink($dbm_file);
+#tie %DV, "BerkeleyDB::Hash", -Filename => $dbm_file, -Flags => DB_CREATE
+        #or die "Cannot open file $$dbm_file: $! $BerkeleyDB::Error\n" ;
 
 	$line_c=0;
 while(<IN>){
@@ -464,7 +487,7 @@ print "$line_c processed in $interval\n";
 	}
 
 
-	#if ( $rest[4] && ($rest[4]==$rest[5])){
+	#if ( $rest[4] && ($rest[4]==$rest[5]))#
 	#Nov 6 2009
 	if ( $rest[4] && ($rest[5]- $rest[4]< 32)){
 		$jdate=$rest[4];
@@ -473,6 +496,62 @@ print "$line_c processed in $interval\n";
 		vec($DV{$month},$LC,1)=1;
 	}
 }
+
+system ("cat record_tally");
+
+
+tie %f_contents, "BerkeleyDB::Hash", -Filename => "CDL_voucher", -Flags => DB_CREATE or die "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
+while(($key,$value)=each(%f_contents)){
+		unless ($seen_aid{$key}){
+			delete $f_contents{$key};
+			++$voucher_delete;
+		}
+	}
+print "$voucher_delete voucher deletions\n";
+
+($t)=gettimeofday;
+print "done reading main  $t\n";
+$t0 = [gettimeofday];
+use BerkeleyDB;
+unlink("CDL_AID_recno");
+tie @h_BDB, 'BerkeleyDB::Recno', -Filename => "CDL_AID_recno", -Flags => DB_CREATE, -Property => DB_RENUMBER or die "Cannot open $filename: $!\n" ;
+@h_BDB=@h;
+untie @h_BDB;
+$t1 = [gettimeofday];
+$interval = tv_interval $t0, $t1;
+$t0 = [gettimeofday];
+print "RECNO copied in $interval\n";
+
+$dbm_file="CDL_family_vec_hash";
+unlink($dbm_file);
+tie %FV_BDB, "BerkeleyDB::Hash", -Filename => $dbm_file, -Flags => DB_CREATE or die "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
+
+
+while(($key,$value)=each(%FV)){
+	$FV_BDB{$key}=$value;
+}
+untie %FV_BDB;
+$t1 = [gettimeofday];
+$interval = tv_interval $t0, $t1;
+$t0 = [gettimeofday];
+print "FV copied in $interval\n";
+
+
+
+$dbm_file="CDL_date_vec_hash";
+unlink($dbm_file);
+tie %DV_BDB, "BerkeleyDB::Hash", -Filename => $dbm_file, -Flags => DB_CREATE or die "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
+while(($key,$value)=each(%DV)){
+	$DV_BDB{$key}=$value;
+}
+
+untie %DV_BDB;
+$t1 = [gettimeofday];
+$interval = tv_interval $t0, $t1;
+$t0 = [gettimeofday];
+print "DV copied in $interval\n";
+
+
 ($t)=gettimeofday;
 print "done reading main  $t\n";
 
@@ -482,20 +561,6 @@ $duration= $timeend - $timestart;
 print OUT "$timestart Records: $main_record_count ($duration)\n";
 close(OUT);
 close(LOG);
-
-system ("cat record_tally");
-
-
-tie %f_contents, "BerkeleyDB::Hash", -Filename => "CDL_voucher", -Flags => DB_CREATE
-        or die "Cannot open file $filename: $! $BerkeleyDB::Error\n" ;
-while(($key,$value)=each(%f_contents)){
-		unless ($seen_aid{$key}){
-			delete $f_contents{$key};
-			++$voucher_delete;
-		}
-	}
-print "$voucher_delete voucher deletions\n";
-
 
 
 
