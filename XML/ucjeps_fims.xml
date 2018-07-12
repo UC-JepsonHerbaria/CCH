@@ -70,6 +70,23 @@
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:conceptauthorities:name(concept):item:name(UNIVERSITYHERBARIUMUNIVERSITYOFCALIFORNIAATBERKELEY1424732714181)">UNIVERSITY HERBARIUM, UNIVERSITY OF CALIFORNIA AT BERKELEY</field>
       </list>
       <list alias="Collector" caseInsensitive="false">
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(AMillarTMix1525369696677)">A. Millar, T. Mix</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Gonzales1525369814273)">Gonzales</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Hacker1525369826353)">Hacker</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Harper1525369828212)">Harper</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(HjalmarMoller1350578673810)">Hjalmar Moller</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(HjalmarMoller1350578672701)">Hjalmar Moller</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Holmes1525369833368)">Holmes</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(JFrancisMacBride1525369844820)">J. Francis MacBride</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(LindaHardisonSSundbergMLavinAWhittemoreKBear1525369887130)">Linda Hardison, S. Sundberg, M. Lavin, A. Whittemore, K. Bear</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(MEChacana1525369895721)">M. E. Chacana</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Pike1525369937276)">Pike</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Rock1525369956342)">Rock</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Ross1525369957015)">Ross</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Schleicher1525369966571)">Schleicher</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Telfair1525369981250)">Telfair</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(Walker1525370005566)">Walker</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(WilliamASetchell1525370007415)">William A. Setchell</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(AlisonColwell1417801426830)">Adam C. Schneider</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(AdamCSchneiderwithAlisonColwell1417801951618)">Adam C. Schneider with Alison Colwell</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(AdamCSchneiderwithCMattGuilliams1417801968342)">Adam C. Schneider with C. Matt Guilliams</field>
@@ -89,10 +106,8 @@
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(3648)">Chesnut and Drew</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(3816)">D. Cleveland</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(3713)">E. E. Schellenger</field>
-        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(18858)">E. K. and N. N. Balls</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(21244)">E. Yale Dawson</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(3785)">Edw. L. Greene</field>
-        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(9817)">F. E. Clements and E. S. Clements</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(3403)">Frank W. Gould</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(3394)">Frank W. Peirson</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(7194)">Frederick W. Oettinger</field>
@@ -3776,6 +3791,23 @@
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(organization):item:name(1525370012761)">&#x41C;. &#x421;&#x43E;&#x43F;&#x43E;&#x432;&#x44C;&#x435;&#x432;</field>
       </list>
       <list alias="DeterminedBy" caseInsensitive="false">
+    	<field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(Seaweed1523)">A. D. Zinova</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(AMillar1521661372500)">A. Millar</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(ESZinova1521661174858)">E. S. Zinova</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(EYaleDawson1521661358835)">E. Yale Dawson</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(Seaweed165)">F. Borgesen</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(Seaweed376)">F. Drouet</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(FrancisDrouet1521664523266)">Francis Drouet</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(FSCollins1521664514427)">F. S. Collins</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(Seaweed1052)">G. F. Papenfuss</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(HJHumm1395155170265)">H. J. Humm</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(LRAlmodovar1521664493989)">L. R. Almodovar</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(MDiazPiferrer1522961062751)">M. Diaz-Piferrer</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(ONordstedt1521664550787)">O. Nordstedt</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(PACorderoJr1521663154963)">P. A. Cordero Jr.</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(PCSilva1470200989141)">P. C. Silva</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(RBSearles1395097758890)">R. B. Searles</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(WRTaylor1521664252115)">W. R. Taylor</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(AdamCSchneider1390521123940)">Adam C. Schneider</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(22428)">B. G. Baldwin</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:orgauthorities:name(determination):item:name(SSchoenig1418148756693)">S. Schoenig</field>
@@ -3850,18 +3882,60 @@
         <field>WGS84</field>
       </list>
       <list alias="State_Province" caseInsensitive="false">
+      <!--These additional, erroneous values showing on the drop down list on CSpace and on the public portal-->
+      <!--These are all errors and should not be on lists; and many do not appear on this list below, which was supposed to contain all those values in CSpace-->
+      <!--some are in CSpace drop down list and others are only on the public portal list-->
+<!--amazonas (misspelling; it was only on public portal and the CSpace record showed as no value being assigned)-->
+<!--Aamazonas (misspelling)-->
+<!--ARIZ (poor format abbreviation) 11 or 12 specimens need converted to AZ-->
+<!--B.C.S. (poor format abbreviation)-->
+<!--Dept. La e (erroneous entry)-->
+<!--Dept. Mag (erroneous entry)-->
+<!--Eastern Divsion (misspelling)-->
+<!--Jalsico (misspelling)-->
+<!--Idaho all specimens converted to ID-->
+<!--Id (poor format abbreviation)-->
+<!--Matto Grosso (misspelling)-->
+<!--MIC-->
+<!--N. Segovia (erroneous entry)-->
+<!--Nevada 38 specimens-->
+<!--NM-TX (erroneous entry)-->
+<!--O (displays as O% in public portal)-->
+<!--OR (?)-->
+<!--OR or WA-->
+<!--Oregon  24 specimens-->
+<!--S Catarina (poor format abbreviation for Santa Catarina a state in Brazil)-->
+<!--S L Potosi (poor format abbreviation)-->
+<!--S.L. Potos (erroneous entry)-->
+<!--San Luis Potosi (with a special character 'i' not the text i here; these value was only on public portal and the CSpace record showed as no value being assigned)-->
+<!--San Luis a (erroneous entry)-->
+<!--SL Potosi (poor format abbreviation)-->
+<!--Ut (poor format abbreviation)-->
+<!--Utah 18 specimens-->
+<!--WN-->
+<!--TX ?  (only on public portal)-->
+<!--TX-NM (erroneous entry)-->
+<!--W TX to NM (erroneous entry)-->
+<!--w TX - El Paso,NM (erroneous entry)-->
+<!--w TX - El Paso, NM (erroneous entry)-->
+<!--Wyoming-->
+      <!-- There are certan errors in this version of the static list for CSpace that we do not want new database records to be assigned -->
+      <!-- These have been commented out in this list instead of deleted.  This way they are not re-added because they were in the CSpace xml list and not in this list -->
         <field>Unknown</field>
         <field>'Eua</field>
-        <field>Aamzonas</field>
+        <!-- This entry is an error for Aamzonas; records have been fixed in CSpace-->
+        <!--<field>Aamzonas</field>-->
         <field>Acre</field>
         <field>AK</field>
         <field>AL</field>
         <field>Alajuela</field>
-        <field>Alajuelo</field>
-        <field>ALB</field>
+        <!-- This entry is an error for Alajuela, a province in Costa Rica; records have been fixed in CSpace-->
+        <!--<field>Alajuelo</field>-->
+        <!--<field>ALB</field>-->
         <field>Alberta</field>
         <field>Alger</field>
         <field>Alta Verapaz</field>
+         <!--Amazonas is a state in Venezuela and Brazil-->
         <field>Amazonas</field>
         <field>Ancash</field>
         <field>Anhui</field>
@@ -3877,7 +3951,7 @@
         <field>Atlantida</field>
         <field>Ayacucho</field>
         <field>AZ</field>
-        <field>AZ Territory</field>
+        <!--<field>AZ Territory</field>-->
         <field>Azuay</field>
         <field>Bac Phan</field>
         <field>Bahia</field>
@@ -3888,12 +3962,13 @@
         <field>Baluchistan</field>
         <field>Banguey Island</field>
         <field>Barinas</field>
-        <field>BCS</field>
+        <!--BCS (Baja California Sur) does not make sense to have if BC is not present, and BC could be Baja California or British Columbia, best to delete this and make people spell it out-->
+        <!--<field>BCS</field>-->
         <field>Benguet</field>
         <field>Binh Tri Thien, Tinh</field>
         <field>Biobio, Regio del</field>
         <field>Bismarck Archipelago</field>
-        <field>BN</field>
+        <!--<field>BN</field>-->
         <field>Bohol</field>
         <field>Bolivar</field>
         <field>Boyaca</field>
@@ -3917,6 +3992,9 @@
         <field>Chalatenango</field>
         <field>CHI</field>
         <field>Chia</field>
+        <!-- Thailand is divided into twenty-three provinces. Provinces are equivalent to states-->
+        <!-- Changwat is the Thai word for province, therefore this should be deleted when this field is converted -->
+        <!--<field>Chiang Mai</field> -->
         <field>Chiang Mai, Changwat</field>
         <field>Chiapas</field>
         <field>Chihuahua</field>
@@ -3928,16 +4006,17 @@
         <field>Chupadero</field>
         <field>Chuquisaca</field>
         <field>CO</field>
-        <field>CO Territory</field>
+        <!--<field>CO Territory</field>-->
         <field>Coahuila</field>
-        <field>COCA</field>
+        <!--<field>COCA</field>-->
         <field>Cochabamba</field>
         <field>Cocle</field>
-        <field>COL</field>
+        <!-- This entry is an error for CO or the state of Colorado; record has been fixed in CSpace-->
+        <!-- <field>COL</field>-->
         <field>Colima</field>
         <field>Comayagua</field>
         <field>Concepcion</field>
-        <field>COP</field>
+        <!--<field>COP</field>-->
         <field>Coquimbo</field>
         <field>Cordoba</field>
         <field>Cortes</field>
@@ -3948,6 +4027,7 @@
         <field>Cuzco</field>
         <field>Darien</field>
         <field>DE</field>
+        <!-- This entry is an an old name for district surrounding Mexico City; CSpace needs a new entry for the new name 'Ciudad de Mexico'-->
         <field>Distrito Federal</field>
         <field>DUR</field>
         <field>Durango</field>
@@ -3958,14 +4038,17 @@
         <field>Esmeraldas</field>
         <field>Esteli</field>
         <field>FL</field>
-        <field>Florida</field>
+        <!-- This entry is a problem; we want all states to go in as postal codes-->
+        <!-- <field>Florida</field> 49 specimens-->
+        <!-- Fujian is a provicne in China-->
         <field>Fujian</field>
         <field>GA</field>
         <field>Gansu</field>
         <field>Goias</field>
         <field>Golestan</field>
         <field>Granada</field>
-        <field>GRO</field>
+        <!--<field>GRO</field>-->
+        <!-- This spelling is a problem; we have to change all Guam specimens to all caps now, since there is no entry for Guam-->
         <field>GUAM</field>
         <field>Guanacaste</field>
         <field>Guanajuato</field>
@@ -4000,7 +4083,7 @@
         <field>Iringa</field>
         <field>Isabela</field>
         <field>Izabel</field>
-        <field>JAL</field>
+        <!--<field>JAL</field>-->
         <field>Jalisco</field>
         <field>Jawa Timur</field>
         <field>Jiangsu</field>
@@ -4019,7 +4102,7 @@
         <field>La Vega</field>
         <field>Lambayeque</field>
         <field>Las Villas</field>
-        <field>LASAN</field>
+        <!--<field>LASAN</field>-->
         <field>Leon</field>
         <field>Lima</field>
         <field>Limon</field>
@@ -4042,33 +4125,36 @@
         <field>Meta</field>
         <field>Mexico</field>
         <field>MI</field>
-        <field>MICH</field>
+        <!--<field>MICH</field>-->
         <field>Michoacan</field>
         <field>Minas Gerais</field>
         <field>Mindanao</field>
         <field>Misiones</field>
         <field>MN</field>
         <field>MO</field>
-        <field>MON</field>
+        <!--<field>MON</field>-->
         <field>Montevideo</field>
         <field>Morazan</field>
         <field>Morelos</field>
         <field>MS</field>
         <field>MT</field>
-        <field>MX</field>
+        <!-- This entry is a problem; we want all states to go in as postal codes, but MX is not a US postal code, not sure what this was used for but it does not appear to be used in CSpace now-->
+        <!-- and if this is the abbreviation for the Mexico City District, it is incorrect; that is CDMX-->
+        <!--<field>MX</field>-->
         <field>Narino</field>
-        <field>NAY</field>
+        <!--<field>NAY</field>-->
         <field>Nayarit</field>
         <field>NC</field>
         <field>ND</field>
         <field>NE</field>
-        <field>Neuvo Leon</field>
+        <!-- This entry is a mispelling for Nuevo Leon-->
+        <!--<field>Neuvo Leon</field>-->
         <field>New Brunswick</field>
         <field>New South Wales</field>
         <field>Newfoundland</field>
         <field>NH</field>
         <field>NJ</field>
-        <field>NL</field>
+        <!--<field>NL</field> 39 specimens mostly from Canada, Newfoundland?; it is possible that someone might enter this for Nuevo Leon Mexico as this abbreviation-->
         <field>NM</field>
         <field>Norte de Santander</field>
         <field>North Ayrshire</field>
@@ -4102,14 +4188,14 @@
         <field>Peten</field>
         <field>Pichincha</field>
         <field>Piura</field>
-        <field>PMG</field>
+        <!--<field>PMG</field>-->
         <field>Pohnpei</field>
         <field>Pomeroon-Supernaam</field>
         <field>Portuguesa</field>
         <field>Potosi</field>
-        <field>PRE</field>
+        <!--<field>PRE</field>-->
         <field>Prince Edward Island</field>
-        <field>PUE</field>
+        <!--<field>PUE</field>-->
         <field>Puebla</field>
         <field>Puerto Rico</field>
         <field>Puno</field>
@@ -4137,7 +4223,10 @@
         <field>Santa Catarina</field>
         <field>Santa Cruz</field>
         <field>Santander</field>
-        <field>Santiago, Region Met</field>
+        <!-- This entry is an error for the proper spelling; record has been fixed in CSpace-->
+        <!--<field>Santiago, Region Met</field>-->
+<!--Región Metropolitana de Santiago is the full Chilean version, which we do not use-->
+<!--Santiago is the proper short version-->
         <field>Sao Paulo</field>
         <field>Sarawak</field>
         <field>Saskatchewan</field>
@@ -4149,11 +4238,14 @@
         <field>Seybo</field>
         <field>Sichuan</field>
         <field>Sierra</field>
-        <field>SIN</field>
+        <!--<field>SIN</field>-->
         <field>Sinaloa</field>
         <field>Societe, Iles de la</field>
-        <field>Societe, Isles de la</field>
-        <field>SON</field>
+        <!-- This entry is an error for the proper french spelling is Iles without an S; record has been fixed in CSpace-->
+        <!-- If a non-french version is needed, the record below is not the one to use; Society Islands should then be added to CSpace-->
+        <!-- <field>Societe, Isles de la</field>-->
+        <!-- There are 123 records according to the public portal with SON as the state; these all need to be converted to Sonora and this record deleted-->
+        <!--<field>SON</field>-->
         <field>Sonora</field>
         <field>Sonsonate</field>
         <field>South Australia</field>
@@ -4163,11 +4255,11 @@
         <field>Stann Creek</field>
         <field>Sulu</field>
         <field>Sumatera</field>
-        <field>TAB</field>
+        <!--<field>TAB</field>-->
         <field>Tabasco</field>
         <field>Tachira</field>
         <field>Tacna</field>
-        <field>TAM</field>
+        <!--<field>TAM</field>-->
         <field>Tamaulipas</field>
         <field>Tarank Province</field>
         <field>Tarija</field>
@@ -4197,13 +4289,13 @@
         <field>Victoria</field>
         <field>VT</field>
         <field>WA</field>
-        <field>WA Territory</field>
+        <!--<field>WA Territory</field>-->
         <field>Wales</field>
-        <field>WAS</field>
+        <!--<field>WAS</field>-->
         <field>Western Australia</field>
         <field>Western Cape</field>
         <field>WI</field>
-        <field>WN</field>
+        <!--<field>WN</field>-->
         <field>WV</field>
         <field>WY</field>
         <field>Xizang</field>
@@ -4217,6 +4309,7 @@
         <field>Zulia</field>
       </list>
       <list alias="Country" caseInsensitive="false">
+        <!-- This spelling is a consistency problem; CSpace has entries in the other lists spelled 'Unknown'-->
         <field>unknown</field>
         <field>Afghanistan</field>
         <field>Albania</field>
@@ -4306,6 +4399,7 @@
         <field>Germany</field>
         <field>Ghana</field>
         <field>Gibraltar</field>
+        <field>Greece</field>
         <field>Greenland</field>
         <field>Grenada</field>
         <field>Guadeloupe</field>
@@ -4500,6 +4594,8 @@
         <field>?</field>
       </list>
       <list alias="County" caseInsensitive="false">
+      <!-- There are certan errors in the sttic lists in CSpace that we do not want new database records to be assigned -->
+      <!-- These have been commented out in this list instead pf deleted.  This way they are not re-added because they were in the CSpace xml list and not in this list -->
         <field>Unknown</field>
         <field>Abbeville</field>
         <field>Aberdeenshire (UK)</field>
@@ -4529,16 +4625,21 @@
         <field>Alfalfa</field>
         <field>Alger</field>
         <field>Allamakee</field>
+        <!--Allegan County, Michigan-->
         <field>Allegan</field>
+        <!--Allegany County, Maryland; Allegany County, New York-->
         <field>Allegany</field>
+        <!--Alleghany County, North Carolina; Alleghany County, Virginia-->
         <field>Alleghany</field>
+        <!--Allegheny County, Pennsylvania -->
         <field>Allegheny</field>
         <field>Allen</field>
         <field>Allendale</field>
         <field>Alpena</field>
         <field>Alpine</field>
         <field>Amador</field>
-        <field>Amazonas</field>
+      <!-- Amazonas is a state in Brazil, not a county or other subdivision, the one record in CSpace with this value has been corrected-->
+        <!-- <field>Amazonas</field>-->
         <field>Amelia</field>
         <field>Amherst</field>
         <field>Amite</field>
@@ -4548,7 +4649,9 @@
         <field>Andrews</field>
         <field>Androscoggin</field>
         <field>Angelina</field>
+        <!--Anglesey, Delaware; County of Anglesey, Victoria, Australia-->
         <field>Anglesey</field>
+        <!-- alternate name: Isle of Anglesey, Wales, UK-->
         <field>Anglesey (UK)</field>
         <field>Angus (Forfarshire) (UK)</field>
         <field>Anne Arundel</field>
@@ -4556,6 +4659,7 @@
         <field>Anson</field>
         <field>Antelope</field>
         <field>Antonina</field>
+        <!--Antrim County, Michigan-->
         <field>Antrim</field>
         <field>Antrim (UK)</field>
         <field>Apache</field>
@@ -4598,11 +4702,17 @@
         <field>Autauga</field>
         <field>Avery</field>
         <field>Avoyelles</field>
+     <!-- Ayopaya is called a province in Bolivia, but it is a third order political division, similar to a county, with a Department being similar to States or Canadian Provinces -->
+     <!-- Bolivian provinces should be entered as counties -->
         <field>Ayopaya</field>
         <field>Ayrshire (UK)</field>
+     <!-- Ba is a province of Fiji and it is divided into Ba, Lautoka, Nadi, and Tavua Districts -->
+     <!-- Ba is not entered as a State/Province in CSpace, which is an error that should be fixed in the future -->
         <field>Ba</field>
         <field>Baca</field>
         <field>Bacon</field>
+     <!-- Bagua is called a province in Peru, but it is a third order political division, similar to a county, with a Region being similar to States or Canadian Provinces -->
+     <!-- Peruvian provinces should be entered as counties -->
         <field>Bagua</field>
         <field>Bailey</field>
         <field>Baker</field>
@@ -4789,6 +4899,8 @@
         <field>Camp</field>
         <field>Campbell</field>
         <field>Canadian</field>
+        <!-- Argentina is divided into twenty-three provinces. Provinces are divided into departments and municipalities, opposite of Bolivia and Peru-->
+        <!-- Argentinian departments (like Candelaria) should be entered as counties -->
         <field>Candelaria</field>
         <field>Candler</field>
         <field>Cannon</field>
@@ -4862,7 +4974,12 @@
         <field>Chester</field>
         <field>Chesterfield</field>
         <field>Cheyenne</field>
-        <field>Chiang Mai, Changwat</field>
+        <!-- Thailand is divided into twenty-three provinces. Provinces are equivalent to states, not counties-->
+        <!-- Changwat is the Thai word for province, therefore this record is erroneous in two ways -->
+        <!-- this is also entered in state province in the same manner -->
+        <!-- Chiang Mai is subdivided into 25 districts (amphoe), and the capital district is called Mueang Chiang Mai-->
+        <!-- Mueang Chiang Mai is what should be here instead-->
+        <!--<field>Chiang Mai, Changwat</field> -->
         <field>Chickasaw</field>
         <field>Chicligasta</field>
         <field>Chicot</field>
@@ -5063,7 +5180,8 @@
         <field>Down (UK)</field>
         <field>Do&#xF1;a Ana</field>
         <field>Drew</field>
-        <field>Du Page</field>
+        <!-- Du Page County IL is spelled without a space, the record below is an error that should be deleted-->
+        <!-- <field>Du Page</field>-->
         <field>Dubois</field>
         <field>Dubuque</field>
         <field>Duchesne</field>
@@ -5119,9 +5237,13 @@
         <field>Erie</field>
         <field>Escambia</field>
         <field>Esmeralda</field>
+        <!--Esmeraldas is one of 24 provinces in Ecuador.  Each province is divided into cantons.-->
+        <!--Esmeraldas is a canton within Esmeraldas Province, which is also in the State Province list above-->
         <field>Esmeraldas</field>
         <field>Esperance Municipality</field>
-        <field>Essex</field>
+        <!--Essex itself is a suplerflous entry and should be deleted.-->
+        <!--Essex is also county in Ontario, Canada and following this pattern, a new record should be Essex (CAN), when needed.-->
+        <!--<field>Essex</field>-->
         <field>Essex (MA)</field>
         <field>Essex (UK)</field>
         <field>Estill</field>
@@ -5293,6 +5415,7 @@
         <field>Hamilton Municipality</field>
         <field>Hamlin</field>
         <field>Hampden</field>
+        <!--Hampshire County, Massachusetts, Hampshire County, West Virginia; Hampshire County, Quebec-->
         <field>Hampshire</field>
         <field>Hampshire (UK)</field>
         <field>Hampton</field>
@@ -5470,7 +5593,8 @@
         <field>Kenedy</field>
         <field>Kennebec</field>
         <field>Kenosha</field>
-        <field>Kent</field>
+        <!--Not sure why there are two of these. Cannot find any other third level political division named this -->
+        <!--<field>Kent</field> -->
         <field>Kent (UK)</field>
         <field>Kentish Municipality</field>
         <field>Kenton</field>
@@ -5489,6 +5613,7 @@
         <field>Kimble</field>
         <field>Kincardineshire (UK)</field>
         <field>King</field>
+        <!--King and Queen County, Virginia-->
         <field>King and Queen</field>
         <field>King George</field>
         <field>King William</field>
@@ -5714,6 +5839,7 @@
         <field>Miami</field>
         <field>Miami-Dade</field>
         <field>Middlesex</field>
+        <!--Middlesex County MA, and several others -->
         <field>Middlesex (UK)</field>
         <field>Midland</field>
         <field>Midlothian (UK)</field>
@@ -5782,9 +5908,13 @@
         <field>Musselshell</field>
         <field>Nacogdoches</field>
         <field>Nairnshire (UK)</field>
-        <field>Nakhon Ratchasima, Changwat</field>
+        <!-- Thailand is divided into twenty-three provinces. Provinces are equivalent to states, not counties-->
+        <!-- Changwat is the Thai word for province, therefore this record is erroneous in two ways -->
+        <!-- this record, unlike Chang Mai is not in State/Province where it belongs -->
+        <!--<field>Nakhon Ratchasima, Changwat</field> -->
         <field>Nance</field>
-        <field>Nantucket</field>
+        <!--Not sure why there are two of these. Cannot find any other third level political division named this -->
+        <!--<field>Nantucket</field> -->
         <field>Nantucket (MA)</field>
         <field>Napa</field>
         <field>Nash</field>
@@ -5812,7 +5942,10 @@
         <field>Newport</field>
         <field>Newport News</field>
         <field>Newton</field>
-        <field>Nez Perc</field>
+        <!--Not sure why there are two of these either. Nez Perc is a misspelling for Nez Perce -->
+        <!--all CSpace records are now Nez Perce, all using 'Perc' spelling have been changed-->
+        <!-- because of this problem, all records in the public portal are being displayed as the misspelling 'Nez Perc'-->
+        <!--<field>Nez Perc</field>-->
         <field>Nez Perce</field>
         <field>Niagara</field>
         <field>Nicholas</field>
@@ -5824,12 +5957,14 @@
         <field>Nodaway</field>
         <field>Nolan</field>
         <field>Nome</field>
+        <!--Norfolk County MA, Norfolk County VA-->
         <field>Norfolk</field>
         <field>Norfolk (UK)</field>
         <field>Norman</field>
         <field>North Slope</field>
         <field>Northampton</field>
         <field>Northamptonshire (UK)</field>
+        <!--Northumberland County, PA, Northumberland County, VA-->
         <field>Northumberland</field>
         <field>Northumberland (UK)</field>
         <field>Northwest Arctic</field>
@@ -5984,7 +6119,9 @@
         <field>Portland Municipality</field>
         <field>Portsmouth</field>
         <field>Posey</field>
+        <!--Pottawatomie County, Oklahoma, Pottawatomie County, Kansas-->
         <field>Pottawatomie</field>
+        <!--Pottawattamie County, Iowa-->
         <field>Pottawattamie</field>
         <field>Potter</field>
         <field>Powder River</field>
@@ -6001,7 +6138,9 @@
         <field>Preston</field>
         <field>Price</field>
         <field>Prince Edward</field>
+        <!--Prince George County, Virginia-->
         <field>Prince George</field>
+        <!--Prince George's County, Maryland-->
         <field>Prince George's</field>
         <field>Prince of Wales-Hyder</field>
         <field>Prince William</field>
@@ -6063,7 +6202,9 @@
         <field>Ringarooma Municipality</field>
         <field>Ringgold</field>
         <field>Rio Arriba</field>
+        <!--Rio Blanco County, Colorado-->
         <field>Rio Blanco</field>
+        <!--State of Minas Gerais; District of Rio Branco-->
         <field>Rio Branco</field>
         <field>Rio Grande</field>
         <field>Rio Verde</field>
@@ -6106,9 +6247,11 @@
         <field>Russell Islands</field>
         <field>Rutherford</field>
         <field>Rutland</field>
+        <!--Rutland County, Vermont-->
         <field>Rutland (UK)</field>
         <field>Sabah</field>
         <field>Sabine</field>
+        <!--Sac County, Iowa-->
         <field>Sac</field>
         <field>Sacramento</field>
         <field>Sagadahoc</field>
@@ -6134,7 +6277,8 @@
         <field>San Miguel</field>
         <field>San Patricio</field>
         <field>San Pedro Lagunillas</field>
-        <field>San Pedro Lagunitas</field>
+        <!-- San Pedro Lagunitas is misspelled version of the baove municipality in Nayarit Mexico, the record below is an error that should be deleted-->
+        <!-- <field>San Pedro Lagunitas</field>-->
         <field>San Saba</field>
         <field>Sanborn</field>
         <field>Sanders</field>
@@ -6220,6 +6364,7 @@
         <field>Sola de Vega</field>
         <field>Solano</field>
         <field>Somerset</field>
+        <!-- Somerset County, Maryland-->
         <field>Somerset (UK)</field>
         <field>Somervell</field>
         <field>Sonoma</field>
@@ -6285,6 +6430,7 @@
         <field>Sublette</field>
         <field>Sud Yungas</field>
         <field>Suffolk</field>
+        <!-- Suffolk County, NY, Suffolk County MA etc-->
         <field>Suffolk (UK)</field>
         <field>Sullivan</field>
         <field>Sully</field>
@@ -6294,9 +6440,11 @@
         <field>Sumter</field>
         <field>Sunflower</field>
         <field>Surrey (UK)</field>
+        <!-- Surry County, North Carolina, Surry County, Virginia-->
         <field>Surry</field>
         <field>Susquehanna</field>
         <field>Sussex</field>
+        <!-- Sussex County, NJ-->
         <field>Sussex (UK)</field>
         <field>Sutherland (UK)</field>
         <field>Sutter</field>
@@ -6353,14 +6501,18 @@
         <field>Todd</field>
         <field>Tolland</field>
         <field>Tom Green</field>
-        <field>Tompkins</field>
+        <!--Not sure why there are two of these. Cannot find any other third level political division named this -->
+        <!--<field>Tompkins</field> -->
         <field>Tompkins (NY)</field>
+        <!--Tooele County Utah-->
         <field>Tooele</field>
+        <!--Toole County Montana-->
         <field>Toole</field>
         <field>Toombs</field>
         <field>Torrance</field>
         <field>Towner</field>
         <field>Towns</field>
+        <!--Traill County, ND-->
         <field>Traill</field>
         <field>Transylvania</field>
         <field>Traverse</field>
@@ -6397,7 +6549,8 @@
         <field>Umatilla</field>
         <field>Unicoi</field>
         <field>Union</field>
-        <field>Unknown</field>
+      <!-- Unknown is in this list twice in CSpace, once at the top of the list and another time here-->
+        <!--<field>Unknown</field>-->
         <field>Upshur</field>
         <field>Upson</field>
         <field>Upton</field>
@@ -6479,7 +6632,10 @@
         <field>West Feliciana</field>
         <field>West Lothian (Linlithgowshire) (UK)</field>
         <field>Westchester</field>
+        <!--Westmoreland County, New South Wales, Australia; Westmoreland County, Pennsylvania; Westmoreland County, Virginia-->
         <field>Westmoreland</field>
+        <!--Westmorland County, North West England, UK (historic, now Cumbria County)-->
+        <!--Westmorland County, New Brunswick, Canada is currently being changed to Westmorland (UK) by the script; this needs to be fixed to Westmorland (CAN) when we can add values-->
         <field>Westmorland (UK)</field>
         <field>Weston</field>
         <field>Wetzel</field>
@@ -19878,6 +20034,7 @@
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Pleurodiscuspurpureus1521148616067)">Pleurodiscus purpureus</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Staurastrummegalonothum1521675578859)">Staurastrum megalonothum</field>
         <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Staurastrummegalonotum1521151377031)">Staurastrum megalonotum</field>
+        <field uri="urn:cspace:ucjeps.cspace.berkeley.edu:taxonomyauthority:name(taxon):item:name(Dunaliellasalina)"><![CDATA[Dunaliella salina]]></field>
       </list>
     </lists>
   </validation>
