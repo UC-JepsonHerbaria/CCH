@@ -1,4 +1,5 @@
-
+use autodie;
+use Text::CSV;
 use Geo::Coordinates::UTM;
 use strict;
 #use warnings;
@@ -23,18 +24,40 @@ my $included;
 my %skipped;
 my $line_store;
 my $count;
-my $seen;
-my %seen;
+my $seen_id;
+my %seen_id;
 my $det_string;
 
 
-my $file = '/JEPS-master/CCH/Loaders/CATA/CATA_OCT2015_mod.tab';
 
 #####process the file
 #CATA file arrives as a comma-separated csv with double-quotes as text qualifiers
-#convert to tab delimited text file using csv2tab.pl
-#Then open in TextWrangler and make sure to save as UTF-8 with Unix line breaks
 ###############
+
+	my $csv = Text::CSV->new ({ 
+			binary => 1
+	});
+	
+	my $tsv = Text::CSV->new ({ 
+			binary => 1, sep_char => "\t", quote_char => undef, eol => "\n"
+	});
+
+open my $infh,  "<:encoding(macintosh)", "CATA_17Jul2018.csv";
+open my $outfh, ">:encoding(utf8)", "CATA_17Jul2018_mod.txt";
+
+
+
+while (my $row = $csv->getline ($infh)) {
+    $tsv->print ($outfh,$row);
+
+
+    }
+
+
+close($outfh);
+close($infh);
+
+my $file = '/JEPS-master/CCH/Loaders/CATA/CATA_17Jul2018_mod.txt';
 
 
 open(IN,$file) || die;
@@ -47,34 +70,8 @@ Record: while(<IN>){
 
 
 #fix some data quality and formatting problems that make import of fields of certain records impossible
-s/\xc3\x80\xc3\x9c/au/g;   #ÀÜ ---> BÀÜrner	
-s/\xc2\xbb/e/g;   #» ---> N»e	L'H»r.	
-s/\xc3\x80/e/g;   #À ---> CambessÀdes	LagrÀze-Fossat	
-s/\xe2\x80\x9a\xc3\xa0\xc3\xbb/ deg. /g;   #‚àû ---> (315‚àû)	210‚àû	12‚àû,	60‚àû,	
-s/\xe2\x80\x9a\xc3\xb3\xc3\xa4//g;   #‚óä ---> ‚óäpiperita	‚óähortorum	‚óämacdonaldii	‚óähybrida	
-s/\xe2\x88\x9a\xc3\xb5/o/g;   #√õ ---> Pav√õn)
-s/\xe2\x82\xac/o/g;   #€ ---> Pav€n
+
 	s/ñ/n/g;
-#	s/ //g;
-#	s/Ø//g;
-#	s/§//g;
-#	s/î//g;
-#	s/æ//g;
-#	s/¦//g;
-#	s/¢//g;
-#	s/¡//g;
-#	s/¬//g;
-#	s/Â//g;
-#	s/Æ//g;
-#	s///g;
-#	s/•//g;
-#	s/…//g;
-#	s/﻿//g;
-#	s/º/ deg. /g;
-#	s/°/ deg. /g;
-#	s/Á/ deg. /g;
-#	s/Ã/ deg. /g;
-#	s/©//g;
 	s/×/ X /g;
 	s/˚/ deg. /g;
 	s/¼/1\/4/g;
@@ -100,14 +97,29 @@ s/\xe2\x82\xac/o/g;   #€ ---> Pav€n
 	s/í/i/g;
 
 
+#fix some stray mis-coded characters that are escaping proper conversion
+	s/·//g;
+	s/ˆ//g;
+	s/Ë/e/g;
+	s/È/e/g;
+	s/Û/o/g;
+	s/∞/ deg. /g;
+	s/gardenÖ/garden/;
+
+#	s/Á/ deg. /g;
+#	s/Ã/ deg. /g;
+#	s/©//g;
+
+
+
 s/  +/ /g;
  
 #remove artifacts of CSV conversion, @ was set as escape character instead of problematic ""
-s/@+/@/g;
-s/@"/'/g;
-s/"+/"/g;
-s/"/'/g;
-s/'+/'/g;
+#s/@+/@/g;
+#s/@"/'/g;
+#s/"+/"/g;
+#s/"/'/g;
+#s/'+/'/g;
 
         if ($. == 1){#activate if need to skip header lines
 			next;
@@ -179,9 +191,20 @@ my $name_w_author;
 my $associatedTaxa2;
 my $main_collector;
 my $island;
+my $elevF;
+my $elevM;
+my $UTMeast;
+my $UTMnorth; 
+
+#file header
+#2018==>Accession Number,Title,Subtitle,Country,State symbol,County symbol,Physical terrane,Family Name,Accepted Name,Locality,Elev Ft,Elev M,Longitude,Latitude,UTM E,UTM N,Plt Description,Habitat,Abundance,Assoc species,Assoc species 2,Collector,Prefix,Collection #,Other Collector(s),Month,Day,Year                ,Datum
+#2015==>Accession Number,Title,Subtitle,Country,State symbol,County symbol,Physical terrane,Family Name,Accepted Name,Locality,Elev Ft,Elev M,Latitude,Longitude,UTM E,UTM N,Plt Description,Habitat,Abundance,Assoc species,                Collector,Prefix,Collection #,Other Collector(s),Month,Day,Year,Notes,Herbarium
+
+
+
 
 my @columns=split(/\t/,$_,100);
-		unless($#columns==29){ #30 fields but first field is field 0 in perl
+		unless($#columns==28){ #29 fields but first field is field 0 in perl
 		&log_skip("$#columns bad field number $_");
 		++$skipped{one};
 		next Record;
@@ -196,17 +219,17 @@ $tempCounty,
 $island, #followed by a colon; concatenate with location to get dwc locality
 $family,
 $name_w_author, #with author; need to strip author.
-$location, 
-$elev_feet,
-$elev_meters, #elevations are one or the other: use $meters_to_feet conversion to put all into meters
-$verbatimLatitude, #lat is called long and vice versa in column headers. Convert them to DD and call source "DMS conversion"
+$location, #10
+$elevF,
+$elevM, 
+$verbatimLatitude, 
 $verbatimLongitude,	#in the format DDø MM' SS", or sometimes DDøMM'SS" DDøMM.MMM' or DDøMM'SS.SSS"
-$UTME,
-$UTMN, #figure out zone; convert if possible. Call source "UTM conversion"
-$plant_description, #plant description
+$UTMeast,
+$UTMnorth, #need to calculate zone since it is not included
+$plant_description,
 $habitat,
 $abundance,
-$associatedTaxa,
+$associatedTaxa, #20
 $associatedTaxa2, #new field Oct2015
 $main_collector,
 $CNUM_prefix,
@@ -215,8 +238,7 @@ $other_coll, #can concatenate with $main_collector to make dwc recordedBy
 $coll_month, #three letter month name: Jan, Feb, Mar etc.
 $coll_day,
 $coll_year,
-$cultivated,
-$verbatimCollectors
+$datum #29
 )=@columns;
 
 ################ACCESSION_ID#############
@@ -239,7 +261,7 @@ foreach($id){
 $id="CATA$id";
 
 #Remove duplicates
-if($seen{$id}++){
+if($seen_id{$id}++){
 	&log_skip("Duplicate accession number, skipped:\t$id");
 	++$skipped{one};
 	warn "Duplicate number: $id<\n";
@@ -252,7 +274,6 @@ my $det_date;
 my $det_rank = "current determination (uncorrected)";  #set for current determination
 my $det_name = $name_w_author;
 my $det_determiner;
-my $det_date;
 my $det_stet;	
 	
 	if ((length($det_name) > 1) && (length($det_determiner) == 0) && (length($det_stet) == 0) && (length($det_date) == 0)){
@@ -296,9 +317,11 @@ foreach ($name_w_author){
 	s/ ssp / subsp. /g;
 	s/ ssp. / subsp. /g;
 	s/ var / var. /g;
+	s/(Myriopteris .+ Clevelandii) .+/Myriopteris clevelandii/; #fix a problem name that will not alter because of authors and other problem characters
 	s/;$//g;
 	s/cf.//g;
-	s/ [xX×] / X /;	#change  " x " or " X " to the multiplication sign
+	s/ [x×] / X /;	#change  " x " or " × " to the hybrid text "X"
+	s/◊/ X /;	#change  "◊" to the hybrid text "X"
 	s/  +/ /g;
 	s/^ +//g;
 	s/ +$//g;
@@ -737,6 +760,11 @@ foreach($county){#for each $county value
 	}
 }
 
+my $verbatimCounty = "";
+#format verbatim county properly
+	if($county !~m/^$tempCounty$/){
+		$verbatimCounty = $tempCounty;
+	}
 
 
 ####LOCALITY
@@ -762,22 +790,29 @@ foreach($county){#for each $county value
 	}
 
 ####ELEVATION
-my $feet_to_meters="3.2808";
 
 #$elevationInMeters is the darwin core compliant value
 #verify if elevation fields are just numbers
+#convert to integer; there are multiple decimal elevation values in these data
+$elev_meters = int($elevM);
+$elev_feet = int($elevF);
+
 
 #process verbatim elevation fields into CCH format
 if ((length($elev_meters) >= 1) && (length($elev_feet) == 0)){
 
+
+
 	if ($elev_meters =~ m/^(-?[0-9]+)$/){
 		$elevationInMeters = $elev_meters;
 		$CCH_elevationInMeters = "$elevationInMeters m";
-		$verbatimElevation = "$elevationInMeters m";
+		$verbatimElevation = "$elevM m";
 	}
 	else {
-		&log_change("Check elevation in meters: '$elev_meters' not numeric\t$id");
+		&log_change("Check elevation in meters: '$elevM' not numeric\t$id");
 		$elevationInMeters="";
+		$CCH_elevationInMeters = "";
+		$verbatimElevation = "$elevM m";
 	}	
 }
 elsif ((length($elev_meters) == 0) && (length($elev_feet) >= 1)){
@@ -786,11 +821,13 @@ elsif ((length($elev_meters) == 0) && (length($elev_feet) >= 1)){
 		$elevationInFeet = $elev_feet;
 		$elevationInMeters = int($elev_feet / 3.2808); #make it an integer to remove false precision
 		$CCH_elevationInMeters = "$elevationInMeters m";
-		$verbatimElevation = "$elevationInFeet ft";
+		$verbatimElevation = "$elevF ft";
 	}
 	else {
-		&log_change("Check elevation in feet: '$elev_feet' not numeric\t$id");
+		&log_change("Check elevation in feet: '$elevF' not numeric\t$id");
 		$elevationInFeet="";
+		$CCH_elevationInMeters = "";
+		$verbatimElevation = "$elevF ft";
 	}	
 	
 }
@@ -799,14 +836,18 @@ elsif ((length($elev_meters) >= 1) && (length($elev_feet) >= 1)){
 		$elevationInMeters = $elev_meters;
 		$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision
 		$CCH_elevationInMeters = "$elevationInMeters m";
+		$verbatimElevation = "$elevM m; $elevF ft";
 	}
 	else {
-		&log_change("Check elevation in meters: '$elev_meters' not numeric\t$id");
+		&log_change("Check elevation in meters: '$elevM' not numeric\t$id");
 		$elevationInMeters="";
+		$CCH_elevationInMeters = "";
+		$verbatimElevation = "$elevM m; $elevF ft";
 	}
 }
 else {
 	$CCH_elevationInMeters = "";
+	$verbatimElevation = "";
 }
 
 
@@ -928,7 +969,9 @@ foreach ($verbatimLatitude, $verbatimLongitude){
 
 
 #check to see if lat and lon reversed
+
 	if (($verbatimLatitude =~ m/^-?1\d\d\./) && ($verbatimLongitude =~ m/^\d\d\./)){
+		
 		$hold = $verbatimLatitude;
 		$latitude = $verbatimLongitude;
 		$longitude = $hold;
@@ -1151,11 +1194,16 @@ if((length($latitude) >= 2)  && (length($longitude) >= 3)){
 			$decimalLongitude="";
 		}
 }
-elsif ((length($latitude) == 0) && (length($longitude) == 0)){ 
-		#process zone fields
-		if ((length($UTME) >= 1 ) && (length($UTMN) >= 1 )){
-			&log_change("10) Lat & Long null but UTM is present, checking for valid coordinates: $UTME, $UTMN, $zone, $id\n");
+elsif ((length($latitude) <= 1) && (length($longitude) <= 1) && (length($UTMeast) > 3) && (length($UTMnorth) > 3)){ 
+		#some coordinates are entered with the value of 0, so the basic coordinate parser had to be modified
 		
+		$UTME = int($UTMeast); #make it an integer because the converter cannot handle decimal UTM
+		$UTMN = int($UTMnorth); #make it an integer because the converter cannot handle decimal UTM
+		$zone = ""; #zone is not present in these data
+		
+			&log_change("COORDINATE Lat & Long null but UTM is present, checking for valid coordinates: $UTME, $UTMN, $zone, $id\n");
+		
+		#process zone fields
 			if((length($zone) == 0) && ($locality =~ m/(San Miguel Island|Santa Rosa Island)/i)){
 				$zone = "10S"; #Zone for these data are this, using UTMWORLD.gif in DATA directory
 			}
@@ -1177,45 +1225,51 @@ elsif ((length($latitude) == 0) && (length($longitude) == 0)){
 					$zone = ""; #Mexicali is in a small part of CA-FP Baja and it has sections in two zones, so UTM without zone is not convertable
 				}
 				else{
-					&log_change("UTM Zone cannot be determined: $id");
+					&log_change("COORDINATE UTM Zone cannot be determined: $id");
 					$zone = "";
 				}
 			}
-		}
+			
 		if ((length($UTME) >=6 ) && (length($UTMN) >=6 )){
 #leading zeros need to be removed before this step
 #Northing is always one digit more than easting. sometimes they are apparently switched around.
 			if (($UTME =~ m/^\d{7}/) && ($UTMN =~ /^\d{6}/)){
 					$easting = $UTMN;
 					$northing = $UTME;
-					&log_change("UTM coordinates apparently reversed; switching northing with easting: $id");
+					&log_change("COORDINATE UTM coordinates apparently reversed; switching northing with easting: $id");
+					#calculate lat long from UTM
+					($decimalLatitude,$decimalLongitude)=utm_to_latlon(23,$zone,$easting,$northing);
+					&log_change("Decimal degrees derived from UTM for $id: $decimalLatitude, $decimalLongitude");
+					$georeferenceSource = "UTM conversion by CCH loading script";
 			}
 			elsif (($UTMN =~ m/^\d{7}/) && ($UTME =~ /^\d{6}$/)){
 					$easting = $UTME;
 					$northing = $UTMN;
+					#calculate lat long from UTM
+					($decimalLatitude,$decimalLongitude)=utm_to_latlon(23,$zone,$easting,$northing);
+					&log_change("Decimal degrees derived from UTM for $id: $decimalLatitude, $decimalLongitude");
+					$georeferenceSource = "UTM conversion by CCH loading script";
 			}
 			else{
-				&log_change("11a) Poorly formatted UTM coordinates, Lat & Long nulled: $UTME, $UTMN, $zone, $id\n");
-				$decimalLatitude = $decimalLongitude = $georeferenceSource = "";
+				&log_change("COORDINATE 11a) Poorly formatted UTM coordinates, Lat & Long nulled: $UTME, $UTMN, $zone, $id\n");
+				$northing = $easting = $decimalLatitude = $decimalLongitude = $georeferenceSource = $datum = "";
 			}
-			($decimalLatitude,$decimalLongitude)=utm_to_latlon(23,$zone,$easting,$northing);
-			&log_change("Decimal degrees derived from UTM for $id: $decimalLatitude, $decimalLongitude");
-			$georeferenceSource = "UTM conversion by CCH loading script";
+
 		}
 		elsif ((length($UTME) == 0) && (length($UTMN) == 0)){
-			$easting = $northing = "";
-			&log_change("coordinates NULL for $id\n");
+			$northing = $easting = $decimalLatitude = $decimalLongitude = $georeferenceSource = $datum = "";
+			&log_change("COORDINATE coordinates NULL for $id\n");
 		}
 		else{
-				&log_change("11b) Poorly formatted UTM coordinates, Lat & Long nulled: $UTME, $UTMN, $zone, $id\n");
-				$decimalLatitude = $decimalLongitude = $georeferenceSource = "";
+				&log_change("COORDINATE 11b) Poorly formatted UTM coordinates, Lat & Long nulled: $UTME, $UTMN, $zone, $id\n");
+				$northing = $easting = $decimalLatitude = $decimalLongitude = $georeferenceSource = $datum = "";
 		}
 }
-elsif($latitude==0 && $longitude==0 && $UTME==0 && $UTMN==0){
+elsif(($latitude==0 || $longitude==0)){
 	$datum = "";
 	$georeferenceSource = "";
-	$decimalLatitude =$decimalLongitude = "";
-		&log_change("COORDINATE coordinates entered as '0', changed to NULL $id\n");
+	$decimalLatitude = $decimalLongitude = "";
+		&log_change("COORDINATE one or more coordintes entered as '0', changed to NULL $id==>($verbatimLatitude) \t($verbatimLongitude)\n");
 }
 else {
 			&log_change("COORDINATE poorly formatted or non-numeric coordinates for $id: ($verbatimLatitude) \t($verbatimLongitude) \t(ZONE:$zone \t($UTME) \t($UTMN)\n");
@@ -1348,7 +1402,7 @@ Max_error_distance:
 Max_error_units:
 Elevation: $CCH_elevationInMeters
 Verbatim_elevation: $verbatimElevation
-Verbatim_county: $tempCounty
+Verbatim_county: $verbatimCounty
 Associated_species: $associatedSpecies
 Macromorphology: $plant_description
 Population_biology: $abundance

@@ -138,26 +138,69 @@ my $phenology;
 my $abundance;
 my $notes;
 #unique to this dataset
-my $decimal_lat;
-my $decimal_long;
-my $lat_dir;
-my $long_dir;
-my $LatLongAddedCheck;
-my $topo_quadScale;
-my $AnnoYesNo;
 my $cult;
 my $AnnoRank;
 my $NONV_count;
 my $NONV_line_store;
-my $elev_units;
-my $LatLongAdded;
-my $other;
 my $informationWithheld;
-my $lat_decimal;
-my $long_decimal;
-my $eventDate;
-my $accession;
+my $h_gen;
+my $h_sp1;
+my $h_sp2;
+my $HerbID;
+my $Accession;
 my $catalogNumber;
+my $Genus;
+my $SpecificEpithet;
+my $Rank;
+my $InfraspecificName;
+my $HybridGenus;
+my $hybridspp1;
+my $hybridspp2;
+my $Collector;
+my $MoreCollectors;
+my $Prefix;
+my $Suffix;
+my $CollectionNumber;
+my $Date;
+my $CorrectedDate;
+my $GeoPrimaryDivision;
+my $GeoSecondaryDivision;
+my $GeoTertiaryDivision;
+my $TownshipAndRange;
+my $Elevation;
+my $ElevationUnits;
+my $Locality;
+my $LatitudeDecimal;
+my $LongitudeDecimal;
+my $LatitudeDegree;
+my $LatitudeMinutes;
+my $LatitudeSeconds;
+my $LatitudeDirection;
+my $LongitudeDegree;
+my $LongitudeMinutes;
+my $LongitudeSeconds;
+my $LongitudeDirection;
+my $Datum;
+my $LatLongAccuracy;
+my $USGSQuadrangle;
+my $Ecology;
+my $DeterminedBy;
+my $UTMZone;
+my $easting;
+my $nothing;
+my $Elevation2;
+my $TypeStatus;
+my $typeStatus;
+my $elevHigh;
+my $coordinateUncertainty;
+my $elev_units;
+my $lat_dir;
+my $long_dir;
+my $decimal_lat; 	
+my $decimal_long;
+
+
+
 
 open(OUT, ">/JEPS-master/CCH/Loaders/UCD/DAV_xml.txt") || die; 
 
@@ -168,12 +211,11 @@ open(OUT, ">/JEPS-master/CCH/Loaders/UCD/DAV_xml.txt") || die;
 local $/=qq{<qryUCConsortium>};
 
 Record: while(<IN>){
-
-
 	chomp;
 
 #fix some data quality and formatting problems that make import of fields of certain records problematic
-		
+	#fix some data quality and formatting problems that make import of fields of certain records problematic
+	
 		s/♂/ male /g;	#CHSC109941 & others: ♀ stems prostrate, ♂ stems erect
 		s/♀/ female /g;	#CHSC109941 & others: ♀ stems prostrate, ♂ stems erect
 		s/§/Section/; #CHSC114149
@@ -186,6 +228,7 @@ Record: while(<IN>){
 		s/”/'/g;
 		s/“/'/g;
 		s/”/'/g;
+		s// /g;
 		s/±/+-/g;	#CHSC28135 and others
 		s/°/ deg. /g;	#CHSC42341 and others, convert degree symbol to deg. abbrev.
 		s/¼/ 1\/4 /g;	#CHSC34682 and others
@@ -226,13 +269,6 @@ s/  +/ /g;
  #149 <Division>Sphenophyta (horsetails)</Division>
  #918 <Division>lichens</Division>
 
-
-
-
-#fix more data quality and formatting problems
-
-
-
 #example file format:
 #<Accession>7</Accession>
 #<Division>Sphenophyta (horsetails)</Division>
@@ -256,15 +292,73 @@ s/  +/ /g;
 #<LongitudeSeconds>30</LongitudeSeconds>
 #<LongitudeDirection>W</LongitudeDirection>
 #<LatLongDatum>NAD 1983</LatLongDatum>
-#<LatLongAddedCheck>yes</LatLongAddedCheck>
+#<LatLongAddedCheck>yes</LatLongAddedCheck> #this field no in 2018 data
 #<LatLongPrecision>15</LatLongPrecision>
 #<LatLongPrecisionUnits>mi.</LatLongPrecisionUnits>
 #<AnnoYesNo>1</AnnoYesNo>
 #<CDeterminedBy>herbarium</CDeterminedBy>
 #<EntryDate>2001-01-23T00:00:00</EntryDate>
 
+#full list of field names, from 'check_xml_fields' script
+#Accession
+#Authority
+#CollectionNumber
+#Collector
+#CorrectedDate
+#dataroot
+#Date
+#Datum
+#DeterminedBy
+#easting
+#Ecology
+#Elevation
+#Elevation2
+#ElevationUnits
+#Genus
+#GeoPrimaryDivision
+#GeoSecondaryDivision
+#GeoTertiaryDivision
+#HerbID
+#HybridAuthor1
+#HybridAuthor2
+#HybridGenus
+#hybridspp1
+#hybridspp2
+#InfraspecificAuthority
+#InfraspecificName
+#LatitudeDecimal
+#LatitudeDegree
+#LatitudeDirection
+#LatitudeMinutes
+#LatitudeSeconds
+#LatLongAccuracy
+#LatLongDatum
+#Locality
+#LongitudeDecimal
+#LongitudeDegree
+#LongitudeDirection
+#LongitudeMinutes
+#LongitudeSeconds
+#MoreCollectors
+#northing
+#Prefix
+#Rank
+#SpecificEpithet
+#Suffix
+#TownshipAndRange
+#TypeStatus
+#USGSQuadrangle
+#USGSQuadrangleScale
+#UTMZone
+
+
 
 #lines not parsed
+#HybridAuthor1
+#HybridAuthor2
+#InfraspecificAuthority
+#Authority
+#dataroot
 #<DatePrecision>Day</DatePrecision>
 #<AccessionDate>2015-04-01T00:00:00</AccessionDate>
 #<EntryDate>2015-04-01T00:00:00</EntryDate>
@@ -274,48 +368,60 @@ s/  +/ /g;
 
 
 #These tags have dedicated "&get" subroutines"
-	$cultivated=&get_cult($_);
-	$id= &get_id($_);
-	$accession= &get_accession($_);
-	$genus=&get_genus($_);
-	$species=&get_species($_);
-	$rank=&get_rank($_);
-	$subtaxon=&get_subtaxon($_);
-	$collector=&get_collector($_);
-	$other_coll=&get_other_coll($_);
-	$recordNumber=&get_recordNumber($_);
-	$verbatimEventDate=&get_verbatim_eventDate($_);
-	$eventDate=&get_eventDate($_);
-	$country=&get_country($_);
-	$stateProvince=&get_stateProvince($_);
-	$tempCounty=&get_county($_);
-	$TRS=&get_TRS($_);
-	$elevation=&get_elevation($_);
-	$elev_units=&get_elev_units($_);
-	$locality=&get_locality($_);
-	$lat_decimal=&get_lat_dec($_);
-	$long_decimal=&get_long_dec($_);
-	$lat_degrees=&get_lat_degrees($_);
-	$lat_minutes=&get_lat_minutes($_);
-	$lat_seconds=&get_lat_seconds($_);
-	$lat_dir=&get_lat_dir($_);
-	$long_degrees=&get_long_degrees($_);
-	$long_minutes=&get_long_minutes($_);
-	$long_seconds=&get_long_seconds($_);
-	$long_dir=&get_long_dir($_);
-	$datum=&get_datum($_);
-	$LatLongAdded=&get_LatLongAdded($_);
-	$errorRadius=&get_errorRadius($_);	
-	$errorRadiusUnits=&get_errorRadiusUnits($_);
-	$topo_quad=&get_topo_quad($_);
-	$notes=&get_notes($_);
-	$other=&get_other($_);
-	$AnnoYesNo=&get_AnnoRank($_);#this is no longer present in the XML I think
-	$identifiedBy=&get_identifiedBy($_);
-	$dateIdentified=&get_dateIdentified($_);
+	$HerbID= &get_id($_);
+	$Accession= &get_accession($_);
+	$Genus=&get_genus($_);
+	$SpecificEpithet=&get_species($_);
+	$Rank=&get_rank($_);
+	$InfraspecificName=&get_subtaxon($_);
+	$HybridGenus=&get_hybridgenus($_);
+	$hybridspp1=&get_hybrid_epithet($_);
+	$hybridspp2=&get_hybrid_epithet2($_);
+	$Collector=&get_collector($_);
+	$MoreCollectors=&get_other_coll($_);
+	$Prefix=&get_prefix($_);
+	$Suffix=&get_suffix($_);
+	$CollectionNumber=&get_recordNumber($_);
+	$Date=&get_verbatim_eventDate($_);
+	$CorrectedDate=&get_eventDate($_);
+	$GeoPrimaryDivision=&get_country($_);
+	$GeoSecondaryDivision=&get_stateProvince($_);
+	$GeoTertiaryDivision=&get_county($_);
+	$TownshipAndRange=&get_TRS($_);
+	$Elevation=&get_elevation($_);
+	$ElevationUnits=&get_elev_units($_);
+	$Locality=&get_locality($_);
+	$LatitudeDecimal=&get_lat_dec($_);
+	$LongitudeDecimal=&get_long_dec($_);
+	$LatitudeDegree=&get_lat_degrees($_);
+	$LatitudeMinutes=&get_lat_minutes($_);
+	$LatitudeSeconds=&get_lat_seconds($_);
+	$LatitudeDirection=&get_lat_dir($_);
+	$LongitudeDegree=&get_long_degrees($_);
+	$LongitudeMinutes=&get_long_minutes($_);
+	$LongitudeSeconds=&get_long_seconds($_);
+	$LongitudeDirection=&get_long_dir($_);
+	$Datum=&get_datum($_);
+	$LatLongAccuracy=&get_coordinateUncertainty($_);
+	$USGSQuadrangle=&get_topo_quad($_);
+	$Ecology=&get_habitat($_);
+	$DeterminedBy=&get_identifiedBy($_);
 
+	#$dateIdentified=&get_dateIdentified($_);#this field not in 2018 data
+	#$other=&get_other($_);#this field not in 2018 data
+	#$AnnoYesNo=&get_AnnoRank($_);#this field not in 2018 data
+	#$LatLongAdded=&get_LatLongAdded($_);#this field not in 2018 data$
+	#$errorRadius=&get_errorRadius($_);#this field not in 2018 data$	
+	#$errorRadiusUnits=&get_errorRadiusUnits($_);#this field not in 2018 data$
 
-print OUT join("\t", $cultivated, $id, $accession, $genus, $species, $rank, $subtaxon, $collector, $other_coll, $recordNumber, $verbatimEventDate, $eventDate, $country, $stateProvince, $tempCounty, $TRS, $elevation, $elev_units, $locality, $lat_decimal, $long_decimal, $lat_degrees, $lat_minutes, $lat_seconds, $lat_dir, $long_degrees, $long_minutes, $long_seconds, $long_dir, $datum, $LatLongAdded, $errorRadius, $errorRadiusUnits, $topo_quad, $notes, $other, $identifiedBy, $dateIdentified), "\n";
+	#new for 2018
+	$UTMZone=&get_zone($_);
+	$easting=&get_UTME($_);
+	$nothing=&get_UTMN($_);
+	$Elevation2=&get_elevationHigh($_);
+	$TypeStatus=&get_typeStatus($_);
+	
+print OUT join("\t", "N", $HerbID, $Accession, $Genus, $SpecificEpithet, $Rank, $InfraspecificName, $HybridGenus, $hybridspp1, $hybridspp2, $Collector, $MoreCollectors, $CollectionNumber, $Prefix, $Suffix, $Date, $CorrectedDate, $GeoPrimaryDivision, $GeoSecondaryDivision, $GeoTertiaryDivision, $TownshipAndRange, $Elevation, $Elevation2, $ElevationUnits, $Locality, $Ecology, $LatitudeDecimal, $LongitudeDecimal, $LatitudeDegree, $LatitudeMinutes, $LatitudeSeconds, $LatitudeDirection, $LongitudeDegree, $LongitudeMinutes, $LongitudeSeconds, $LongitudeDirection, $Datum, $LatLongAccuracy, $UTMZone, $easting, $nothing, $USGSQuadrangle, $TypeStatus, $DeterminedBy), "\n";
 }
 close(OUT);
 
@@ -346,6 +452,8 @@ my $det_date;
 my $det_string="";
 #unique to this dataset
 
+
+
 	chomp;
 #Field List 2016
 
@@ -353,6 +461,8 @@ my $det_string="";
 
 	
 	#fix some data quality and formatting problems that make import of fields of certain records problematic
+
+
 #see also the &correct_format 'foreach' statement below	for more formatting corrections	
 
 
@@ -375,7 +485,6 @@ my @fields=split(/\t/,$_,100);
 
 #then process the full records
 (
-
 $det_AID,
 $det_rank, 
 $det_name 
@@ -466,8 +575,6 @@ Record: while(<IN>){
 #skipping: problem character detected: s/\xcb\x9a/    /g   ˚ ---> 5˚.	
 #skipping: problem character detected: s/\xe2\x89\x88/    /g   ≈ ---> ≈2.5	≈	trunk≈5	(≈8	≈0.1
 
-
-
 	$line_store=$_;
 	++$count;		
 		
@@ -478,7 +585,7 @@ Record: while(<IN>){
 #		}
 
 my @fields=split(/\t/,$_,100);
-	unless($#fields==37){ #38 fields but first field is field 0 in perl
+	unless($#fields==43){ #44 fields but first field is field 0 in perl
 		&log_skip("$#fields bad field number $_\n");
 		++$skipped{one};
 		next Record;
@@ -486,6 +593,9 @@ my @fields=split(/\t/,$_,100);
 
 
 
+#N	13099	DAV170544	Marah	fabaceus	NULL	NULL	NULL	NULL	NULL	R. Fernau	NULL	38	NULL	NULL	22 Apr 1974	1974-04-22T00:00:00	United States	California	Yolo County	NULL	NULL	NULL	NULL	
+#CALIFORNIA: YOLO COUNTY Under Rd. 98 bridge along Putah Creek twisted around base of a cottonwood tree. Elevation 50'.	Riparian woodland. near cottonwood, oak and grasses. Sandy loam soil. Vine, 4 ft. high. Scattered locally. Shaded.	
+#38.526667	-121.803611	38	31	36	N	121	48	13	W	WGS84	NULL	NULL	NULL	NULL	NULL	NULL	NULL
 
 #then process the full records
 (
@@ -496,38 +606,43 @@ $genus,
 $species,
 $rank,
 $subtaxon,
+$h_gen,
+$h_sp1,
+$h_sp2,  #10
 $collector,
-$other_coll,
-$recordNumber,	#10
+$other_collectors,
+$recordNumber,	
+$CNUM_prefix,
+$CNUM_suffix,
 $verbatimEventDate,  
 $eventDate,
 $country, 
 $stateProvince,
-$tempCounty,
+$tempCounty,  #20
 $TRS,
 $elevation,
+$elevHigh,
 $elev_units,
 $locality,
-$decimal_lat, 	#20
+$habitat, 
+$decimal_lat, 	
 $decimal_long,
 $lat_degrees,	
-$lat_minutes,	
+$lat_minutes,	#30
 $lat_seconds, 
 $lat_dir,  
 $long_degrees,
 $long_minutes,
 $long_seconds,
-$long_dir,
-$datum,	#30
-$LatLongAdded,
-$errorRadius,	
-$errorRadiusUnits,	
+$long_dir, 
+$datum,	
+$coordinateUncertainty,	
+$zone, 
+$UTME, #40
+$UTMN,
 $topo_quad,    
-$occurrenceRemarks,  #habitat equivalent for these data
-$other,  
-$AnnoRank,
-$identifiedBy,
-$dateIdentified #39
+$typeStatus,  
+$identifiedBy  #44
 )=@fields;
 
 
@@ -540,13 +655,15 @@ if ($id=~/^[ NULL]*$/){
 	next Record;
 }
 
-#remove leading zeroes, remove any white space
+#remove any white space
 foreach($id){
-	s/^0+//g;
 	s/  +/ /g;
 	s/^ +//g;
 	s/ +$//g;
 }
+
+#Add prefix to unique identifier field, 
+$id="UCD$id";
 
 #Remove duplicates
 if($seen{$id}++){
@@ -556,8 +673,7 @@ if($seen{$id}++){
 	next Record;
 }
 
-#Add prefix to unique identifier field, 
-$id="UCD$id";
+
 
 foreach ($catalogNumber){
 	s/NULL//;
@@ -575,7 +691,6 @@ foreach ($catalogNumber){
 		next Record;
 	}
 
-#REmove-- out of state: UCD98097,UCD86865  87290
 
 ##########Begin validation of scientific names
 
@@ -584,67 +699,37 @@ foreach ($catalogNumber){
 my $det_rank = "current determination (uncorrected)";  
 my $det_name = $genus ." " .  $species . " ".  $rank . " ".  $subtaxon;
 my $det_determiner = $identifiedBy;
-my $det_date = $dateIdentified;
 
 	foreach ($det_name){
-		s/NULL//g;
+	s/NULL//g;
 	s/  +/ /g;
 	s/^ +//;
 	s/ +$//;
 	}
 
 	foreach ($det_determiner){
-		s/NULL//g;
+	s/NULL//g;
 	s/  +/ /g;
 	s/^ +//;
 	s/ +$//;
 	}
 
-	foreach ($det_date){
-		s/NULL//g;
-		s/  +/ /g;
-		s/^ +//;
-		s/ +$//;
-	}
-
-	if ($det_date =~ m/^(\d{4}-\d{2}-\d{2})T\d+/){
-		$det_date = $1;
-	}
-	elsif (length($det_date) == 0){
-		&log_change("DET: No date\t$id");
-	}
-	else {
-		&log_change("DET: Bad DET DATE, Check date format\t$det_date\t--\t$id");
-		$det_date = "";
-	}
-	
-	
-	if ((length($det_name) > 1) && (length($det_determiner) == 0) && (length($det_date) == 0)){
+	if ((length($det_name) > 1) && (length($det_determiner) == 0)){
 		$det_string="$det_rank: $det_name";
 	}
-	elsif ((length($det_name) > 1) && (length($det_determiner) > 1) && (length($det_date) == 0)){
+	elsif ((length($det_name) > 1) && (length($det_determiner) > 1)){
 		$det_string="$det_rank: $det_name, $det_determiner";
 	}
-	elsif ((length($det_name) > 1) && (length($det_determiner) == 0) && (length($det_date) > 1)){
-		$det_string="$det_rank: $det_name, $det_date";
-	}
-	elsif ((length($det_name) > 1) && (length($det_determiner) > 1) && (length($det_date) > 1)){
-		$det_string="$det_rank: $det_name, $det_determiner, $det_date";
-	}
-	elsif ((length($det_name) == 0) && (length($det_determiner) == 0) && (length($det_date) == 0)){
+	elsif ((length($det_name) == 0) && (length($det_determiner) == 0)){
 		$det_string="";
 	}
 	else{
-		&log_change("DET: Bad det string\t$det_rank: $det_name, $det_determiner,  $det_date");
+		&log_change("DET Bad string==>RANK:$det_rank  NAME:$det_name  DET:$det_determiner");
 		$det_string="";
 	}
 
 ##############SCIENTIFIC NAME
 #Format name parts
-$genus=ucfirst(lc($genus));
-$species=lc($species);
-$subtaxon=lc($subtaxon);
-$rank=lc($rank);
 
 #construct full verbatim name
 	foreach ($genus){
@@ -669,16 +754,56 @@ $rank=lc($rank);
 		s/ +$//g;
 	}
 
+
+	foreach ($h_gen){
+		s/NULL//g;
+		s/^×/X /;
+		s/^ +//g;
+		s/ +$//g;
+	}	
+	foreach ($h_sp1){
+		s/NULL//g;
+		s/^ +//g;
+		s/ +$//g;
+	}	
+	foreach ($h_sp2){
+		s/NULL//g;
+		s/^ +//g;
+		s/ +$//g;
+	}	
+
+$h_gen,
+$h_sp1,
+$h_sp2,
+
 my $tempName = $genus ." " .  $species . " ".  $rank . " ".  $subtaxon;
+
+my $hybridName;
+	if ((length($h_gen) > 1) && (length($h_sp1) > 1) && (length($h_sp2) == 0)){
+		$hybridName = $h_gen ." X " .  $h_sp1;
+	}
+	elsif ((length($h_gen) > 1) && (length($h_sp1) > 1) && (length($h_sp2) > 1)){
+		$hybridName = $h_gen ." " .  $h_sp1 . " X ".  $h_gen . " ".  $h_sp2;
+	}
+	elsif ((length($h_gen) == 0) && (length($h_sp1) == 0) && (length($h_sp2) == 0)){
+		$hybridName="";
+	}
+	else{
+		&log_change("DET Bad hybrid string==>HGEN:$h_gen  NAME1:$h_sp1  NAME2:$h_sp2");
+		$hybridName="";
+	}
+
+
+
 
 
 #Many of these don't apply to the original dataset
 #but it doesn't hurt to leave them in
 foreach ($tempName){
-	s/NULL//gi;
-	s/[uU]nknown//g; #added to try to remove the word "unknown" for some records
-	s/;//g;
-	s/cf.//g;
+	s/NULL/ /gi;
+	s/[uU]nknown/ /g; #added to try to remove the word "unknown" for some records
+	s/;/ /g;
+	s/cf./ /g;
 	s/ [xX××] / X /;	#change  " x " or " X " to the multiplication sign
 	s/× /X /;	#change  " x " in genus name to the multiplication sign
 	s/  +/ /g;
@@ -686,84 +811,131 @@ foreach ($tempName){
 	s/ +$//g;
 }
 
-
+	if ((length($hybridName) > 1) && (length($tempName) > 1)){
+		$tempName= $hybridName;
+		#print "hybrid name found==>$tempName\n";
+	} 
+	elsif ((length($hybridName) > 1) && (length($tempName) == 0)){	
+		$tempName= $hybridName;
+	}
+	else{
+		$hybridName = "";
+		#use tempName
+	}
+	
 #Fix records with unpublished or problematic name determination that should not be fixed in AlterNames
 #allows name to pass through to CCH; the name is only corrected herein and not global in case name is published
+
+if (($id =~ m/^(UCD94426)$/) && (length($TID{$tempName}) == 0)){ 
+#<HerbID>94426</HerbID><Genus>Vahlodea</Genus><SpecificEpithet>(Wahlemb.) Hartm.</SpecificEpithet>
+	$tempName =~ s/Vahlodea \(.+/Vahlodea atropurpurea/; #fix special case
+	&log_change("TAXON Scientific name error: the authority,(Wahlemb.) Hartm., is entered into species field, modified to current annotation==>$tempName\t--\t$id\n");
+}
 if (($id =~ m/^(UCD53325|UCD53454|UCD53460)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Arctostaphylos</Genus><Rank>ssp.</Rank><InfraspecificName>elegans</InfraspecificName><InfraspecificAuthority>(Jepson) P. Wells</InfraspecificAuthority>
-	$tempName =~ s/Arctostaphylos +ssp\. +elegans/Arctostaphylos manzanita subsp. elegans/; #fix special case
-	&log_change("Scientific name error, species NULL, name from Annotation table==> the authority,(Jepson) P. Wells, is for A. manzanita subsp. elegans,  modified to \t$tempName\t--\t$id\n");
+	$tempName =~ s/Arctostaphylos ssp\. elegans/Arctostaphylos manzanita subsp. elegans/; #fix special case
+	&log_change("TAXON Scientific name error: species NULL, name from Annotation table==> the authority,(Jepson) P. Wells, is for A. manzanita subsp. elegans,  modified to \t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD50661)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Arctostaphylos</Genus><Rank>ssp.</Rank><InfraspecificName>laevigata</InfraspecificName><InfraspecificAuthority>(Eastw.)  Roof</InfraspecificAuthority>
-	$tempName =~ s/Arctostaphylos +ssp\. +laevigata/Arctostaphylos pungens subsp. laevigata/; #fix special case
-	&log_change("Scientific name error, species NULL, name from Annotation table==>the authority,(Eastw.) Roof, is for A. pungens subsp. laevigata,  modified to \t$tempName\t--\t$id\n");
+	$tempName =~ s/Arctostaphylos ssp\. laevigata/Arctostaphylos pungens subsp. laevigata/; #fix special case
+	&log_change("TAXON Scientific name error: species NULL, name from Annotation table==>the authority,(Eastw.) Roof, is for A. pungens subsp. laevigata,  modified to \t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD45158|UCD45181|UCD45183|UCD45194|UCD45195)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Quercus</Genus><SpecificEpithet>Xalvordiana</SpecificEpithet><Authority>Eastwood (pro. sp.)</Authority><Rank>ssp.</Rank><InfraspecificName>californica</InfraspecificName><InfraspecificAuthority>Tucker</InfraspecificAuthority>
-	$tempName =~ s/Quercus xalvordiana ssp\. californica/Quercus turbinella subsp. californica/; #fix special case
-	&log_change("Scientific name error, species from old annotation not updated to new, modified to current annotation\t$tempName\t--\t$id\n");
+	$tempName =~ s/Quercus [Xx] ?alvordiana ssp\. californica/Quercus turbinella subsp. californica/; #fix special case
+	&log_change("TAXON Scientific name not published: Quercus xalvordiana ssp. californica, species name not updated to new, modified to current annotation\t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD46771|UCD46779|UCD46783)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Quercus</Genus><Rank>var.</Rank><InfraspecificName>breweri</InfraspecificName>
-	$tempName =~ s/Quercus xkinselae var\. kinselae/Quercus dumosa var. kinseliae/; #fix special case
-	&log_change("Scientific name error, species from old annotation not updated to new, modified to current annotation\t$tempName\t--\t$id\n");
+	$tempName =~ s/Quercus [Xx] ?kinselae var\. kinselae/Quercus dumosa var. kinseliae/; #fix special case
+	&log_change("TAXON Scientific name not published: Quercus xkinselae var. kinselae, species from old annotation not updated to new, modified to current annotation\t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD45654)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Quercus</Genus><Rank>var.</Rank><InfraspecificName>breweri</InfraspecificName>
 	$tempName =~ s/Quercus var\. breweri/Quercus lobata/; #fix special case
-	&log_change("Scientific name error, species NULL, comb. for var. breweri is in Q. garrayana, name from Annotation table==>Quercus lobata, modified to \t$tempName\t--\t$id\n");
+	&log_change("TAXON Scientific name error: species NULL, comb. for var. breweri is in Q. garrayana, modified to current annotation==> $tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD46153)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Quercus</Genus><Rank>var.</Rank><InfraspecificName>breweri</InfraspecificName>
 	$tempName =~ s/Quercus var\. breweri/Quercus garryana X sadleriana/; #fix special case
-	&log_change("Scientific name error, species NULL, erroneous data added to subtaxon name that is not in annotation table, modified to current annotation\t$tempName\t--\t$id\n");
+	&log_change("TAXON Scientific name error: species NULL, erroneous data added to subtaxon name that is not in annotation table, modified to current annotation\t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD46184)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Quercus</Genus><Rank>var.</Rank><InfraspecificName>breweri</InfraspecificName>
-	$tempName =~ s/Quercus var\. breweri/Quercus garryana var. breweri X dumosa/; #fix special case
-	&log_change("Scientific name error, species NULL, name in annotation table is an error, Q. dumosa var. breweri, modified to\t$tempName\t--\t$id\n");
+	$tempName =~ s/^Quercus var\. breweri$/Quercus garryana X dumosa/; #fix special case
+	&log_change("TAXON Scientific name error: species NULL, name in annotation table is an error, Q. dumosa var. breweri, modified to\t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD150428)$/) && (length($TID{$tempName}) == 0)){ 
 #<SpecificEpithet>filipes</SpecificEpithet><Authority>A. Gray</Authority>
-	$tempName =~ s/filipes/Astragalus filipes/; #fix special case
-	&log_change("Scientific name error, Genus NULL, name from Annotation table==>Astragalus filipes, modified to \t$tempName\t--\t$id\n");
+	$tempName =~ s/^filipes/Astragalus filipes$/; #fix special case
+	&log_change("TAXON Scientific name error:  Genus NULL, modified to current annotation $tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD36842|UCD58527|UCD58528|UCD58529|UCD58530|UCD59305|UCD59453|UCD59454|UCD59460|UCD59461|UCD59462|UCD59467|UCD59473|UCD59479|UCD59480|UCD59486|UCD59487|UCD59488|UCD59498)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Bromus</Genus><SpecificEpithet>diandrus</SpecificEpithet><Authority>Roth</Authority><Rank>var.</Rank><InfraspecificName>gussonei</InfraspecificName><InfraspecificAuthority>(Parl.) Cross &amp; Durieu</InfraspecificAuthority>
-	$tempName =~ s/Bromus diandrus var\. gussonei/Bromus diandrus/; #fix special case
-	&log_change("Scientific name error, var. comb. not published, name from Annotation table==>Bromus rigidus var. gussonei, not completely delted from main table, modified to \t$tempName\t--\t$id\n");
+	$tempName =~ s/^Bromus diandrus var\. gussonei$/Bromus diandrus/; #fix special case
+	&log_change("TAXON Scientific name not published: old name Bromus rigidus var. gussonei, not completely delted from main table, modified to current annotation $tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD52182|UCD53552|UCD53553|UCD53554|UCD53555|UCD53556|UCD53557|UCD53558|UCD53560|UCD53561|UCD53562|UCD53563|UCD53564|UCD53565|UCD53566|UCD53567|UCD53568|UCD53569|UCD53570|UCD53572|UCD53573)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Bromus</Genus><SpecificEpithet>diandrus</SpecificEpithet><Authority>Roth</Authority><Rank>var.</Rank><InfraspecificName>gussonei</InfraspecificName><InfraspecificAuthority>(Parl.) Cross &amp; Durieu</InfraspecificAuthority>
-	$tempName =~ s/Arctostaphylos viridissima var\. viridissima/Arctostaphylos viridissima/; #fix special case
-	&log_change("Scientific name error, var. comb. not published, previous subtaxon name from Annotation table==>Arctostaphylos pechoensis var. viridissima, not completely delted from main table, modified to \t$tempName\t--\t$id\n");
+	$tempName =~ s/^Arctostaphylos viridissima var\. viridissima$/Arctostaphylos viridissima/; #fix special case
+	&log_change("TAXON Scientific name not published: previous subtaxon name Arctostaphylos pechoensis var. viridissima, not completely delted from main table, modified to \t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD50660|UCD50662|UCD51074)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Arctostaphylos</Genus><Rank>form.</Rank><InfraspecificName>cushingiana</InfraspecificName><InfraspecificAuthority>(Eastw.) P. Wells</InfraspecificAuthority>
-	$tempName =~ s/Arctostaphylos form\. cushingiana/Arctostaphylos glandulosa f. cushingiana X Arctostaphylos tracyi/; #fix special case
-	&log_change("Scientific name error, hybrid name from Annotation table==>Arctostaphylos tracyi f. cushingiana, name not published and likely an error, modified to \t$tempName\t--\t$id\n");
+	$tempName =~ s/^Arctostaphylos form\. cushingiana$/Arctostaphylos glandulosa f. cushingiana X Arctostaphylos tracyi/; #fix special case
+	&log_change("TAXON Scientific name error: hybrid species name missing, name not published and likely an error, modified to \t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD123500)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Callitriche</Genus><SpecificEpithet>Pursh</SpecificEpithet>
-	$tempName =~ s/[Cc]allitriche [pP]ursh/Callitriche heterophylla/; #fix special case
-	&log_change("Scientific name error, Authority 'Pursh' entered as species name, modified to \t$tempName\t--\t$id\n");
+	$tempName =~ s/^[Cc]allitriche [pP]ursh$/Callitriche heterophylla/; #fix special case
+	&log_change("TAXON Scientific name error: Authority 'Pursh' entered as species name, modified to \t$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD37961|UCD49887|UCD49893|UCD49894|UCD49895|UCD49896|UCD49897|UCD49898|UCD49900|UCD49903)$/) && (length($TID{$tempName}) == 0)){ 
 #<Genus>Isolepis</Genus><SpecificEpithet>cernua</SpecificEpithet><Authority>(Vahl) Roem. &amp; Schult.</Authority><Rank>var.</Rank><InfraspecificName>californicus</InfraspecificName><InfraspecificAuthority>(Torrey) Beetle</InfraspecificAuthority>
-	$tempName =~ s/Isolepis cernua var. californicus/Isolepis cernua/; #fix special case
-	&log_change("Scientific name error, not a published var. comb. in Isolepis cernua==> modified to \t$tempName\t--\t$id\n");
+	$tempName =~ s/^Isolepis cernua var\. californicus$/Isolepis cernua/; #fix special case
+	&log_change("TAXON Scientific name not published: Isolepis cernua var. californicus not a published var. comb., modified to==>$tempName\t--\t$id\n");
 }
 if (($id =~ m/^(UCD101506)$/) && (length($TID{$tempName}) == 0)){ 
-	$tempName =~ s/Eriogonum var. torreyanum/Eriogonum umbellatum var. torreyanum/; #fix special case
-	&log_change("Scientific name error, species name NULL, modified to \t$tempName\t--\t$id\n");
+	$tempName =~ s/^Eriogonum var\. torreyanum$/Eriogonum umbellatum var. torreyanum/; #fix special case
+	&log_change("TAXON Scientific name error: species name NULL, modified to \t$tempName\t--\t$id\n");
 }
+if (($id =~ m/^(UCD37696|UCD37432|UCD37436|UCD37437|UCD37692)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/^Agrostis densiflora var\. punta-reyensis$/Agrostis densiflora/; #fix special case
+	&log_change("TAXON Scientific name not published: Agrostis densiflora var. punta-reyensis, variety name from old annotation not deleted, modified to==> $tempName\t--\t$id\n");
+}
+if (($id =~ m/^(UCD37146|UCD37147|UCD52009|UCD52010|UCD52011|UCD52012|UCD52013|UCD52014|UCD52016|UCD52017|UCD52018)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/^Agrostis densiflora var\. punta-reyesensis$/Agrostis densiflora/; #fix special case
+	&log_change("TAXON Scientific name not published: Agrostis densiflora var. punta-reyesensis, variety name from old annotation not deleted, modified to==> $tempName\t--\t$id\n");
+}
+if (($id =~ m/^(UCD37118|UCD57535|UCD57536|UCD57537)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/^Calamagrostis ophitidis var\. ophitidis$/Calamagrostis ophitidis/; #fix special case
+	&log_change("TAXON Scientific name not published: Calamagrostis ophitidis var. ophitidis, variety name from old annotation not deleted, modified to==> $tempName\t--\t$id\n");
+}
+if (($id =~ m/^(UCD53798)$/) && (length($TID{$tempName}) == 0)){ 
+#<HerbID>53798</HerbID><Genus>Arctostaphylos</Genus><SpecificEpithet>pungens</SpecificEpithet><Authority>H.B.K.</Authority><Rank>ssp.</Rank><InfraspecificName>ranvenii</InfraspecificName>
+	$tempName =~ s/^Arctostaphylos pungens ssp\. ranvenii$/Arctostaphylos hookeri subsp. ravenii/; #fix special case
+	&log_change("TAXON Scientific name error: subtaxon mispelled and Scientific name not published Arctostaphylos pungens ssp. ravenii, modified to basionym at the subsp level==> $tempName\t--\t$id\n");
+}
+if (($id =~ m/^(UCD50810|UCD53797)$/) && (length($TID{$tempName}) == 0)){ 
+#<HerbID>50810</HerbID><Genus>Arctostaphylos</Genus><SpecificEpithet>pungens</SpecificEpithet><Authority>H.B.K.</Authority><Rank>ssp.</Rank><InfraspecificName>ravenii</InfraspecificName>
+	$tempName =~ s/^Arctostaphylos pungens ssp\. ravenii$/Arctostaphylos hookeri subsp. ravenii/; #fix special case
+	&log_change("TAXON Scientific name error: Scientific name not published Arctostaphylos pungens ssp. ravenii, modified to basionym at the subsp level==> $tempName\t--\t$id\n");
+}
+if (($id =~ m/^(UCD73114)$/) && (length($TID{$tempName}) == 0)){ 
+	$tempName =~ s/^Wyethia heterophyllum$/Wyethia helenioides/; #fix special case
+	&log_change("TAXON Scientific name error: species nme passed down from previous record,  Wyethia heterophyllum not published name, modified to nme on duplicate UCD72445==> $tempName\t--\t$id\n");
+}
+
+
+
+
 
 
 #format hybrid names
 if($tempName =~ m/([A-Z][a-z-]+ [a-z-]+) X /){
 	$hybrid_annotation = $tempName;
-	warn "Hybrid Taxon: $1 removed from $tempName\n";
+	#warn "Hybrid Taxon: $1 removed from $tempName\n";
 	&log_change("Scientific name - HYBRID: $1 removed from $tempName");
 	$tempName = $1;
 }
@@ -782,29 +954,29 @@ $scientificName=&validate_scientific_name($scientificName, $id);
 # flag taxa that are cultivars, add "P" for purple flag to Cultivated field	
 
 ## regular Cultivated parsing
-#	if ($cultivated !~ m/^P$/){
-#		if ($locality =~ m/(weed[y .]+|uncultivated[ ,]|naturalizing[ ,]|naturalized[ ,]|cultivated fields?[ ,]|cultivated (and|or) native|cultivated (and|or) weedy|weedy (and|or) cultivated)/i){
-#			&log_change("CULT: specimen likely not cultivated, purple flagging skipped\t$scientificName\t--\t$id\n");
-#		}
-#		elsif (($locality =~ m/(Bot\. Garden[ ,]|Botanical Garden, University of California|cultivated native[ ,]|cultivated from |cultivated plants[ ,]|cultivated at |cultivated in |cultivated hybrid[ ,]|under cultivation[ ,]|in cultivation[ ,]|Oxford Terrace Ethnobotany|Internet purchase|cultivated from |artificial hybrid[ ,]|Trader Joe's:|Bristol Farms:|Market:|Tobacco:|Yaohan:|cultivated collection|seed source. |plants grown in)/i) || ($occurrenceRemarks =~ m/(cult.? shrub|cultivated from |cultivated plants[ ,]|cultivated at |cultivated in |cultivated hybrid[ ,]|under cultivation[ ,]|in cultivation[ ,]|seed source.? |ornamental\.|ornamental plant|ornamental shrub|ornamental tree|horticultural plant|grown in greenhouse|plants grown in|planted from seed|planted from a seed)/i)){
-#		    $cultivated = "P";
-#	   		&log_change("CULT: Cultivated specimen found and purple flagged: $cultivated\t--\t$scientificName\t--\t$id\n");
-#		}
-#		else {		
+	if ($cultivated !~ m/^P$/){
+		if ($locality =~ m/(weed[y .]+|uncultivated[ ,]|naturalizing[ ,]|naturalized[ ,]|cultivated fields?[ ,]|cultivated (and|or) native|cultivated (and|or) weedy|weedy (and|or) cultivated)/i){
+			&log_change("CULT: specimen likely not cultivated, purple flagging skipped\t$scientificName\t--\t$id\n");
+		}
+		elsif (($locality =~ m/(Bot\. Garden[ ,]|Botanical Garden, University of California|cultivated native[ ,]|cultivated from |cultivated plants[ ,]|cultivated at |cultivated in |cultivated hybrid[ ,]|under cultivation[ ,]|in cultivation[ ,]|Oxford Terrace Ethnobotany|Internet purchase|cultivated from |artificial hybrid[ ,]|Trader Joe's:|Bristol Farms:|Market:|Tobacco:|Yaohan:|cultivated collection|seed source. |plants grown in)/i) || ($occurrenceRemarks =~ m/(cult.? shrub|cultivated from |cultivated plants[ ,]|cultivated at |cultivated in |cultivated hybrid[ ,]|under cultivation[ ,]|in cultivation[ ,]|seed source.? |ornamental\.|ornamental plant|ornamental shrub|ornamental tree|horticultural plant|grown in greenhouse|plants grown in|planted from seed|planted from a seed)/i)){
+		    $cultivated = "P";
+	   		&log_change("CULT: Cultivated specimen found and purple flagged: $cultivated\t--\t$scientificName=>$id\r$locality\n");
+		}
+		else {		
 			if($cult{$scientificName}){
 				$cultivated = $cult{$scientificName};
 				print $cult{$scientificName},"\n";
-				&log_change("CULT: Documented cultivated taxon, now purple flagged: $cultivated\t--\t$scientificName\t--\t$id\n");	
+				&log_change("CULT: Documented cultivated taxon, now purple flagged: $cultivated\t--\t$scientificName=>$id\r$locality\n");
 			}
 			else {
 			#&log_change("Taxon skipped purple flagging (1) $cultivated\t--\t$scientificName\n");
 			$cultivated = "";
 			}
-#		}
-#	}
-#	else {
-#		&log_change("CULT: Taxon flagged as cultivated in original database: $cultivated\t--\t$scientificName\n");
-#	}
+		}
+	}
+	else {
+		&log_change("CULT: Taxon flagged as cultivated in original database: $cultivated\t--\t$scientificName==>$id\r$locality\n");
+	}
 
 
 
@@ -823,6 +995,22 @@ my $eventDateAlt;
 #EJD/LJD format for CCH machine date
 #verbatim date for dwc verbatimEventDate and CCH "Date"
 #<Date>2004-05-24T00:00:00</Date> CHSC format
+
+	foreach ($verbatimEventDate){
+	s/NULL//g;
+	#s/Apr 2997/Apr 1997/;
+	s/  +/ /g;
+	s/ +$//g;
+	s/^ +//g;
+	}	
+
+	foreach ($eventDate){
+	s/NULL//g;
+	s/  +/ /g;
+	s/ +$//g;
+	s/^ +//g;
+	}
+
 
 #find what fields have a date value, choose one and add to $eventDateAlt
 	if((length($eventDate) > 1) && (length($verbatimEventDate) > 1)){
@@ -847,15 +1035,6 @@ my $eventDateAlt;
 	}
 
 
-
-
-	foreach ($verbatimEventDate){
-	s/NULL//g;
-	s/  +/ /g;
-	s/ +$//g;
-	s/^ +//g;
-	}	
-
 #YYYY-MM-DD format for dwc eventDate
 #EJD/LJD format for CCH machine date
 #$coll_month, #three letter month name: Jan, Feb, Mar etc.
@@ -863,10 +1042,15 @@ my $eventDateAlt;
 #$coll_year,
 #verbatim date for dwc verbatimEventDate and CCH "Date"
 	foreach ($eventDateAlt){
+	s/[Date ]*[ Unkow]+//i;
+	s/no date//i;
+	s/Early //i;
+	s/^ca //i;
 	s/NULL//g;
 	s/T[0:]+$//g;
-	s/\?//g;
-	s/s$//g;
+	s/\?/ /g;
+	s/\(/ /g;
+	s/\)/ /g;
 	s/ and /-/g;
 	s/\//-/g;
 	s/-+/-/g;
@@ -874,13 +1058,67 @@ my $eventDateAlt;
 	s/,/ /g;
 	s/\./ /g;
 	s/ ?- ?/-/g;
+	s/([A-Z][a-z]+)(19\d\d)/$1 $2/; #May1980
+	s/^(\d+)([A-Z][a-z]+)/$1 $2/; #21Jul
+	s/2997-04/1997-04/;
 	s/  +/ /g;
 	s/ +$//g;
 	s/^ +//g;
 
 	}	
 
-	if($eventDateAlt=~/^([0-9]{4})[- ](\d\d)[- ](\d\d)/){	#if eventDate is in the format ####-##-##
+
+#Fix some problem dates first
+	if($eventDateAlt=~/^(Feb|May|Jul|Nov)[- ](Apr|Aug|Dec|Oct|Sep)[- ]([0-9]{4})/){	#if eventDate is in the format Feb-Apr ####,Jul-Aug ####,May-Aug ####,May-Oct ####,Nov-Dec ####
+		$YYYY=$3; 
+		$MM=$1; 
+		$DD= "1";
+		$MM2 = $2;
+		$DD2 = "30";
+	warn "Date (00-1)$eventDateAlt\t$id";
+	}
+	elsif ($eventDateAlt=~/^([Mm[iI][dD])[- ]?([A-Z][a-z]+)[- ]([0-9]{4})/) {#if eventDate is in the format mid-Aug 2008
+		$YYYY = $4;
+		$MM = $2;
+		$DD = "10";
+		$MM2 = $2;
+		$DD2 = "20";
+	warn "Date (00-2)$eventDateAlt\t$id";
+	}
+	elsif($eventDateAlt=~/^(Apr|Jun)[- ](\d+)[- ](Sep|Jul)[- ]([0-9]{4})/){	#if eventDate is in the format Jun-5 Jul 1903, Apr-15 Sep 1949
+		$YYYY=$4; 
+		$MM=$1; 
+		$DD= 1;
+		$MM2 = $3;
+		$DD2 = $2;
+	warn "Date (00-3)$eventDateAlt\t$id";
+	}
+	elsif($eventDateAlt=~/^(\d+)[- ](Apr|Jun)[- ](\d+)[- ](Sep|Jul)[- ]([0-9]{4})/){	#if eventDate is in the format 29Jun-11Jul1912
+		$YYYY=$5; 
+		$MM=$2; 
+		$DD= $1;
+		$MM2 = $4;
+		$DD2 = $3;
+	warn "Date (00-4)$eventDateAlt\t$id";
+	}
+	elsif($eventDateAlt=~/^(\d+)[- ]([A-Z])[- ]([a-z]+)[- ]([0-9]{4})/){	#if eventDate is in the format 5 J un 1957
+		$YYYY=$4; 
+		$MM = "$2$3"; 
+		$DD= $1;
+		$MM2 = "";
+		$DD2 = "";
+	warn "Date (00-5)$eventDateAlt\t$id";
+	}
+	elsif($eventDateAlt=~/^([0-9]{4})$/){	#if eventDate is in the format 1957
+		$YYYY=$1; 
+		$MM = "Jan"; 
+		$DD= "1";
+		$MM2 = "Dec";
+		$DD2 = "30";
+	warn "Date (00-6)$eventDateAlt\t$id";
+	}
+#then run the rest of the normal processing
+	elsif($eventDateAlt=~/^([0-9]{4})[- ](\d\d)[- ](\d\d)/){	#if eventDate is in the format ####-##-##
 		$YYYY=$1; 
 		$MM=$2; 
 		$DD=$3;	#set the first four to $YYYY, 5&6 to $MM, and 7&8 to $DD
@@ -1108,10 +1346,38 @@ if ($DD2 =~ m/^(\d)$/){
 #warn "$formatEventDate\t--\t$EJD, $LJD\t--\t$id";
 ($EJD, $LJD)=&check_julian_days($EJD, $LJD, $today_JD, $id);
 
+#fix some special julian date ranges that cannot be parsed
+#logging: Date: date format not recognized: Jul 1926-1928==>(Jul 1926/1928)	UCD94017
+#logging: Date: date format not recognized: Winter1919-1920==>(Winter1919-1920)	UCD56043
+#logging: Date: date format not recognized: 1995-1996==>(1995-1996)	UCD80847
+#logging: Date: date format not recognized: 1995-1996==>(1995-1996)	UCD80855
+#logging: Date: date format not recognized: 1959-1960==>(1959-1960)	UCD73856
+#logging: Date: date format not recognized: 1970'==>(1970's)	UCD20285
+	if ($eventDateAlt=~ m/^Jul 1926-1928/){
+		$EJD = "2424697";
+		$LJD = "2425457";
+	}
+	elsif ($eventDateAlt=~ m/^Winter1919-1920/){
+		$EJD = "2422263";
+		$LJD = "2422382";
+	}
+	elsif ($eventDateAlt=~ m/^1995-1996/){
+		$EJD = "2449718";
+		$LJD = "2450447";
+	}
+	elsif ($eventDateAlt=~ m/^1959-1960/){
+		$EJD = "2436569";
+		$LJD = "2437298";
+	}
+	elsif ($eventDateAlt=~ m/^1970\'s/){
+		$EJD = "2440587";
+		$LJD = "2444237";
+	}
 
 ###############COLLECTORS
 
-	foreach ($collector, $other_coll){
+	foreach ($collector){
+		s/NULL//g;
 		s/'$//g;
 		s/, M\. ?D\.//g;
 		s/, Jr\./ Jr./g;
@@ -1123,9 +1389,23 @@ if ($DD2 =~ m/^(\d)$/){
 		s/^ +//;
 		s/ +$//;
 		s/  +/ /g;
-	$other_collectors = ucfirst($other_coll);
-
 	}
+
+	foreach ($other_collectors){
+		s/NULL//g;
+		s/, Jr\./ Jr./g;
+		s/, Jr/ Jr./g;
+		s/, Esq./ Esq./g;
+		s/, Sr\./ Sr./g;
+		s/^ +//;
+		s/ +$//;
+		s/  +/ /g;
+	}
+
+$collectors = "";
+$other_coll = "";
+$recordedBy = "";
+$verbatimCollectors = "";
 
 #test records
 if ($collector =~ m/ Dean/){
@@ -1133,41 +1413,60 @@ if ($collector =~ m/ Dean/){
 }
 
 #continue parsing
-if (($collector =~ m/^NULL/) && ($other_collectors =~ m/^NULL/)){
+if ((length($collector) == 0) && (length($other_collectors) == 0)){
 	$recordedBy = "";
+	$other_collectors = "";
 	$verbatimCollectors = "";
 	&log_change("COLLECTOR: Collector name and Other Collector fields missing, changed to NULL\t$id\n");
 }
-elsif (($collector =~ m/^NULL/) && ($other_collectors !~ m/^NULL/)){
-	#$recordedBy = &CCH::validate_single_collector($other_collectors, $id);
-	$recordedBy = "$other_collectors"; #temp
+elsif ((length($collector) == 0) && (length($other_collectors) > 1)){
+	$collectors = $other_collectors;
+	$recordedBy = &CCH::validate_collectors($collectors, $id);
 	$verbatimCollectors = "$other_collectors";
 	&log_change("COLLECTOR: Collector name field missing, using other collector field\t$id\n");
 }
-elsif (($collector !~ m/^NULL/) && ($other_collectors =~ m/^NULL/)){
-	#$recordedBy = &CCH::validate_single_collector($collector, $id);
-	$recordedBy = "$collector"; #temp
-	$verbatimCollectors = "$collector";
-	&log_change("COLLECTOR: Other Collector field missing, using only Collector\t$id\n");
+elsif ((length($collector) > 1) && (length($other_collectors) == 0)){
+		if ($collector =~ m/(;|:| ?&| [Aa][nN][dD]| [Ww][iI][Tt][Hh]) ([A-Z].*)$/){
+			my $other_coll=$2;
+			$other_collectors = $other_coll;
+			$collectors = $collector;
+			$recordedBy = &CCH::validate_collectors($collectors, $id);	
+		#D Atwood; K Thorne
+			$verbatimCollectors = "$collectors";
+			warn "Names 5: $verbatimCollectors===>$collector\t--\t$recordedBy\t--\t$other_collectors\n";
+			&log_change("COLLECTOR (5b): modified: $verbatimCollectors==>($collector)\t($recordedBy\)\t($other_collectors)\t$id\n");		
+		}
+		else{
+			$collectors = $collector;
+			$recordedBy = &CCH::validate_collectors($collectors, $id);
+			$verbatimCollectors = "$collector";
+			$other_collectors = "";
+			#warn "Names 6: $verbatimCollectors===>$collector\t--\t$recordedBy\t--\t$other_collectors\n";			
+			&log_change("COLLECTOR: Other Collector field missing, using only Collector\t$id\n");
+		}
 }
-elsif (($collector !~ m/^NULL/) && ($other_collectors !~ m/^NULL/)){
-	#$recordedBy = &CCH::validate_single_collector($collector, $id);
-	$recordedBy = "$collector"; #temp
-	$verbatimCollectors = "$collector, $other_collectors";
+elsif ((length($collector) > 1) && (length($other_collectors) > 1)){
+	$collectors = $collector;
+	$recordedBy = &CCH::validate_collectors($collectors, $id);
+	$verbatimCollectors = "$collector; $other_collectors";
 	#warn "Names 1: $verbatimCollectors\t--\t$recordedBy\t--\t$other_collectors\n";}
 }
 elsif ((length($collector) == 0) && (length($other_collectors) == 0)){
 		&log_change("COLLECTOR: Collector name NULL\t$id\n");
-		$recordedBy =  $other_collectors = $verbatimCollectors = "";
+		$recordedBy =  $other_collectors = "";
+		$verbatimCollectors = "Unknown";
 }
 else {
 		&log_change("COLLECTOR: Collector name problem\t$id\n");
-		$recordedBy =  $other_collectors = $verbatimCollectors = "";
+		$recordedBy = "";
+		$verbatimCollectors = "$collector|$other_collectors";
 }
 
 foreach ($verbatimCollectors){
+	s/NULL//g;
 	s/'$//g;
-	s/NULL//;
+	#s/\| *$//g;
+	#s/^ *\|$//g;
 	s/^ +//;
 	s/ +$//;
 	s/  +/ /g;
@@ -1176,23 +1475,45 @@ foreach ($verbatimCollectors){
 
 #############CNUM##################COLLECTOR NUMBER####
 #clean up collector numbers, prefixes and suffixes
+#prefix nd suffix are not a field in these data
 
-my $CNUM_suffix;
 my $CNUM;
-my $CNUM_prefix;
+
 
 foreach ($recordNumber){
-	s/NULL//;
+	s/NULL//g;
 	s/  +/ /g;
 	s/^ +//;
 	s/ +$//;
 	s/I439I/14391/;
 	s/[Ss],?[Nn][,.]?/s.n./;
-
+}
+foreach ($CNUM_prefix){
+	s/NULL//g;
+	s/  +/ /g;
+	s/^ +//;
+	s/ +$//;
+}
+foreach ($CNUM_suffix){
+	s/NULL//g;
+	s/  +/ /g;
+	s/^ +//;
+	s/ +$//;
 }
 
 
-($CNUM_prefix,$CNUM,$CNUM_suffix)=&parse_CNUM($recordNumber);
+	if ($recordNumber){
+		$CNUM = $recordNumber;
+	}
+	else{
+		if ((length($CNUM_suffix)>= 1) || (length($CNUM_prefix)>= 1)){
+			&log_change("COLL NUMB: prefix or suffix present, but collection number is NULL==>PRE:$CNUM_prefix  NUM:$recordNumber  SUF:$CNUM_suffix\t$id\n");
+			$CNUM = "";
+		}
+		else{
+			$CNUM = $CNUM_suffix = $CNUM_prefix = "";
+		}
+	}
 
 
 ####COUNTRY
@@ -1272,6 +1593,15 @@ foreach($county){#for each $county value
 		}
 	}
 }
+
+my $verbatimCounty = "";
+#format verbatim county properly
+	if($county !~m/^$tempCounty$/){
+		$verbatimCounty = $tempCounty;
+	}
+
+
+
 ####LOCALITY
 
 foreach ($locality){
@@ -1288,10 +1618,10 @@ foreach ($locality){
 }
 
 #informationWithheld
-		if($locality=~m/(.*) ?DUE TO CONCERNS .*/){ #if there is text stating that text has been redacted, use the string
+		if($locality=~m/([^<]+) ?DUE TO CONCERNS .*/){ #if there is text stating that text has been redacted, use the string
 			$locality = "$1... Fields redacted by UCD, contact the data manager for more information";
-			$informationWithheld = "DUE TO CONCERNS FOR THE PROTECTION OF CERTAIN RARE OR COLLECTIBLE  SPECIES, FOR THIS SPECIES THE LOCATION INFO HAS BEEN TRUNCATED, SECTION INFO HAS BEEN DELETED FROM THE TOWNSHIP AND RANGE FIELD, AND SECONDS HAVE BEEN REMOVED FROM LATITUDE AND LONGITUDE.";
-			&log_change("specimen redacted by CHSC\t$id");
+			$informationWithheld = "DUE TO CONCERNS FOR THE PROTECTION OF CERTAIN RARE OR COLLECTIBLE SPECIES, FOR THIS SPECIES THE LOCATION INFO HAS BEEN TRUNCATED, SECTION INFO HAS BEEN DELETED FROM THE TOWNSHIP AND RANGE FIELD, AND SECONDS HAVE BEEN REMOVED FROM LATITUDE AND LONGITUDE.";
+			&log_change("specimen redacted by UCD\t$id");
 	 	}
 		else{
 			$informationWithheld="";
@@ -1299,7 +1629,6 @@ foreach ($locality){
 	
 	
 ####ELEVATION
-my $feet_to_meters="3.2808";
 
 #$elevationInMeters is the darwin core compliant value
 #verify if elevation fields are just numbers
@@ -1310,6 +1639,14 @@ my $feet_to_meters="3.2808";
 ####Elevation
 
 foreach($elevation){
+	s/,//g;
+	s/^ +//;
+	s/ +$//;
+	s/ //g;
+	s/\.//g;
+}
+
+foreach($elevHigh){
 	s/,//g;
 	s/^ +//;
 	s/ +$//;
@@ -1329,30 +1666,31 @@ foreach($elev_units){
 	s/\.//g;
 }
 
-	if(($elevation =~ m/^NULL/) && ($elev_units =~ m/^NULL/)){
-		$verbatimElevation=$CCH_elevationInMeters=$elevationInFeet=$elevationInMeters="";
-		&log_change("Elevation NULL, $id\n");		#call the &log function to print this log message into the change log...
+	if(($elevation =~ m/^NULL/) && ($elev_units =~ m/^NULL/) && ($elevHigh =~ m/^NULL/)){
+		$elev_units = $verbatimElevation=$CCH_elevationInMeters=$elevationInFeet=$elevationInMeters="";
+		&log_change("ELEV elvation fields NULL, $id\n");		#call the &log function to print this log message into the change log...
 	}		
-	elsif(($elevation =~ m/^-?[0-9]+/) && ($elev_units =~ m/^NULL/)){
-		$CCH_elevationInMeters = $elevationInFeet = $elevationInMeters="";
+	elsif(($elevation =~ m/^-?[0-9]+/) && ($elev_units =~ m/^NULL/) && ($elevHigh =~ m/^NULL/)){
+		$elev_units = $CCH_elevationInMeters = $elevationInFeet = $elevationInMeters="";
 		$verbatimElevation = $elevation;
-		&log_change("Elevation missing units, $id\n");		#call the &log function to print this log message into the change log...
+		&log_change("ELEV elevation missing units, $id\n");		#call the &log function to print this log message into the change log...
 	}		
-	elsif(($elevation =~ m/^NULL/) && ($elev_units =~ m/.*/)){
+	elsif(($elevation =~ m/^NULL/) && ($elev_units =~ m/.+/) && ($elevHigh =~ m/^NULL/)){
 		$verbatimElevation = $CCH_elevationInMeters = $elevationInFeet = $elevationInMeters="";
-		&log_change("Elevation field NULL, but Units field contains partial data\t($elev_units)\t$id\n");		#call the &log function to print this log message into the change log...
+		&log_change("ELEV elevation fields NULL, but Units field contains partial data\t($elev_units)\t$id\n");		#call the &log function to print this log message into the change log...
 	}
-	elsif(($elevation =~ m/^-?[0-9]+/) && ($elev_units =~ m/^[MmFfeEtTRrSs]+$/)){
-		$verbatimElevation = $elevation . $elev_units;
+	elsif(($elevation =~ m/^-?[0-9]+/) && ($elev_units =~ m/^[MmFfeEtTRrSs]+$/) && ($elevHigh =~ m/^NULL/)){
+		$verbatimElevation = "$elevation $elev_units";
 	}
-	elsif(($elevation !~ m/^-?[0-9]+/) && ($elev_units =~ m/.+/)){
-		&log_change("Elevation poorly formatted or has only non-numeric data\t($elevation)\t($elev_units)\t$id\n");		#call the &log function to print this log message into the change log...
-		$verbatimElevation = $CCH_elevationInMeters = $elevationInFeet = $elevationInMeters="";
+	elsif(($elevation =~ m/^NULL/) && ($elev_units =~ m/^[MmFfeEtTRrSs]+$/) && ($elevHigh =~ m/^-?[0-9]+/)){
+		$verbatimElevation = "$elevHigh $elev_units";
+	}
+	elsif(($elevation =~ m/^-?[0-9]+/) && ($elev_units =~ m/[^MmFfeEtTRrSs]+$/) && ($elevHigh =~ m/^-?[0-9]+/)){
+		$verbatimElevation = "$elevation - $elevHigh $elev_units";
 	}		
-
 	else {
-		&log_change("Elevation problem\t($elevation)($elev_units)\t$id\n");
-		$verbatimElevation = $CCH_elevationInMeters = $elevationInFeet = $elevationInMeters="";
+		&log_change("ELEV verbatim elevation problem==>ELEV: $elevation  ELEV2:$elevHigh  UNITS:$elev_units)\t$id\n");
+		$verbatimElevation = "$elevation - $elevHigh $elev_units";
 	}
 
 foreach($verbatimElevation){
@@ -1368,32 +1706,67 @@ foreach($verbatimElevation){
 }
 
 
-if (length($verbatimElevation) >= 1){
-
-	if ($verbatimElevation =~ m/^(-?[0-9]+) ?m/){
-		$elevationInMeters = $1;
+if (($elevation =~ m/^-?\d+\.?\d*$/) && ($elev_units =~ m/^[metrs.]+$/i)){
+		$elevationInMeters = int($elevation);
 		$elevationInFeet = int($elevationInMeters * 3.2808);
 		$CCH_elevationInMeters = "$elevationInMeters m";
-	}
-	elsif ($verbatimElevation =~ m/^(-?[0-9]+) ?f/){
-		$elevationInFeet = $1;
+}
+elsif (($elevation =~ m/^-?\d+\.?\d*$/) && ($elev_units =~ m/^[fet.]+$/i)){
+		$elevationInFeet = int($elevation);
+		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+		$CCH_elevationInMeters = "$elevationInMeters m";
+}
+elsif (($elevation =~ m/NULL/) && ($elev_units =~ m/^[fet.]+$/i)){#this is a case where the elevation is NULL but there is a value in 2nd elevation field that has a unit
+	if (length($elevHigh) >= 1){
+		$elevationInFeet = int($elevHigh);
 		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
 		$CCH_elevationInMeters = "$elevationInMeters m";
 	}
-	elsif ($verbatimElevation =~ m/^-?[0-9]+ ?- ?(-?[0-9]+) ?f/){
-		$elevationInFeet = $1;
-		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+	else{
+		$CCH_elevationInMeters = $elevationInFeet = $elevationInMeters="";
+		&log_change("ELEV elevation has missing units, is non-numeric, or has typographic errors(1)==>ELEV: $elevation  ELEV2:$elevHigh  UNITS:$elev_units)\t$id\n");
+	}
+}
+elsif (($elevation =~ m/NULL/) && ($elev_units =~ m/^[metrs.]+$/i)){#this is a case where the elevation is NULL but there is a value in 2nd elevation field that has a unit
+	if (length($elevHigh) >= 1){
+		$elevationInMeters = int($elevHigh);
+		$elevationInFeet = int($elevationInMeters * 3.2808); #make it an integer to remove false precision
 		$CCH_elevationInMeters = "$elevationInMeters m";
 	}
-	else {
-		&log_change("Elevation\tCheck: '$verbatimElevation' has missing units, is non-numeric, or has typographic errors\t$id");
-		$elevationInFeet = $elevationInMeters="";
-	}	
+	else{
+		$CCH_elevationInMeters = $elevationInFeet = $elevationInMeters="";
+		&log_change("ELEV elevation has missing units, is non-numeric, or has typographic errors(2)==>ELEV: $elevation  ELEV2:$elevHigh  UNITS:$elev_units)\t$id\n");
+	}
+}
+elsif (($elevation =~ m/^0+$/) && (length($elev_units) == 0)){
+		$elevationInFeet = "0";
+		$elevationInMeters = "0";
+		$CCH_elevationInMeters = "$elevationInMeters m";
+}
+elsif (($elevation =~ m/^(1[0-9]{4})$/) && (length($elev_units) == 0)){ #elevations above 4000 in value are feet, by default, do no change elevations below 4000 to feet
+		$elevationInFeet = int($elevation);
+		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+		$CCH_elevationInMeters = "$elevationInMeters m";
+}
+elsif (($elevation =~ m/^(4[0-9]{3})$/) && (length($elev_units) == 0)){ #elevations above 4000 in value are feet, by default, do no change elevations below 4000 to feet
+		$elevationInFeet = int($elevation);
+		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+		$CCH_elevationInMeters = "$elevationInMeters m";
+}
+elsif (($elevation =~ m/^(1[0-9]{4})$/) && ($elev_units =~ m/NULL/)){ #this is a case where the elevation range does not have a unit and NULL is still present from XML parsing
+		$elevationInFeet = int($elevation);
+		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+		$CCH_elevationInMeters = "$elevationInMeters m";
+}
+elsif (($elevation =~ m/^(4[0-9]{3})$/) && ($elev_units =~ m/NULL/)){ #this is a case where the elevation range does not have a unit and NULL is still present from XML parsing
+		$elevationInFeet = int($elevation);
+		$elevationInMeters = int($elevationInFeet / 3.2808); #make it an integer to remove false precision
+		$CCH_elevationInMeters = "$elevationInMeters m";
 }
 else {
-	$CCH_elevationInMeters = "";
-}
-
+		&log_change("ELEV elevation has missing units, is non-numeric, or has typographic errors(3)==>ELEV: $elevation  ELEV2:$elevHigh  UNITS:$elev_units\t$id\n");
+		$elev_units = $CCH_elevationInMeters = $elevationInFeet = $elevationInMeters="";
+}	
 
 #this code was originally in consort_bulkload.pl, but it was moved here so that the county elevation maximum test can be performed on these data, which consort_bulkload.pl does not do
 #this being in consort_bulkload instead of here may be adding to elevation anomalies that have been found in records with no elevations
@@ -1452,29 +1825,6 @@ if (length($CCH_elevationInMeters) == 0){
 				}
 		}
 }
-#old code from consort_bulkload.pl
-#					elsif(m/(\d\d\d\d\d+) f/){
-#						if ($1 > 14500){
-#				print WARNINGS "$hn Elevation skipped $_\n";
-#				next;
-#				}
-#					}
-#					elsif(m/(-\d\d\d+) f/){
-#						if ($1 < -300){
-#				print WARNINGS "$hn Elevation skipped $_\n";
-#				next;
-#				}
-#					}
-#					$S_accession{'loc_elevation'}=$_;
-#				print WARNINGS "$hn Elevation added $_  ($pre_e): $location_field\n";
-#				}
-#			}
-#		}
-
-
-
-
-
 
 #####check to see if elevation exceeds maximum and minimum for each county
 
@@ -1489,6 +1839,20 @@ my $elevation_test = int($elevationInFeet);
 
 #########COORDS, DATUM, ER, SOURCE#########
 #Source is a free text field so no editing required
+my $ellipsoid;
+my $northing;
+my $easting;
+my $zone;
+my $hold;
+my $lat_degrees;
+my $lat_minutes;
+my $lat_seconds;
+my $lat_decimal;
+my $long_degrees;
+my $long_minutes;
+my $long_seconds;
+my $long_decimal;
+my $zone_number;
 my $lat_sum;
 my $long_sum;
 my $Check;
@@ -1715,19 +2079,19 @@ else {
 	}
 
 
-foreach ($latitude, $longitude){
+foreach ($latitude){
 		s/  +/ /g;
 		s/^ +//;
 		s/ +$//;
-		s/^ $//;
+		s/^\s+$//;
 }	
 
 
-foreach ($latitude, $longitude){
+foreach ($longitude){
 		s/  +/ /g;
 		s/^ +//;
 		s/ +$//;
-		s/^\s$//;
+		s/^\s+$//;
 }	
 
 
@@ -1903,10 +2267,82 @@ if((length($latitude) >= 2)  && (length($longitude) >= 3)){
 			$decimalLongitude="";
 		}
 }
-elsif ((length($latitude) == 0) && (length($longitude) == 0)){
-#UTM is not present in these data, skipping conversion of UTM and reporting if there are cases where lat/long is problematic only
-		&log_change("COORDINATE: No coordinates for $id\n");
-		$decimalLatitude = $decimalLongitude = $georeferenceSource = $datum = "";
+elsif(($latitude==0  && $longitude==0)){
+	$datum = $georeferenceSource = $decimalLatitude = $decimalLongitude = "";
+	&log_change("COORDINATE entered as '0', changed to NULL $id\n");
+}
+elsif ((length($latitude) == 0) || (length($longitude) == 0)){
+		#some coordinates are entered with the value of 0, so the basic coordinate parser had to be modified
+		
+		$UTME = int($UTME); #make it an integer because the converter cannot handle decimal UTM
+		$UTMN = int($UTMN); #make it an integer because the converter cannot handle decimal UTM
+		
+			&log_change("COORDINATE Lat & Long null but UTM is present, checking for valid coordinates: $UTME, $UTMN, $zone, $id\n");
+		
+		#process zone fields
+			if((length($zone) == 0) && ($locality =~ m/(San Miguel Island|Santa Rosa Island)/i)){
+				$zone = "10S"; #Zone for these data are this, using UTMWORLD.gif in DATA directory
+			}
+			elsif ((length($zone) == 0) && ($locality !~ m/(San Miguel Island|Santa Rosa Island)/i)){
+			#set zone based on county boundary, rough estimate, but better than nothing since most UTM's do not include zone and row on plant specimens
+				if($county =~ m/(Ensenada)/){
+					$zone = "11R"; #Zone for these estimated using GIS overlay, not exact, some will fall outside this zone
+				}
+				elsif($county =~ m/(Del Norte|Siskiyou|Modoc|Lassen|Shasta|Tehama|Trinity|Humboldt)/){
+					$zone = "10T";
+				}
+				elsif($county =~ m/(Rosarito, Playas de|Tecate|Tijuana|Alpine|Fresno|Imperial|Inyo|Kern|Kings|Los Angeles|Madera|Mariposa|Mono|Orange|Riverside|San Bernardino|San Diego|Ventura|Tuolumne)/){
+					$zone = "11S";
+				}
+				elsif($county =~ m/(Alameda|Amador|Butte|Calaveras|Colusa|Contra Costa|El Dorado|Glenn|Lake|Marin|Mendocino|Merced|Monterey|Napa|Nevada|Placer|Plumas|Sacramento|San Benito|San Francisco|San Joaquin|San Luis Obispo|San Mateo|Santa Barbara|Santa Clara|Santa Cruz|Sierra|Solano|Sonoma|Stanislaus|Sutter|Tulare|Yolo|Yuba)/){
+					$zone = "10S";
+				}
+				elsif($county =~ m/(Mexicali|Unknown)/){
+					$zone = ""; #Mexicali is in a small part of CA-FP Baja and it has sections in two zones, so UTM without zone is not convertable
+				}
+				else{
+					&log_change("COORDINATE UTM Zone cannot be determined: $id");
+					$zone = "";
+				}
+			}
+			else{
+				#do nothing
+			}
+			
+		if ((length($UTME) >=6 ) && (length($UTMN) >=6 )){
+#leading zeros need to be removed before this step
+#Northing is always one digit more than easting. sometimes they are apparently switched around.
+			if (($UTME =~ m/^\d{7}/) && ($UTMN =~ /^\d{6}/)){
+					$easting = $UTMN;
+					$northing = $UTME;
+					&log_change("COORDINATE UTM coordinates apparently reversed; switching northing with easting: $id");
+					#calculate lat long from UTM
+					($decimalLatitude,$decimalLongitude)=utm_to_latlon(23,$zone,$easting,$northing);
+					&log_change("Decimal degrees derived from UTM for $id: $decimalLatitude, $decimalLongitude");
+					$georeferenceSource = "UTM conversion by CCH loading script";
+			}
+			elsif (($UTMN =~ m/^\d{7}/) && ($UTME =~ /^\d{6}$/)){
+					$easting = $UTME;
+					$northing = $UTMN;
+					#calculate lat long from UTM
+					($decimalLatitude,$decimalLongitude)=utm_to_latlon(23,$zone,$easting,$northing);
+					&log_change("Decimal degrees derived from UTM for $id: $decimalLatitude, $decimalLongitude");
+					$georeferenceSource = "UTM conversion by CCH loading script";
+			}
+			else{
+				&log_change("COORDINATE 11a) Poorly formatted UTM coordinates, Lat & Long nulled: $UTME, $UTMN, $zone, $id\n");
+				$northing = $easting = $decimalLatitude = $decimalLongitude = $georeferenceSource = $datum = "";
+			}
+
+		}
+		elsif ((length($UTME) == 0) && (length($UTMN) == 0)){
+			$northing = $easting = $decimalLatitude = $decimalLongitude = $georeferenceSource = $datum = "";
+			&log_change("COORDINATE coordinates NULL for $id\n");
+		}
+		else{
+				&log_change("COORDINATE 11b) Poorly formatted UTM coordinates, Lat & Long nulled: $UTME, $UTMN, $zone, $id\n");
+				$northing = $easting = $decimalLatitude = $decimalLongitude = $georeferenceSource = $datum = "";
+		}
 }
 else {
 			&log_change("COORDINATE poorly formatted or non-numeric coordinates for $id: ($verbatimLatitude) \t($verbatimLongitude)\n");
@@ -1916,35 +2352,26 @@ else {
 
 
 #check datum
-if(($lat_degrees=~/\d/ && $long_degrees=~/\d/)){ #If decLat and decLong are digits
-	if ($datum){ #report is datum is present
+if(($decimalLatitude=~/\d/  || $decimalLongitude=~/\d/)){ #If decLat and decLong are both digits
+	#$datum = "not recorded"; #use this only if datum are blank, set it for records with coords
+#$coordinateUncertaintyInMeters none in these data
+#$UncertaintyUnits none in these data
+foreach ($datum){
 		s/WGS 1984/WGS84/g;
 		s/NAD 1927/NAD27/;
 		s/NAD 1983/NAD83/g;
 		s/  +/ /g;
-		s/NULL/not recorded/g;
+		s/NULL//g;
 		s/^ +//g;
 		s/ +$//g;
+}
 
-	}
-	else {
-		$datum = "not recorded"; #use this only if datum are blank, set it for records with coords
-	}
+		unless ($datum){
+		$datum = "not recorded"; #use this only if datum are blank, set it for only records with coords
+		}
+
 }	
 
-#check georeference source
-if ((length($lat_degrees) >= 1) && (length($long_degrees) >= 1) && (length($georeferenceSource) == 0)){
-	$georeferenceSource = $LatLongAdded;
-		if($LatLongAdded=~m/yes/i){
-			$georeferenceSource="Coordinates added by herbarium, DMS conversion by CCH loading script";
-		}
-		elsif($LatLongAdded=~m/no/i){
-			$georeferenceSource="Coordinates from specimen label, DMS conversion by CCH loading script";
-		}
-		else{
-			$georeferenceSource="";
-		}
-}
 
 #final check of Longitude
 
@@ -1969,6 +2396,7 @@ if((length($decimalLatitude) >= 2)  && (length($decimalLongitude) >= 3)){
 }
 else{
 		if((length($decimalLatitude) == 0)  && (length($decimalLongitude) == 0)){
+			$decimalLatitude = $decimalLongitude = $datum = $georeferenceSource = "";
 			#do nothing, NULL reported elsewhere above, this is done to shorten the error log
 		}
 		else{
@@ -1977,25 +2405,33 @@ else{
 		}
 }
 	
+foreach ($coordinateUncertainty){
+	s/NULL//g;
+	s/  +/ /g;
+	s/^ +//g;
+	s/ +$//g;
+}
 
-foreach ($errorRadius){
-	s/NULL//;
-	s/  +/ /g;
-	s/,//g;
-	s/^ +//g;
-	s/ +$//g;
-}
-foreach ($errorRadiusUnits){
-	s/NULL//;
-	s/  +/ /g;
-	s/\.//g;
-	s/^ +//g;
-	s/ +$//g;
-}
+		if(length($coordinateUncertainty) == 0){
+			$coordinateUncertaintyInMeters = "";
+			$coordinateUncertaintyUnits = "";
+			#do nothing, NULL reported elsewhere above, this is done to shorten the error log
+		}
+		else{
+			if ($coordinateUncertainty =~ m/(\d+) +([A-Za-z]+)/){
+				$coordinateUncertaintyInMeters = $1;
+				$coordinateUncertaintyUnits = $2;
+			}
+			else{
+				$coordinateUncertaintyInMeters = $coordinateUncertainty;
+				&log_change("COORDINATE uncertainty value or units problems for $id==>$coordinateUncertainty\n");
+				$coordinateUncertaintyUnits = "";
+			}
+		}
 
 ##############TRS
 foreach($TRS){
-	s/NULL//;
+	s/NULL//g;
 	s/,/ /g;
 	s/\./ /g;
 	s/[Ss]ecf/Sec/g;
@@ -2021,36 +2457,8 @@ warn "$count\n" unless $count % 10000;
 #Macromorphology, including abundance
 my $note_string;
 
-foreach ($occurrenceRemarks){
-	s/NULL//;
-	s/ ssp / subsp. /g;
-	s/ ssp. / subsp. /g;
-	s/ var / var. /g;
-
-	s/ [xX×] / X /;	#change  " x " or " X " to the multiplication sign
-	s/×/X /;
-	s/  +/ /g;
-	s/^ +//g;
-	s/ +$//g;
-	s/'$//;
-	
-}
-
-my $habitat_rev;
-
-if($occurrenceRemarks=~s/^(.*[;.]) *([Aa]ssociate.*)//){
-	$associatedTaxa=$2;
-	$habitat_rev=$1
-}
-elsif($occurrenceRemarks=~s/^(.*[;.]) *([Dd]ominant.*)//){
-	$associatedTaxa=$2;
-	$habitat_rev=$1
-}
-else {$associatedTaxa="";
-}
-
-foreach ($associatedTaxa){
-
+foreach ($habitat){
+	s/NULL//g;
 	s/"//g;
 	s/ ssp / subsp. /g;
 	s/ ssp. / subsp. /g;
@@ -2061,45 +2469,18 @@ foreach ($associatedTaxa){
 	s/^ +//g;
 	s/ +$//g;
 }
-foreach ($habitat_rev){
-
-	s/"//g;
-		s/'$//;
-		s/  +/ /g;
-}
-
 
 foreach ($informationWithheld){
-	s/NULL//;
+	s/NULL//g;
 	s/'$//g;
 	s/  +/ /g;
 	s/^ +//;
 	s/ +$//;
 }
 
-foreach ($other){
-	s/NULL//;
-	s/  +/ /g;
-	s/^ +//g;
-	s/ +$//g;
-}
-
 #format note_string correctly
-	if ((length($informationWithheld) >= 1) && (length($other) == 0)){
+	if (length($informationWithheld) >= 1){
 		$note_string="$informationWithheld";
-	}
-	elsif ((length($informationWithheld) == 0) && (length($other) >= 1)){
-		$note_string="Other Notes: $other";
-	}
-	elsif ((length($informationWithheld) >= 1) && (length($other) >= 1)){
-		$note_string="$informationWithheld| Other Notes: $other";
-	}
-	elsif ((length($informationWithheld) == 0) && (length($other) == 0)){
-		$note_string="";
-	}
-	else{
-		&log_change("NOTES: problem with notes field\t$id($informationWithheld| Other Notes: $other");
-		$note_string="";
 	}
 
             print OUT <<EOP;
@@ -2120,22 +2501,23 @@ Country: $country
 State: $stateProvince
 County: $county
 Location: $locality
-Habitat: $habitat_rev
-Associated_species: $associatedTaxa)
+Habitat: $habitat
+Associated_species:
 T/R/Section: $TRS
 USGS_Quadrangle: $topo_quad
-UTM: 
+UTM: $zone $UTME $UTMN
 Decimal_latitude: $decimalLatitude
 Decimal_longitude: $decimalLongitude
 Datum: $datum
 Lat_long_ref_source: $georeferenceSource
-Max_error_distance: $errorRadius
-Max_error_units: $errorRadiusUnits
+Max_error_distance: $coordinateUncertaintyInMeters
+Max_error_units: $coordinateUncertaintyUnits
 Elevation: $CCH_elevationInMeters
 Verbatim_elevation: $verbatimElevation
-Verbatim_county: $tempCounty
+Verbatim_county: $verbatimCounty
 Notes: $note_string
 Cultivated: $cultivated
+Type_status: $typeStatus
 Hybrid_annotation: $hybrid_annotation
 Annotation: $det_string
 EOP
@@ -2208,17 +2590,6 @@ close(IN);
 	
 ################SUBROUTINES#############
 #original XML file does not have line for fields with no data, these sub's add NULL values for records that do not contain a line for a field, thus producing a table with values (NULL or the original value) in every field for processing
-sub get_cult {#this section is added for the cultivated processing by adding this line using search and replace after each "<CurrentName_with_all_fields>"
-#<CULT>N</CULT>
-		my $par = shift;
-		
-	if($par=~/<CULT>(.*)<\/CULT>/){
-			return $1;
-		}
-	else{
-		return "NULL";
-	}		
-}
 sub get_accession {
 #<Accession>114905</Accession>
 		my $par = shift;
@@ -2245,7 +2616,7 @@ sub get_genus {
 #<CGenus>Amelanchier</CGenus>	
 		my $par = shift;
 
-	if($par=~/<Genus>(.*)<\/Genus>/){
+	if($par=~/<Genus>([^<]+)<\/Genus>/){
 		return $1;
 	}		
 	else{
@@ -2254,10 +2625,10 @@ sub get_genus {
 			
 }
 sub get_species {
-#<CSpecificEpithet>utahensis</CSpecificEpithet>	
+#<SpecificEpithet>utahensis</SpecificEpithet>	
 		my $par = shift;
 
-	if($par=~/<SpecificEpithet>(.*)<\/SpecificEpithet>/){
+	if($par=~/<SpecificEpithet>([^<]+)<\/SpecificEpithet>/){
 		return $1;
 	}		
 	else{
@@ -2266,10 +2637,10 @@ sub get_species {
 			
 }
 sub get_rank {
-#<CRank>ssp.</CRank>	
+#<Rank>ssp.</Rank>	
 		my $par = shift;
 
-		if($par=~/<Rank>(.*)<\/Rank>/){
+		if($par=~/<Rank>([^<]+)<\/Rank>/){
 		return $1;
 	}		
 	else{
@@ -2278,10 +2649,10 @@ sub get_rank {
 			
 }
 sub get_subtaxon {
-#<CInfraspecificName>montevidensis</CInfraspecificName>	
+#<InfraspecificName>montevidensis</InfraspecificName>	
 		my $par = shift;
 
-	if($par=~/<InfraspecificName>(.*)<\/InfraspecificName>/){
+	if($par=~/<InfraspecificName>([^<]+)<\/InfraspecificName>/){
 		return $1;
 	}		
 	else{
@@ -2289,11 +2660,48 @@ sub get_subtaxon {
 	}		
 			
 }
+sub get_hybridgenus {
+#<HybridGenus>Juglans</HybridGenus>	
+		my $par = shift;
+
+	if($par=~/<HybridGenus>([^<]+)<\/HybridGenus>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_hybrid_epithet {
+#<hybridspp1>hindsii</hybridspp1>
+		my $par = shift;
+
+	if($par=~/<hybridspp1>([^<]+)<\/hybridspp1>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_hybrid_epithet2 {
+#<hybridspp2>californica</hybridspp2>
+		my $par = shift;
+
+	if($par=~/<hybridspp2>([^<]+)<\/hybridspp2>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+
 sub get_collector {
 #<Collector>D.G. Kelch</Collector>
 		my $par = shift;
 
-	if($par=~/<Collector>(.*)<\/Collector>/){
+	if($par=~/<Collector>([^<]+)<\/Collector>/){
 		return $1;
 	}		
 	else{
@@ -2305,7 +2713,7 @@ sub get_other_coll {
 #<MoreCollectors>D. L. Haws</MoreCollectors>
 		my $par = shift;
 
-	if($par=~/<MoreCollectors>(.*)<\/MoreCollectors>/){
+	if($par=~/<MoreCollectors>([^<]+)<\/MoreCollectors>/){
 		return $1;
 	}		
 	else{
@@ -2317,7 +2725,31 @@ sub get_recordNumber {
 #<CollectionNumber>11510</CollectionNumber>
 		my $par = shift;
 
-	if($par=~/<CollectionNumber>(.*)<\/CollectionNumber>/){
+	if($par=~/<CollectionNumber>([^<]+)<\/CollectionNumber>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_prefix {
+#<Prefix>LP-</Prefix>
+		my $par = shift;
+
+	if($par=~/<Prefix>([^<]+)<\/Prefix>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_suffix {
+#<Suffix>-A</Suffix>
+		my $par = shift;
+
+	if($par=~/<Suffix>([^<]+)<\/Suffix>/){
 		return $1;
 	}		
 	else{
@@ -2330,7 +2762,7 @@ sub get_verbatim_eventDate {
 		my $par = shift;
 		my $fix;
 
-	if($par=~/<Date>(.*)<\/Date>/){
+	if($par=~/<Date>([^<]+)<\/Date>/){
 		$fix = $1;
 		$fix =~ s/\s+/ /g; #fix cases where there is a tab in the middle of this field data that is messing with parsing
 		return $fix;
@@ -2344,7 +2776,7 @@ sub get_eventDate {
 #<CorrectedDate>1957-08-20T00:00:00</CorrectedDate>
 		my $par = shift;
 
-	if($par=~/<CorrectedDate>(.*)<\/CorrectedDate>/){
+	if($par=~/<CorrectedDate>([^<]+)<\/CorrectedDate>/){
 		return $1;
 	}		
 	else{
@@ -2356,7 +2788,7 @@ sub get_country {
 #<GeoPrimaryDivision>United States</GeoPrimaryDivision>
 		my $par = shift;
 
-	if($par=~/<GeoPrimaryDivision>(.*)<\/GeoPrimaryDivision>/){
+	if($par=~/<GeoPrimaryDivision>([^<]+)<\/GeoPrimaryDivision>/){
 		return $1;
 	}		
 	else{
@@ -2368,7 +2800,7 @@ sub get_stateProvince {
 #<GeoSecondaryDivision>United States</GeoSecondaryDivision>
 		my $par = shift;
 
-	if($par=~/<GeoSecondaryDivision>(.*)<\/GeoSecondaryDivision>/){
+	if($par=~/<GeoSecondaryDivision>([^<]+)<\/GeoSecondaryDivision>/){
 		return $1;
 	}		
 	else{
@@ -2380,7 +2812,7 @@ sub get_county {
 #<GeoTertiaryDivision>San Francisco</GeoTertiaryDivision>
 		my $par = shift;
 
-	if($par=~/<GeoTertiaryDivision>(.*)<\/GeoTertiaryDivision>/){
+	if($par=~/<GeoTertiaryDivision>([^<]+)<\/GeoTertiaryDivision>/){
 		return $1;
 	}		
 	else{
@@ -2392,7 +2824,7 @@ sub get_TRS {
 #<TownshipAndRange>T33N  R04W S24</TownshipAndRange>
 		my $par = shift;
 
-	if($par=~/<TownshipAndRange>(.*)<\/TownshipAndRange>/){
+	if($par=~/<TownshipAndRange>([^<]+)<\/TownshipAndRange>/){
 		return $1;
 	}		
 	else{
@@ -2404,7 +2836,19 @@ sub get_elevation {
 #<Elevation>366</Elevation>
 		my $par = shift;
 
-	if($par=~/<Elevation>(.*)<\/Elevation>/){
+	if($par=~/<Elevation>([^<]+)<\/Elevation>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_elevationHigh {
+#<Elevation2>366</Elevation2>
+		my $par = shift;
+
+	if($par=~/<Elevation2>([^<]+)<\/Elevation2>/){
 		return $1;
 	}		
 	else{
@@ -2416,7 +2860,7 @@ sub get_elev_units {
 #<ElevationUnits>ft.</ElevationUnits>
 		my $par = shift;
 
-	if($par=~/<ElevationUnits>(.*)<\/ElevationUnits>/){
+	if($par=~/<ElevationUnits>([^<]+)<\/ElevationUnits>/){
 		return $1;
 	}		
 	else{
@@ -2429,7 +2873,7 @@ sub get_locality {
 		my $par = shift;
 		my $fix;
 
-	if($par=~/<Locality>(.*)<\/Locality>/){
+	if($par=~/<Locality>([^<]+)<\/Locality>/){
 		$fix = $1;
 		$fix =~ s/\s+/ /g; #fix cases where there is a tab in the middle of this field data that is messing with parsing
 		return $fix;
@@ -2443,7 +2887,7 @@ sub get_lat_dec {
 #<LatitudeDecimal>38.5024999999441</LatitudeDecimal>
 		my $par = shift;
 
-	if($par=~/<LatitudeDecimal>(.*)<\/LatitudeDecimal>/){
+	if($par=~/<LatitudeDecimal>([^<]+)<\/LatitudeDecimal>/){
 		return $1;
 	}		
 	else{
@@ -2455,7 +2899,7 @@ sub get_long_dec {
 #<LongitudeDecimal>-122.099444444602</LongitudeDecimal>
 		my $par = shift;
 
-	if($par=~/<LongitudeDecimal>(.*)<\/LongitudeDecimal>/){
+	if($par=~/<LongitudeDecimal>([^<]+)<\/LongitudeDecimal>/){
 		return $1;
 	}		
 	else{
@@ -2467,7 +2911,7 @@ sub get_lat_degrees {
 #<LatitudeDegree>39</LatitudeDegree>
 		my $par = shift;
 
-	if($par=~/<LatitudeDegree>(.*)<\/LatitudeDegree>/){
+	if($par=~/<LatitudeDegree>([^<]+)<\/LatitudeDegree>/){
 		return $1;
 	}		
 	else{
@@ -2479,7 +2923,7 @@ sub get_lat_minutes {
 #<LatitudeMinutes>10</LatitudeMinutes>
 		my $par = shift;
 
-	if($par=~/<LatitudeMinutes>(.*)<\/LatitudeMinutes>/){
+	if($par=~/<LatitudeMinutes>([^<]+)<\/LatitudeMinutes>/){
 		return $1;
 	}		
 	else{
@@ -2491,7 +2935,7 @@ sub get_lat_seconds {
 #LatitudeSeconds>1</LatitudeSeconds>
 		my $par = shift;
 
-	if($par=~/<LatitudeSeconds>(.*)<\/LatitudeSeconds>/){
+	if($par=~/<LatitudeSeconds>([^<]+)<\/LatitudeSeconds>/){
 		return $1;
 	}		
 	else{
@@ -2503,7 +2947,7 @@ sub get_lat_dir {
 #<LatitudeDirection>N</LatitudeDirection>
 		my $par = shift;
 
-	if($par=~/<LatitudeDirection>(.*)<\/LatitudeDirection>/){
+	if($par=~/<LatitudeDirection>([^<]+)<\/LatitudeDirection>/){
 		return $1;
 	}		
 	else{
@@ -2515,7 +2959,7 @@ sub get_long_degrees {
 #<LongitudeDegree>122</LongitudeDegree>
 		my $par = shift;
 
-	if($par=~/<LongitudeDegree>(.*)<\/LongitudeDegree>/){
+	if($par=~/<LongitudeDegree>([^<]+)<\/LongitudeDegree>/){
 		return $1;
 	}		
 	else{
@@ -2527,7 +2971,7 @@ sub get_long_minutes {
 #<LongitudeMinutes>31</LongitudeMinutes>
 		my $par = shift;
 
-	if($par=~/<LongitudeMinutes>(.*)<\/LongitudeMinutes>/){
+	if($par=~/<LongitudeMinutes>([^<]+)<\/LongitudeMinutes>/){
 		return $1;
 	}		
 	else{
@@ -2539,7 +2983,7 @@ sub get_long_seconds {
 #<LongitudeSeconds>44</LongitudeSeconds>
 		my $par = shift;
 
-	if($par=~/<LongitudeSeconds>(.*)<\/LongitudeSeconds>/){
+	if($par=~/<LongitudeSeconds>([^<]+)<\/LongitudeSeconds>/){
 		return $1;
 	}		
 	else{
@@ -2551,7 +2995,7 @@ sub get_long_dir {
 #<LongitudeDirection>W</LongitudeDirection>
 		my $par = shift;
 
-	if($par=~/<LongitudeDirection>(.*)<\/LongitudeDirection>/){
+	if($par=~/<LongitudeDirection>([^<]+)<\/LongitudeDirection>/){
 		return $1;
 	}		
 	else{
@@ -2561,21 +3005,25 @@ sub get_long_dir {
 }
 sub get_datum {
 #<LatLongDatum>NAD 1983</LatLongDatum>
+#<Datum>NAD83</Datum>
 		my $par = shift;
 
-	if($par=~/<LatLongDatum>(.*)<\/LatLongDatum>/){
+	if($par=~/<LatLongDatum>([^<]+)<\/LatLongDatum>/){
 		return $1;
 	}		
+	elsif($par=~/<Datum>([^<]+)<\/Datum>/){
+		return $1;
+	}
 	else{
 		return "NULL";
 	}		
 			
 }
 sub get_errorRadius {
-#<LatLongPrecision>0.25</LatLongPrecision>
+#<LatLongPrecision>0.25</LatLongPrecision>#no longer a field in 2018
 		my $par = shift;
 
-	if($par=~/<LatLongPrecision>(.*)<\/LatLongPrecision>/){
+	if($par=~/<LatLongPrecision>([^<]+)<\/LatLongPrecision>/){
 		return $1;
 	}		
 	else{
@@ -2584,10 +3032,22 @@ sub get_errorRadius {
 			
 }
 sub get_errorRadiusUnits {
-#<LatLongPrecisionUnits>mi.</LatLongPrecisionUnits>
+#<LatLongPrecisionUnits>mi.</LatLongPrecisionUnits>#no longer a field in 2018
 		my $par = shift;
 
-	if($par=~/<LatLongPrecisionUnits>(.*)<\/LatLongPrecisionUnits>/){
+	if($par=~/<LatLongPrecisionUnits>([^<]+)<\/LatLongPrecisionUnits>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_coordinateUncertainty {
+#<LatLongPrecision>0.25</LatLongPrecision>
+		my $par = shift;
+
+	if($par=~/<LatLongPrecision>([^<]+)<\/LatLongPrecision>/){
 		return $1;
 	}		
 	else{
@@ -2596,10 +3056,10 @@ sub get_errorRadiusUnits {
 			
 }
 sub get_LatLongAdded {
-#<LatLongAddedCheck>yes</LatLongAddedCheck>
+#<LatLongAddedCheck>yes</LatLongAddedCheck>#no longer a field in 2018
 		my $par = shift;
 
-	if($par=~/<LatLongAddedCheck>(.*)<\/LatLongAddedCheck>/){
+	if($par=~/<LatLongAddedCheck>([^<]+)<\/LatLongAddedCheck>/){
 		return $1;
 	}		
 	else{
@@ -2611,7 +3071,7 @@ sub get_topo_quad {
 #<USGSQuadrangle>Kettle Peak</USGSQuadrangle>
 		my $par = shift;
 
-	if($par=~/<USGSQuadrangle>(.*)<\/USGSQuadrangle>/){
+	if($par=~/<USGSQuadrangle>([^<]+)<\/USGSQuadrangle>/){
 		return $1;
 	}		
 	else{
@@ -2619,7 +3079,7 @@ sub get_topo_quad {
 	}		
 			
 }
-sub get_notes { 
+sub get_habitat { 
 #made into notes field, this is not just habitat or ecology, 
 #it is associates, macromorphology, plant description, population biology, habitat, and general notes all combined  
 #in one field of multiple sentences and phrases, separated by punctuation, mostly periods and spaces
@@ -2627,7 +3087,7 @@ sub get_notes {
 		my $par = shift;
 		my $fix;
 
-	if($par=~/<Ecology>(.*)<\/Ecology>/){
+	if($par=~/<Ecology>([^<]+)<\/Ecology>/){
 		$fix = $1;
 		$fix =~ s/\s+/ /g; #fix cases where there is a tab in the middle of this field data that is messing with parsing
 		return $fix;
@@ -2638,11 +3098,12 @@ sub get_notes {
 			
 }
 sub get_other { 
+#no longer a field in 2018
 #misc. information about the label and where the specimen came from, not a typical notes field, placed in Other_data herein 
 #<Notes>Label says: California Academy of Sciences.</Notes>
 		my $par = shift;
 
-	if($par=~/<Notes>(.*)<\/Notes>/){
+	if($par=~/<Notes>([^<]+)<\/Notes>/){
 		return $1;
 	}		
 	else{
@@ -2652,10 +3113,10 @@ sub get_other {
 }
 
 sub get_AnnoRank { 
-#<AnnoYesNo>0</AnnoYesNo>
+#<AnnoYesNo>0</AnnoYesNo>#no longer a field in 2018
 		my $par = shift;
 
-	if($par=~/<AnnoYesNo>(.*)<\/AnnoYesNo>/){
+	if($par=~/<AnnoYesNo>([^<]+)<\/AnnoYesNo>/){
 		return $1;
 	}		
 	else{
@@ -2667,7 +3128,7 @@ sub get_identifiedBy {
 #<DeterminedBy>A. O. Tucker</DeterminedBy>
 		my $par = shift;
 
-	if($par=~/<DeterminedBy>(.*)<\/DeterminedBy>/){
+	if($par=~/<DeterminedBy>([^<]+)<\/DeterminedBy>/){
 		return $1;
 	}		
 	else{
@@ -2675,11 +3136,59 @@ sub get_identifiedBy {
 	}		
 			
 }
-sub get_dateIdentified { 
-#<DeterminedDate>2011-09-09T00:00:00</DeterminedDate>
+sub get_dateIdentified {
+#<DeterminedDate>2011-09-09T00:00:00</DeterminedDate>#no longer a field in 2018
 		my $par = shift;
 
-	if($par=~/<DeterminedDate>(.*)<\/DeterminedDate>/){
+	if($par=~/<DeterminedDate>([^<]+)<\/DeterminedDate>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_zone { 
+#<UTMZone>Zone 10</UTMZone>
+		my $par = shift;
+
+	if($par=~/<UTMZone>([^<]+)<\/UTMZone>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_UTME { 
+#<easting>608474</easting>
+		my $par = shift;
+
+	if($par=~/<easting>([^<]+)<\/easting>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_UTMN { 
+#<northing>4559366</northing>
+		my $par = shift;
+
+	if($par=~/<northing>([^<]+)<\/northing>/){
+		return $1;
+	}		
+	else{
+		return "NULL";
+	}		
+			
+}
+sub get_typeStatus { 
+#<TypeStatus>isotype</TypeStatus>
+		my $par = shift;
+
+	if($par=~/<TypeStatus>([^<]+)<\/TypeStatus>/){
 		return $1;
 	}		
 	else{
