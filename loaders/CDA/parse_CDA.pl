@@ -852,6 +852,13 @@ $county=&CCH::format_county($tempCounty,$id);
     }
     
     
+    
+my $verbatimCounty = "";
+#format verbatim county properly
+	if($county !~m/^$tempCounty$/){
+		$verbatimCounty = $tempCounty;
+	}
+    
 ##########LOCALITY#########
 
 foreach ($locality){
@@ -921,13 +928,13 @@ foreach($elevation_units){
 	s/\.//g;
 }
 
-$verbatimElevation = $elevation." ".$elevation_units;
+$verbatimElevation = "$elevation $elevation_units";
 my $elevationAlt;
 my $elevationINT;
 $elevationINT = int($elevation); #there are some elevations that are decimals in these data
-$elevationAlt = $elevationINT.$elevation_units;
+$elevationAlt = "$elevationINT$elevation_units";
 
-if (length($elevation) >= 1){
+if (length($elevationAlt) >= 1){
 
 	if ($elevationAlt =~ m/^(-?[0-9]+)([fFtT]+)/){
 		$elevationInFeet = $1;
@@ -977,12 +984,16 @@ if (length($elevation) >= 1){
 		$CCH_elevationInMeters = "$elevationInMeters m";
 	}
 	else {
-		&log_change("Elevation: elevation '$elevation' has problematic formatting or is missing units==>$elevation_units\t$id");
+		&log_change("ELEV(1): calculated elevation '$elevationAlt'  has problematic formatting or is missing units==>$elevation\t$elevation_units\t$id");
 		$elevationInFeet = $CCH_elevationInMeters = $elevationInMeters = "";
 	}	
 }
-elsif (length($verbatimElevation) == 0){
-		$elevationInFeet = $CCH_elevationInMeters = "";
+elsif (length($elevationAlt) == 0){
+		$elevationInFeet = $CCH_elevationInMeters = $elevationInMeters = "";
+}
+else{
+		&log_change("ELEV(2): calculated elevation '$elevationAlt' has problematic formatting or is missing units==>$elevation\t$elevation_units\t$id");
+		$elevationInFeet = $CCH_elevationInMeters = $elevationInMeters = "";
 }
 
 #this code was originally in consort_bulkload.pl, but it was moved here so that the county elevation maximum test can be performed on these data, which consort_bulkload.pl does not do
@@ -1259,7 +1270,7 @@ foreach ($latitude, $longitude){
 
 
 #fix some problematic records with bad latitude and longitude in home database
-if (($id =~ m/^(CDA42382)$/) && ($verbatimLongitude =~ m/119\./)){ 
+if (($id =~ m/^(CDA42382)$/) && ($verbatimLongitude =~ m/119[ .]+/)){ 
 	$latitude = "39.815";
 	$longitude = "-121.4748";
 	$georeferenceSource = "DMS conversion by CCH loading script"
@@ -1267,7 +1278,7 @@ if (($id =~ m/^(CDA42382)$/) && ($verbatimLongitude =~ m/119\./)){
 	#the original is in error and maps Nevada, W of Reno 39	27	48.6	N	119	52	58.1	W
 }
 
-if (($id =~ m/^(CDA43423|CDA42423|CDA42424|CDA42421|CDA42422|CDA42425|CDA43419)$/) && ($verbatimLongitude =~ m/119\./)){ 
+if (($id =~ m/^(CDA43423|CDA42423|CDA42424|CDA42421|CDA42422|CDA42425|CDA43419)$/) && ($verbatimLongitude =~ m/119[ .]+/)){ 
 	$latitude = "39.7933";
 	$longitude = "-121.4535";
 	$georeferenceSource = "DMS conversion by CCH loading script"
@@ -1442,11 +1453,11 @@ if((length($latitude) >= 2)  && (length($longitude) >= 3)){
 elsif ((length($latitude) == 0) && (length($longitude) == 0)){ 
 #UTM is not present in these data, skipping conversion of UTM and reporting if there are cases where lat/long is problematic only
 		&log_change("COORDINATE: No coordinates for $id\n");
-		$decimalLatitude = $decimalLongitude = $georeferenceSource = "";
+		$decimalLatitude = $decimalLongitude = $georeferenceSource = $datum = "";
 }
 else {
 			&log_change("COORDINATE poorly formatted or non-numeric coordinates for $id: ($verbatimLatitude) \t($verbatimLongitude)\n");
-			$decimalLatitude = $decimalLongitude = $datum = $georeferenceSource = "";
+			$decimalLatitude = $decimalLongitude = $datum = $georeferenceSource = $datum = "";
 }
 
 
@@ -1548,7 +1559,7 @@ Max_error_distance:
 Max_error_units:
 Elevation: $CCH_elevationInMeters
 Verbatim_elevation: $verbatimElevation
-Verbatim_county: $tempCounty
+Verbatim_county: $verbatimCounty
 Notes: $occurrenceRemarks
 Cultivated: $cultivated
 Hybrid_annotation: $hybrid_annotation

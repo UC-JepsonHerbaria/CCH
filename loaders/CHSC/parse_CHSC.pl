@@ -894,8 +894,44 @@ my $formatEventDate;
 		&log_change("DATE: Bad DATE, Check date format\t$verbatimEventDate\t--\t$id");
 		$eventDate = "";
 	}
+
+#fix some really problematic date records
+	if(($id=~/^(CHSC111053)$/) && ($eventDate=~/1086-05-04/)){ 
+		$eventDate="1986-05-04";
+		&log_change("Date problem, verbatim date does not match formatted date, year modified from 1086 to 1986: $eventDate==>$verbatimEventDate\t$id\n");	
+	}
+	if(($id=~/^(CHSC117564)$/) && ($eventDate=~/0216-07-09/)){ 
+		$eventDate="2016-07-09";
+		&log_change("Date problem, verbatim date does not match formatted date, year modified from 0216 to 2016: $eventDate==>$verbatimEventDate\t$id\n");	
+	}
+	if(($id=~/^(CHSC117665)$/) && ($eventDate=~/0216-08-30/)){ 
+		$eventDate="2016-08-30";
+		&log_change("Date problem, verbatim date does not match formatted date, year modified from 0216 to 2016: $eventDate==>$verbatimEventDate\t$id\n");	
+	}
+	if(($id=~/^(CHSC70328)$/) && ($eventDate=~/1072-05-19/)){ 
+		$eventDate="1972-05-19";
+		&log_change("Date problem, verbatim date does not match formatted date, year modified from 1072 to 1972: $eventDate==>$verbatimEventDate\t$id\n");	
+	}
+
+
+
 #CHSC does not need to convert to YYYY-MM-DD for eventDate and Julian Dates
 #it is in ISO_8601_date, and needs to be checked
+
+
+#6. BAD YEARav1971 Accession: CHSC70114
+#Name: Calystegia occidentalis subsp. fulcrata
+#Date: 2971-07-10
+#EJD: 
+#LJD: 
+
+	foreach ($eventDate){
+		s/2971-07/1971-07/;
+		s/^ +//;
+		s/ +$//;
+		s/  +/ /;
+	}
+
 
 $formatEventDate = $eventDate;
 ($YYYY, $MM, $DD)=&atomize_ISO_8601_date($formatEventDate);
