@@ -92,28 +92,34 @@ tie(%image_location, "BerkeleyDB::Hash", -Filename=>"/usr/local/web/ucjeps_data/
 			grep(s/</&lt;/g,@CDL_fields);
 ($ejdate,$ljdate,$date)=@CDL_fields[5,6,7];
 if($ejdate==$ljdate){
-		($year,$month,$day)=inverse_julian_day($ejdate);
-$formattedDate = "$year-$month-$day";
+		($ejdyear,$ejdmonth,$ejdday)=inverse_julian_day($ejdate);
+$formattedDate = "$ejdyear-$ejdmonth-$ejdday";
 }
 elsif($ljdate - $ejdate > 31){
-		($year,$month,$day)=inverse_julian_day($ejdate);
-$day=0;
-$formattedDate = "$year-$month";
+		($ejdyear,$ejdmonth,$ejdday)=inverse_julian_day($ejdate);
+$ejdday=0;
+$formattedDate = "$ejdyear-$ejdmonth";
 }
 elsif($ljdate - $ejdate > 365){
-		($year,$month,$day)=inverse_julian_day($ejdate);
-$day=0;
-$month=0;
+		($ejdyear,$ejdmonth,$ejdday)=inverse_julian_day($ejdate);
+$ejdday=0;
+$ejdmonth=0;
 $formattedDate = "$year";
 }
 else{
-
+$ejdday = "";
+$ejdyear = "problem";
+$ejdmonth = "";
 $ejdate = "";
 $formattedDate = "";
 };
 
 if($formattedDate =~ m/-4712-/){
-		$formattedDate = ""; #fix problem dates that are not parsing in inverse julian date properly
+$ejdday = "";
+$ejdyear = "problem";
+$ejdmonth = "";
+$ejdate = "";
+$formattedDate = ""; #fix problem dates that are not parsing in inverse julian date properly
 }
 
 $chc_header=<<EOH;
@@ -933,17 +939,16 @@ $coll_num=$CDL_fields[3];
 
 foreach($collector){
 $collector="W.L. Jepson" if $collector=~/W\. ?L\. ?J\./;
-s/^.*">//;
+s/^.+">//;
 s/<\/a>//;
 s/^([A-Z]. ?)+ (and|&) ([A-Z]. ?)+ ([A-Z][a-z])/$4/;
 s/^([A-Z][a-z]+) (and|&) ([A-Z][a-z]+) ([A-Z][a-z]+)/$4/;
-s/, .*//;
-s/ and .*//;
-s/ & .*//;
-s/ \(?with .*//;
-s! w/ .*!!;
+s/, .+//;
+s/ ?(;|with|and|&) (.+)//;
+s/ \(?with .+//;
+s! w/ .+!!;
 s/,? Jr\.?//;
-s/^.* //;
+s/^.+ //;
 }
 
 if($related){
@@ -968,11 +973,14 @@ EOP
 }
 if($ejdate){
 $related_display.=<<EOP;
-<LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&year=$collyear&month=$collmonth&day=$collday&loc=&coll_num=&max_rec=500&SO=3&YF=$YF">date=$date; collector=$collector</a>
+<LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&collyear=$ejdyear&collmonth=$ejdmonth&collday=$ejdday&loc=&coll_num=&max_rec=500&SO=3&YF=$YF">date=$date; collector=$collector</a>
 EOP
 $related_display.=<<EOP;
-<LI><a href="/cgi-bin/get_consort.pl?county=$county&source=All&taxon_name=&collector=&excl_collector=&aid=&year=$collyear&month=$collmonth&day=$collday&loc=&coll_num=&max_rec=500&SO=0&YF=$YF">date=$date; county=$CDL_fields[8]</a>
+<LI><a href="/cgi-bin/get_consort.pl?county=$county&source=All&taxon_name=&collector=&excl_collector=&aid=&year=$ejdyear&month=$ejdmonth&day=$ejdday&loc=&coll_num=&max_rec=500&SO=0&YF=$YF">date=$date; county=$CDL_fields[8]</a>
+
 EOP
+#<LI><a href="/cgi-bin/get_consort.pl?county=$county&source=All&taxon_name=&collector=&excl_collector=&aid=&year=$ejdyear&month=$ejdmonth&day=$ejdday&loc=&coll_num=&max_rec=500&SO=0&YF=$YF">date=$ejdday $ejdmonth $ejdyear; county=$CDL_fields[8]</a>
+#this above is for testing to see if the ejdate is parsing correctly, substitute it for the line above if there is a problem, of course if the expected values in the search parameters are not present, then there is a problem.
 }
 #<LI><a href="/cgi-bin/x_get_consort.pl?county=$county&source=All&taxon_name=$taxon_name&collector=$collector&excl_collector=yes&aid=&year=&month=0&day=0&loc=&coll_num=&max_rec=500&SO=1">taxon=$TID_TO_NAME{$CDL_fields[0]}; county=$CDL_fields[8]; collector=not $collector</a> N.B. this is slow
 $related_display.=<<EOP;
