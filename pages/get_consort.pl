@@ -13,6 +13,10 @@ $end_time="";
 $before="";
 $bgcount="";
 
+$axxxxx="";
+%CULT_nos=();
+@residue=();
+$cult_id="";
 $stop_word_warning="";
 $search_hints="";
 $because="";
@@ -35,6 +39,7 @@ $last_comments="";
 $v_restrict="";
 $include_nn="";
 $include_vtm="";
+$include_cult="";
 $geo_only="";
 $geo_no="";
 $include_CNPS="";
@@ -85,6 +90,12 @@ $CDL_bad_coords	= "${data_path}all_bad_coords.cch";
  if($query->param('DL')=~/UCR/){
 $riverside=1;
 }
+
+if(!defined ($query->param('collyear'))){
+	$year = "";
+}
+$axxxxx = $query->param('collyear');
+
 
 ###The Yellow Flag field, which comes from the search page
 if($query->param('YF')=~/1/){
@@ -152,7 +163,20 @@ else{
 	$include_vtm=0;
 }
 
-
+###for the cultivated checkbox. List updated by consort_bulkload.pl
+if($query->param('cultivated')){
+	$include_cult=1;
+		open(IN,"${data_path}CDL_cultivated_ids.txt") || die $!;
+	while(<IN>){
+		chomp;
+		($cult_id,@residue)=split(/\t/);
+		$CULT_nos{$cult_id}++;
+	}
+	close(IN);
+}
+else{
+	$include_cult=0;
+}
 
 
 ###fips is used the "County Map" at "get_smasch_county.pl", which uses five digit codes for counties instead of county names.
@@ -227,6 +251,62 @@ else{
 
 $last_comments=$query->param('last_comments') if $query->param('last_comments');
 $make_tax_list=$query->param('make_tax_list') if $query->param('make_tax_list');
+
+my $pers;
+my $nonprofit;
+my $fed;
+my $state;
+my $consult;
+my $profit;
+
+
+#$pers = $query->param('personal') if $query->param('personal');
+#$nonprofit = $query->param('nonprofit') if $query->param('nonprofit');
+#$fed = $query->param('federal') if $query->param('federal');
+#$state = $query->param('state') if $query->param('state');
+#$consult = $query->param('consult') if $query->param('consult');
+#$profit = $query->param('private') if $query->param('private');
+if($query->param('personal')){
+	$pers = $query->param('personal');
+}
+else{
+	$pers = "";
+}
+
+if($query->param('nonprofit')){
+	$nonprofit = $query->param('nonprofit');
+}
+else{
+	$nonprofit = "";
+}
+
+if($query->param('federal')){
+	$fed = $query->param('federal');
+}
+else{
+	$fed = "";
+}
+
+if($query->param('state')){
+	$state = $query->param('state');
+}
+else{
+	$state = "";
+}
+
+if($query->param('consult')){
+	$consult = $query->param('consult');
+}
+else{
+	$consult = "";
+}
+
+if($query->param('private')){
+	$profit = $query->param('private');
+}
+else{
+	$profit = "";
+}
 
 ###This is the "Geographic Region" box. I think I'm going to hide it from the search page for now, and see if anyone misses it
 ###and then maybe lose it
@@ -412,20 +492,41 @@ if($query->param('sort_submit')){
 	$sort_field=$sort_submit{$sort_submit_number};
 }
 
-$year	=$query->param('year') if $query->param('year');
-$month	=$query->param('month') if $query->param('month');
-$day	=$query->param('day') if $query->param('day');
-$loc	=$query->param('loc') if $query->param('loc');
-$ejdate	=$query->param('ejdate') if $query->param('ejdate');
-$before_after	=$query->param('before_after') if $query->param('before_after');
-$before	=$query->param('before') if $query->param('before');
-$check_all	=$query->param('check_all') if $query->param('check_all');
+if($query->param('collyear')){
+	$year = $query->param('collyear');
+}
+else{
+	$year = "";
+}
+
+if($query->param('collmonth')){
+	$month = $query->param('collmonth');
+}
+else{
+	$month = "";
+}
+
+if($query->param('collday')){
+	$day = $query->param('collday');
+}
+else{
+	$day = "";
+}
+
+#$year	= $query->param('year') if $query->param('year');
+#$month	= $query->param('month') if $query->param('month');
+#$day	= $query->param('day') if $query->param('day');
+$loc	= $query->param('loc') if $query->param('loc');
+$ejdate	= $query->param('ejdate') if $query->param('ejdate');
+$before_after	= $query->param('before_after') if $query->param('before_after');
+#$before	=$query->param('before') if $query->param('before');
+$check_all	= $query->param('check_all') if $query->param('check_all');
 
 #Array containing accession_ids of all checked lines in form
-@checked	=$query->param('checked_AID') if $query->param('checked_AID');
-$sugg	=$query->param('sugg') if $query->param('sugg');
-$coll_num	=$query->param('coll_num') if $query->param('coll_num');
-$select_georef	=$query->param('georef_only') || 0;
+@checked	= $query->param('checked_AID') if $query->param('checked_AID');
+$sugg	= $query->param('sugg') if $query->param('sugg');
+$coll_num	= $query->param('coll_num') if $query->param('coll_num');
+$select_georef	= $query->param('georef_only') || 0;
 
 ###check all box
 grep($checked{$_}++,@checked);
@@ -458,7 +559,7 @@ if($query->param('current_request')){
 $current_request=$query->param('current_request');
 }
 else{
-$current_request= qq{/cgi-bin/get_consort.pl?county=$county&source=$req_source&taxon_name=$lookfor&collector=$collector&aid=$aid&year=$year&month=$month&day=$day&loc=$quote_loc&coll_num=$coll_num&max_rec=$max_return&make_tax_list=$make_tax_list&before_after=$before_after&last_comments=$last_comments&VV=$v_restrict&non_native=$include_nn&geo_only=$geo_only&geo_no=$geo_no&CNPS_listed=$include_CNPS&weed=$include_weed&sugg_loc=$sugg_loc$q_coords&tns=$tns&lo_e=$lo_e&hi_e=$hi_e&YF=$YF&VTM=$include_vtm&baja=$include_baja};
+$current_request= qq{/cgi-bin/get_consort.pl?county=$county&source=$req_source&taxon_name=$lookfor&collector=$collector&aid=$aid&year=$year&month=$month&day=$day&loc=$quote_loc&coll_num=$coll_num&max_rec=$max_return&make_tax_list=$make_tax_list&before_after=$before_after&last_comments=$last_comments&VV=$v_restrict&non_native=$include_nn&geo_only=$geo_only&geo_no=$geo_no&CNPS_listed=$include_CNPS&weed=$include_weed&sugg_loc=$sugg_loc$q_coords&tns=$tns&lo_e=$lo_e&hi_e=$hi_e&YF=$YF&VTM=$include_vtm&baja=$include_baja&cultivated=$include_cult};
 }
 
 if($query->param(adj_num)){
@@ -1021,21 +1122,21 @@ if($sort_direction eq "reverse"){
 			else{
 				$bgc="#dddddd" ;
 			}
-	s/‚Äú/"/g;
-	s/À&ouml;/&deg;/g;
+	#s/‚Äú/"/g;
+	#s/À&ouml;/&deg;/g;
 	s/<tr/<tr bgcolor=$bgc/;
-	s/\+\\-/&plusmn;/g;
-	s/¬∫:/&deg;/g;
-	s/¬Ω:/1\/2/g;
-	s/¬º:/1\/4/g;
-	s/√´</&euml;/g;
-	s/¬±:/&plusmn;/g;
-	s/√©:/&eacute;/g;
-	s/\xc3\xa9/&eacute;/g;
-	s/‚Äô/'/g;
-	s/√±o/&ntilde;/g;
-	s/√É¬í/"/g;
-	s/√É¬ì/"/g;
+	#s/\+\\-/&plusmn;/g;
+	#s/¬∫:/&deg;/g;
+	#s/¬Ω:/1\/2/g;
+	#s/¬º:/1\/4/g;
+	#s/√´</&euml;/g;
+	#s/¬±:/&plusmn;/g;
+	#s/√©:/&eacute;/g;
+	#s/\xc3\xa9/&eacute;/g;
+	#s/‚Äô/'/g;
+	#s/√±o/&ntilde;/g;
+	#s/√É¬í/"/g;
+	#s/√É¬ì/"/g;
 	print "$_";
 	}
 $ccview= "<a href=\"/cgi-bin/clone_coords.pl?$current_request\">Clone coords view</a>";
@@ -1046,7 +1147,9 @@ print <<EOP;
 </table></form>
 $consortium_footer
 <!-- Begin footer -->
-$elapsed
+$elapsed<br /><br />
+
+$axxxxx<br />
 
 <?php include($_SERVER['DOCUMENT_ROOT'].'/common/php/cch_footer.php'); ?>
 <!-- End footer -->
@@ -1067,6 +1170,11 @@ $this_search=~s/&amp;/&/g;
 $this_search=~s/[_A-Za-z]+=&//g;
 print SEARCHES $this_search,@dups;
 close(SEARCHES);
+
+open (SURVEY, ">>${data_path}CCH_survey.txt");
+$this_survey= "$ENV{REQUEST_METHOD}\t$start_time\t$pers\t$nonprofit\t$fed\t$state\t$consult\t$profit\n";
+print SURVEY $this_survey;
+close(SURVEY);
 
 }
 
@@ -1119,38 +1227,41 @@ if($sci_name=~/[A-Z][a-z-]+\+[a-z-]+/){
 $interchange_link="<a href=\"/cgi-bin/get_cpn.pl?$sci_name\">More information: Jepson Online Interchange</a>";
 }
 	}
-	if($source){
+	if($query->param('source')){
 		$searched_for .="Source=" .  join(", ",@source);
 		$searched_for .="; ";
 	}
-	if($collector){
+	if($query->param('collector')){
 		$searched_for .="Collector=$collector; ";
 	}
-	if($coll_num){
+	if($query->param('coll_num')){
 		$searched_for .="Collector number=$coll_num; ";
 	}
-	if($aid){
+	if($query->param('accn_num')){
 		$searched_for .="Accession number=$aid; ";
 	}
-	if($year){
+	if($query->param('collyear')){
 		$searched_for .="Year=$year; ";
 	}
-	if($month){
+	if($query->param('collmonth')){
 		$searched_for .="Month=$month; ";
 	}
-	if($day){
+	if($query->param('collday')){
 		$searched_for .="Day=$day; ";
 	}
-	if($loc){
+	if($query->param('loc')){
 		$searched_for .="Locality=$loc; ";
 	}
-	if($include_nn){
+	if($query->param('non_native')){
 		$searched_for .="Return only non-natives; ";
 	}
-	if($include_vtm){
+	if($query->param('cultivated')){
+		$searched_for .="include cultivated specimens; ";
+	}
+	if($query->param('VTM')){
 		$searched_for .="Return only VTM specimens; ";
 	}
-	if($include_weed){
+	if($query->param('weed')){
 		$searched_for .="Return only registered weeds; ";
 	}
 	if($geo_only){
@@ -1159,13 +1270,13 @@ $interchange_link="<a href=\"/cgi-bin/get_cpn.pl?$sci_name\">More information: J
 	if($sugg_loc){
 		$searched_for .="Return specimens with coords in $sugg_loc; ";
 	}
-	if($include_CNPS){
+	if($query->param('CNPS_listed')){
 		$searched_for .="Return taxa from CNPS Inventory; ";
 	}
-	if($make_tax_list){
+	if($query->param('make_tax_list')){
 		$searched_for .="Return name list; ";
 	}
-	if($include_baja){
+	if($query->param('baja')){
 		$searched_for .="Include records from CFP Baja; ";
 	}
 	if($number_of_records > 0){
@@ -1350,8 +1461,15 @@ $CF_search
 &middot;
 <a href="${current_request}&amp;georef_only=1">Select records with coordinates</a><br>
 <input type="submit" value="Retrieve selected records as tab-separated list"> <br>
-<input type="checkbox" name="DL" value="UCR">Include annotations and voucher information <br>
-(Note: contact Jason Alexander, <a href="mailto:jason_alexander&#64;berkeley.edu">jason_alexander&#64;berkeley.edu</a>, for large data requests.)
+<input type="checkbox" name="DL" value="UCR">Include annotations and voucher information <br />
+<br />
+PLEASE NOTE: Due to changes in newer versions of Excel, directly copying text from the above selected results does not produce a usable table.<br />
+&nbsp;&nbsp;&nbsp;&nbsp;Follow these steps:<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. The contents of the selected results window must be copied into a text editor like TextEdit for Mac or WordPad for Windows<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. The selected results must be saved as a new text document.<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. This new text document can now be copied into Excel or imported as a tab delimited text file.<br />
+<br />
+(For large data reqests, please contact Jason Alexander, <a href="mailto:jason_alexander&#64;berkeley.edu">jason_alexander&#64;berkeley.edu</a>.)<br />
 </td></tr>
 </td></tr></table>
 
@@ -1808,6 +1926,12 @@ $fips_string{$CTF{$CDL_fields[8]}}++;
 	if($include_weed){
 		return 0 unless $weed_tid{$CDL_fields[0]};
 	}
+	if($include_cult==1){
+		#include all records, i.e. do nothing
+	}
+	else {
+		return 0 if $CULT_nos{$accession_id};
+	}
 	if($include_baja==1){
 		#include all counties, i.e. do nothing
 	}
@@ -2018,11 +2142,31 @@ $month=0;
 $formattedDate = "$year";
 }
 else{
-$formattedDate = $date;
+#$formattedDate = $date;
+	if (length($ejdate) == 0){
+	 	if ($date =~ m/\d\d?[- ]\d\d?[- ]\d\d?/){ #makes bad dates with unconvertible years 19-04-19   20/5/56   5 7 36   into null values for sorting purposes
+		$formattedDate = "";
+
+		}
+		else{
+			$formattedDate = $date;
+		}
+	}
+	else{
+		$formattedDate = $date;
+	}
+	
 };
 
 if($formattedDate =~ m/-4712-/){
-		$formattedDate = ""; #fix problem dates that are not parsing in inverse julian date properly
+		#$formattedDate = ""; #fix problem dates that are not parsing in inverse julian date properly
+	 	if ($date =~ m/^\d\d?[- ]\d\d?[- ]\d\d?$/){ #makes bad dates with unconvertible years 19-04-19   20/5/56   5 7 36   into null values for sorting purposes
+		$formattedDate = "";
+
+		}
+		else{
+			$formattedDate = $date;
+		}
 }
 
 
@@ -2248,7 +2392,9 @@ $update="Jan 1 2000";
 	return <<EOH;
 
 <!-- Begin footer -->
-$elapsed
+$elapsed<br /><br />
+
+$axxxxx<br />
 <?php include '/common/php/cch_footer.php'); ?>
 <!-- End footer -->
 
