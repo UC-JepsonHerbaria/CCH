@@ -502,6 +502,11 @@ else{
 "45","genbank code",
 "71","U.C. Botanical Garden",
 "72","other",
+"73","verbatim coordinates",
+"75","verbatim elevation",
+"74","verbatim county",
+"88","cultivated specimen"
+
 );
 if(%voucher){
 foreach(sort(keys(%voucher))){
