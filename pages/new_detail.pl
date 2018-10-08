@@ -968,10 +968,10 @@ EOP
 }
 if($ejdate){
 $related_display.=<<EOP;
-<LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&year=$year&month=$month&day=$day&loc=&coll_num=&max_rec=500&SO=3&YF=$YF">date=$date; collector=$collector</a>
+<LI><a href="/cgi-bin/get_consort.pl?county=&source=All&taxon_name=&collector=$collector&excl_collector=&aid=&year=$collyear&month=$collmonth&day=$collday&loc=&coll_num=&max_rec=500&SO=3&YF=$YF">date=$date; collector=$collector</a>
 EOP
 $related_display.=<<EOP;
-<LI><a href="/cgi-bin/get_consort.pl?county=$county&source=All&taxon_name=&collector=&excl_collector=&aid=&year=$year&month=$month&day=$day&loc=&coll_num=&max_rec=500&SO=0&YF=$YF">date=$date; county=$CDL_fields[8]</a>
+<LI><a href="/cgi-bin/get_consort.pl?county=$county&source=All&taxon_name=&collector=&excl_collector=&aid=&year=$collyear&month=$collmonth&day=$collday&loc=&coll_num=&max_rec=500&SO=0&YF=$YF">date=$date; county=$CDL_fields[8]</a>
 EOP
 }
 #<LI><a href="/cgi-bin/x_get_consort.pl?county=$county&source=All&taxon_name=$taxon_name&collector=$collector&excl_collector=yes&aid=&year=&month=0&day=0&loc=&coll_num=&max_rec=500&SO=1">taxon=$TID_TO_NAME{$CDL_fields[0]}; county=$CDL_fields[8]; collector=not $collector</a> N.B. this is slow
@@ -1169,17 +1169,17 @@ my $residue="";
                         s/^([A-Z][a-z]+) and ?([A-Z][a-z-]+) ([A-Z][a-z-]+$)/$3$1$2/ ||
                         s/^([A-Z]\.) ?([A-Z]\.) and ([A-Z]\.) ?([A-Z]\.) (.*)/$5$1$2$3$4/ ||
                         s/^([A-Z]\.) and ([A-Z]\.) (.*)/$3$1$21/ ;
-		if(s/ \((with|and|&) (.*)//){
+		if(s/ \((;|with|and|&) (.+)//){
 $residue=$2;
 }
-		if(s/ ?\(?(with|and|&) (.*)//){
+		if(s/ ?\(?(;|with|and|&) (.+)//){
 $residue=$2;
 }
-		if(s/, (.*)//){
+		if(s/, (.+)//){
 $residue=$1;
 }
-		s/^ *//;
+		s/^ +//;
 		s/(.+) (.+)/$2/;
-s/ .*//g;
+		s/ .+//g;
 $_;
 }
